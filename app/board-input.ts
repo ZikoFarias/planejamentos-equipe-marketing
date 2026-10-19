@@ -1,0 +1,1 @@
+export function horizontalWheel(event:{ctrlKey:boolean,deltaY:number,deltaX:number,preventDefault:()=>void},board:{scrollLeft:number}){if(!event.ctrlKey)return false;event.preventDefault();board.scrollLeft+=event.deltaY||event.deltaX;return true}

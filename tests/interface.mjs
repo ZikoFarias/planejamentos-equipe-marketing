@@ -1,0 +1,7 @@
+import assert from 'node:assert/strict';
+import {horizontalWheel} from '../app/board-input.ts';
+import {previewKind,mediaType,coverFor,MAX_FILE_SIZE,PART_SIZE} from '../app/media.ts';
+const board={scrollLeft:80};let prevented=false;assert.equal(horizontalWheel({ctrlKey:false,deltaY:120,deltaX:0,preventDefault(){prevented=true}},board),false);assert.equal(board.scrollLeft,80);assert.equal(prevented,false);assert.equal(horizontalWheel({ctrlKey:true,deltaY:120,deltaX:0,preventDefault(){prevented=true}},board),true);assert.equal(board.scrollLeft,200);assert(prevented);horizontalWheel({ctrlKey:true,deltaY:-50,deltaX:0,preventDefault(){}},board);assert.equal(board.scrollLeft,150);
+assert.equal(MAX_FILE_SIZE,100*1024*1024);assert.equal(PART_SIZE,8*1024*1024);assert.equal(previewKind({name:'foto.jpg'}),'image');assert.equal(previewKind({name:'video.mp4'}),'video');assert.equal(previewKind({name:'briefing.pdf'}),'pdf');assert.equal(previewKind({name:'projeto.psd'}),'file');assert.equal(previewKind({name:'vetor.svg',type:'image/svg+xml'}),'file');
+const a={name:'capa.jpg',url:'/api/files/id'},b={name:'outra.png',url:'/api/files/id2'};assert.equal(coverFor({attachments:[a,b],coverUrl:b.url}),b);assert.equal(coverFor({attachments:[a,b]}),undefined);assert.equal(coverFor({attachments:[a],coverUrl:b.url}),undefined);
+console.log('PASS: Ctrl + rolagem horizontal e scroll normal, limite 100 MB, prévias por formato e seleção da imagem de capa.');

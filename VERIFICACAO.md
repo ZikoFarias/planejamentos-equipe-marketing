@@ -57,3 +57,16 @@ Os testes usam exclusivamente `http://127.0.0.1:5173` e autenticação simulada 
 - Navegador: cartão fictício criado na área Luiz com Fibroplast; enviado para aprovação; mesmo cartão localizado em “aprovação fibroplast” na área de lançamentos/aprovações.
 - Testes de integração por área continuam verificando isolamento, preservação de tarefas ocultas, visualizador e acesso aos anexos, agora com empresas nas tarefas em aprovação.
 - Nenhuma alteração de esquema ou migração de dados necessária nesta atualização.
+
+## Atualização: janela flutuante, capas e arquivos maiores
+
+- Janela desktop: centro horizontal coincide com o centro da tela; raio de 22 px; blur de 28 px e saturação verificados no navegador.
+- Filtros removidos do DOM; pesquisa no cabeçalho. Primeira área é Lançamentos e aprovações; Visão geral removida.
+- Catálogo de etiquetas selecionáveis, incluindo todas as empresas e etiquetas existentes, verificado na interface. Criação e seleção de “reels” testadas.
+- Subtarefas ausentes da interface; checklist preservado.
+- Título digitado em minúsculas ficou em caixa alta e foi salvo em caixa alta.
+- Upload real de 12 MB em partes passou na API e no seletor de arquivos do navegador. Nenhum arquivo real foi usado no teste.
+- Prévias de duas imagens PNG carregadas (640 px); troca da capa e persistência verificadas. Capa que não pertence aos anexos é rejeitada.
+- Acesso anônimo à prévia bloqueado; requisição parcial retornou 206 e os 16 bytes solicitados. Arquivo maior que 100 MB foi rejeitado na inicialização.
+- Ctrl + roda: lógica do evento verificada em teste automatizado; listener não passivo anexado ao quadro. Rolagem comum não é interceptada.
+- Testes anteriores de isolamento, atribuição, aprovação por empresa, visualizador e proteção dos anexos continuaram passando; a área de Mateus/Lucio agora inclui a produção, conforme solicitado.

@@ -93,3 +93,23 @@ Sem etiqueta de empresa ou com mais de uma empresa, o envio para aprovação é 
 Os status canônicos e suas cores permanecem nos registros e na visão geral. As sete colunas dos designers agrupam esses status na interface; não é necessária uma migração nem apagar tarefas. Para compatibilidade, tarefas antigas em “ideias” aparecem em “a fazer” de Luiz até serem movimentadas.
 
 Testes atuais das regras: `node tests/run-workflow.cjs` (compila e executa as verificações de áreas e de roteamento). O teste de integração continua em `node tests/areas-api.mjs`, exclusivamente na prévia local. Esses comandos substituem a execução direta anterior de `tests/areas.mjs`.
+
+## Ajustes atuais de interface e anexos
+
+Esta seção substitui os limites e a organização visual descritos anteriormente.
+
+- Janela de detalhes centralizada, com bordas arredondadas e vidro fosco; no celular mantém margens e rolagem interna.
+- Navegação: **Lançamentos e aprovações**, **Luiz**, **Farias**. A primeira área reúne todos os cartões e substitui “Visão geral”. Mateus/Lucio recebem essa área completa; Luiz/Farias continuam restritos às próprias tarefas.
+- Busca por título no cabeçalho. Os filtros de responsável, etiqueta, prioridade e prazo foram retirados da interface.
+- Títulos exibidos e editados em caixa alta; novos títulos e tarefas editadas são normalizados no servidor. A descrição e os comentários mantêm sua formatação e caixa originais.
+- Todas as etiquetas já usadas no quadro e as seis empresas são oferecidas como opções de seleção. É possível criar outra etiqueta. Empresas são mutuamente exclusivas para preservar o encaminhamento da aprovação.
+- Subtarefas foram retiradas da interface e dos contadores. O checklist permanece; dados antigos de subtarefas são preservados para evitar perda de conteúdo.
+- Arquivos: **até 100 MB por arquivo**, enviados em partes de 8 MB, com progresso e cancelamento. O envio via formulário legado continua restrito a 10 MB apenas para compatibilidade; a interface atual sempre usa o novo envio em partes.
+- Imagens PNG/JPG/WebP/GIF/AVIF: prévia e escolha da capa. Vídeos MP4/WebM/MOV e PDFs: prévia quando o formato é suportado pelo navegador. PSD, AI, arquivos compactados e outros formatos recebem identificação e link para baixar; não há conversão de arquivos Adobe para imagem nesta versão.
+- A primeira imagem enviada é selecionada como capa automaticamente; é possível mudar ou remover a capa, sem excluir o anexo. A escolha é persistida na tarefa.
+- Downloads e prévias continuam protegidos pelo acesso à tarefa. Arquivos de formatos ativos, como SVG/HTML, não são servidos como prévias incorporadas.
+- **Ctrl + roda do mouse** sobre o quadro movimenta a rolagem horizontal, preservando a rolagem comum quando Ctrl não está pressionado.
+
+O novo upload não requer migração do banco: a propriedade de uploads usa a tabela existente; o estado temporário multipart fica no R2. Um envio cancelado é abortado; envios interrompidos sem cancelamento podem deixar partes pendentes e precisam de política de limpeza no armazenamento.
+
+Testes: `node tests/run-workflow.cjs`, `node tests/areas-api.mjs` e `node tests/polish-api.mjs`. O último usa apenas arquivos fictícios locais, gera automaticamente os fixtures em `.sites-runtime/capa-azul.png` e `.sites-runtime/capa-laranja.png` quando necessário e limpa a tarefa criada ao terminar. A flag `--keep` destina-se exclusivamente à inspeção visual local.
