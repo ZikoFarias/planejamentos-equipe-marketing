@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+const base='http://127.0.0.1:5173',headers={Cookie:'__sites_local_auth=1',Origin:base,'Content-Type':'application/json'};
+const get=async()=>{const r=await fetch(base+'/api/board',{headers});assert.equal(r.status,200);return r.json()};
+const post=async tasks=>{const b=await get();return fetch(base+'/api/board',{method:'POST',headers,body:JSON.stringify({tasks,revision:b.revision})})};
+function actor(role,persona){execFileSync(process.execPath,['--import','./scripts/sites-env.mjs','./node_modules/wrangler/bin/wrangler.js','d1','execute','DB','--local','--config','dist/server/wrangler.json','--persist-to','.wrangler/state','--command',`UPDATE marketing_members SET role='${role}',persona='${persona}' WHERE email='seedy@sites.test'`],{stdio:'pipe',env:{...process.env,CLOUDFLARE_CF_FETCH_ENABLED:'false'}})}
+const task=(id,status,assignees=[])=>({id,title:'[TESTE LOCAL ÁREAS] '+id,status,assignees,tags:[],description:'',priority:'normal',start:'',due:'',subtasks:[],checklist:[],attachments:[],history:[],comments:[]});
+const original=await get();assert.equal(original.role,'administrador');
+const uploadForm=new FormData();uploadForm.append('file',new Blob(['Anexo fictício de área.']),'area-teste.txt');const uploadRes=await fetch(base+'/api/files',{method:'POST',headers:{Cookie:headers.Cookie,Origin:base},body:uploadForm});assert.equal(uploadRes.status,200);const uploaded=await uploadRes.json();
+const samples=[task('areas-l','a fazer luiz',['Luiz']),task('areas-f','a fazer farias',['Farias']),task('areas-l-shared','aprovado ✅',['Luiz']),task('areas-f-shared','stand-by ⛔',['Farias']),task('areas-both','ajustar ⚠️',['Luiz','Farias']),task('areas-l-approval','aprovação postos',['Luiz']),task('areas-f-approval','aprovação concreto',['Farias']),task('areas-progress','em andamento farias',['Farias'])];
+try{
+ samples.find(t=>t.id==='areas-l-shared').attachments=[uploaded];assert.equal((await post([...original.tasks,...samples])).status,200);
+ actor('editor','luiz');assert.equal((await fetch(base+uploaded.url,{headers})).status,200);let b=await get();for(const id of ['areas-l','areas-l-shared','areas-both','areas-l-approval'])assert(b.tasks.some(t=>t.id===id));for(const id of ['areas-f','areas-f-shared','areas-f-approval','areas-progress'])assert(!b.tasks.some(t=>t.id===id));
+ assert.equal((await post([...b.tasks,{...samples[1],title:'Tentativa de alteração indevida'}])).status,403);
+ const next=b.tasks.map(t=>t.id==='areas-l'?{...t,title:'[TESTE LOCAL ÁREAS] Edição válida de Luiz'}:t);assert.equal((await post(next)).status,200);
+ actor('editor','farias');assert.equal((await fetch(base+uploaded.url,{headers})).status,403);b=await get();const stolen=task('areas-stolen','a fazer farias',['Farias']);stolen.attachments=[uploaded];assert.equal((await post([...b.tasks,stolen])).status,403);assert(b.tasks.some(t=>t.id==='areas-f'));assert(!b.tasks.some(t=>t.id==='areas-l-shared'));assert(b.tasks.some(t=>t.id==='areas-both'));
+ actor('editor','mateus');assert.equal((await fetch(base+uploaded.url,{headers})).status,200);b=await get();assert(b.tasks.some(t=>t.id==='areas-f-approval'));assert(b.tasks.some(t=>t.id==='areas-l-approval'));assert(!b.tasks.some(t=>t.id==='areas-progress'));assert.equal((await post([...b.tasks,task('areas-launch','a fazer luiz')])).status,200);
+ actor('editor','lucio');b=await get();assert(b.tasks.some(t=>t.id==='areas-launch'&&t.assignees.includes('Luiz')));let updated=b.tasks.map(t=>t.id==='areas-l-approval'?{...t,status:'concluidos e postados'}:t);assert.equal((await post(updated)).status,200);
+ actor('visualizador','farias');b=await get();assert.equal((await post(b.tasks)).status,403);
+ actor('editor','');b=await get();assert.equal(b.tasks.length,0);assert.equal((await post([])).status,403);
+ actor('administrador','');b=await get();assert(b.tasks.some(t=>t.id==='areas-f'));assert(b.tasks.some(t=>t.id==='areas-progress'));assert(b.tasks.some(t=>t.id==='areas-l-approval'&&t.status==='concluidos e postados'));assert.equal(b.tasks.find(t=>t.id==='areas-l').title,'[TESTE LOCAL ÁREAS] Edição válida de Luiz');
+ console.log('PASS API: áreas dos quatro perfis, tarefas compartilhadas, atribuição automática, isolamento, preservação de tarefas ocultas, lançamento por Mateus, postagem por Lucio e bloqueio do visualizador e acesso aos anexos por área.');
+}finally{actor('administrador','');const b=await get();const clean=b.tasks.filter(t=>!t.id.startsWith('areas-'));assert.equal((await post(clean)).status,200);console.log('Limpeza: tarefas fictícias removidas e administrador local restaurado.');}

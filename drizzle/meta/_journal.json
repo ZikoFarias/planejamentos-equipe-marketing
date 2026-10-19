@@ -8,6 +8,13 @@
       "when": 1792418161356,
       "tag": "0000_needy_giant_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792438134208,
+      "tag": "0001_clammy_energizer",
+      "breakpoints": true
     }
   ]
 }

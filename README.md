@@ -61,3 +61,21 @@ Os detalhes da verificação estão em `VERIFICACAO.md`. `tests/api.mjs` usa exc
 - O histórico registra eventos por tarefa; exclusão remove a tarefa e seu histórico da interface. Não é um log de auditoria imutável.
 - Remover um anexo da tarefa retira a associação; o objeto enviado continua no armazenamento. Cancelar uma edição após enviar arquivo também pode deixar um objeto sem vínculo. Para controle de retenção/custos, uma limpeza periódica de objetos órfãos ainda precisa ser implementada.
 - A formatação da descrição aceita negrito, itálico e quebras de linha; não inclui editor visual completo.
+
+## Áreas individuais e operação da equipe
+
+As 15 etapas originais foram mantidas, sem criar “concluídos” adicional: **aprovado ✅** = arte pronta; **concluidos e postados** = publicação realizada.
+
+- **Luiz:** a fazer luiz, em andamento luiz, ideias, aprovação postos, aprovação ervateira e aprovação luke group.
+- **Farias:** a fazer farias, em andamento farias, aprovação fibroplast, aprovação materiais e aprovação concreto.
+- **Etapas compartilhadas:** ajustar, aprovado, stand-by e concluidos e postados. Luiz/Farias só recebem as tarefas atribuídas a eles. Uma tarefa atribuída aos dois aparece para ambos.
+- **Mateus e Lucio:** fila compartilhada de lançamentos e aprovações, com os dois “a fazer”, as seis aprovações e as quatro etapas compartilhadas. Podem lançar demandas para Luiz/Farias, aprovar, pedir ajuste, colocar em stand-by e registrar postagem. Não recebem as colunas de produção “em andamento” nem “ideias”.
+- **Administrador:** visão geral e acesso às três áreas para acompanhar a equipe e configurar os vínculos.
+
+Em **Acessos**, cadastre o e-mail, o perfil e a pessoa correspondente. Luiz/Farias/Mateus/Lucio já aparecem como opções, mas nenhum e-mail real foi inventado ou cadastrado. Perfis não administrativos sem pessoa vinculada ficam bloqueados até a configuração. O visualizador, quando vinculado a uma pessoa, consulta apenas a área correspondente.
+
+A atribuição ao designer é automática ao entrar em uma etapa dedicada. Ao mover para uma etapa compartilhada, mantenha Luiz e/ou Farias como responsável. O isolamento é aplicado no servidor e no acesso aos arquivos, não apenas por filtros no navegador. Ao salvar uma área, as tarefas das outras áreas permanecem preservadas.
+
+A nova migração `drizzle/0001_clammy_energizer.sql` adiciona os vínculos de pessoa e o registro de uploads. Em bancos locais existentes, aplique somente essa migração após atualizar o build; em bancos novos, aplique as duas na ordem. A publicação Sites aplica a migração pendente na produção.
+
+Testes adicionais: `node tests/areas.mjs` (regras de permissão) e `node tests/areas-api.mjs` (integração exclusivamente local, com tarefas fictícias e restauração do administrador ao final).

@@ -38,3 +38,12 @@ Os testes usam exclusivamente `http://127.0.0.1:5173` e autenticação simulada 
 - Liberar audiência/compartilhamento na hospedagem para uso em equipe e cadastrar os e-mails em “Acessos”. A publicação inicial permanece privada.
 - ClickUp: integração não implementada. A versão funciona de forma independente e sinaliza essa condição no quadro.
 - Teste com múltiplos usuários reais simultâneos e celulares físicos não realizado. O conflito de revisão foi validado por requisições locais, e os tamanhos móveis por viewport do navegador.
+
+## Atualização: áreas de Luiz, Farias, Mateus e Lucio
+
+- Testes automatizados das seis etapas de Luiz, cinco de Farias, quatro compartilhadas e fila de lançamentos/aprovações.
+- Proteção no servidor: um designer não recebe nem altera tarefas da outra área; compartilhadas respeitam atribuição individual ou conjunta.
+- Salvamento parcial preserva todas as tarefas fora da área do usuário.
+- Lançamento em “a fazer luiz” atribui Luiz automaticamente; Lucio pode registrar a postagem mantendo a atribuição.
+- Visualizador continua sem escrita; editor sem pessoa vinculada não recebe tarefas nem pode salvar.
+- A migração é aditiva e preserva tarefas existentes. E-mails reais serão adicionados pelo administrador posteriormente.
