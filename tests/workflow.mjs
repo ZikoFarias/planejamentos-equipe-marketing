@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {companies,personalColumns,resolveStatus,columnFor,setCompany,companyOf,approvalFor} from '../app/workflow.ts';
+import {mergeScopedTasks,canSeeTask,areaStatuses} from '../app/permissions.ts';
+const task=(id,status,assignees=[],tags=[])=>({id,title:id,status,assignees,tags,description:'',priority:'normal',start:'',due:'',subtasks:[],checklist:[],attachments:[],history:[],comments:[]});
+assert.equal(personalColumns.length,7);assert.equal(areaStatuses('luiz').length,7);assert.equal(areaStatuses('farias').length,7);
+for(const person of ['luiz','farias']){const actor={role:'editor',persona:person},name=person==='luiz'?'Luiz':'Farias';for(const company of companies){const original=task('t',`a fazer ${person}`,[name],[company.id,'campanha']);const status=resolveStatus(original,'aprovação',person);assert.equal(status,company.status);const moved=mergeScopedTasks([original],[{...original,status}],actor)[0];assert(canSeeTask(moved,actor));assert(canSeeTask(moved,{role:'editor',persona:'mateus'}));assert(canSeeTask(moved,{role:'editor',persona:'lucio'}));assert.equal(columnFor(moved,person),'aprovação');assert.equal(companyOf(moved).id,company.id);assert(!canSeeTask(moved,{role:'editor',persona:person==='luiz'?'farias':'luiz'}));assert.equal(columnFor({...moved,status:`em andamento ${person}`},person),'em andamento');}}
+const original=task('l','a fazer luiz',['Luiz'],['fibroplast']);const mismatch=mergeScopedTasks([original],[{...original,status:'aprovação postos'}],{role:'editor',persona:'luiz'})[0];assert.equal(mismatch.status,'aprovação fibroplast');assert.deepEqual(mismatch.assignees,['Luiz']);
+assert.throws(()=>resolveStatus(task('x','a fazer luiz',['Luiz']),'aprovação','luiz'),/Selecione/);
+assert.throws(()=>mergeScopedTasks([original],[{...original,status:'aprovação fibroplast',tags:[]}],{role:'editor',persona:'luiz'}),/Selecione/);
+assert.throws(()=>approvalFor({...original,tags:['fibroplast','concreto']}),/apenas uma/);
+const changed=setCompany({...original,status:'aprovação fibroplast'},'concreto');assert.equal(changed.status,'aprovação concreto');assert.deepEqual(changed.tags,['concreto']);
+const hidden=task('f','a fazer farias',['Farias'],['materiais']);const merged=mergeScopedTasks([original,hidden],[{...original,status:'aprovação fibroplast'}],{role:'editor',persona:'luiz'});assert.deepEqual(merged.find(t=>t.id==='f'),hidden);
+console.log('PASS: sete colunas por designer; roteamento das seis empresas para Luiz e Farias; bloqueio sem empresa e múltiplas empresas; destino incorreto corrigido; troca de etiqueta redireciona aprovação; responsável e tarefas ocultas preservados.');

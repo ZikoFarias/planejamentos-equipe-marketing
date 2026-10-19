@@ -79,3 +79,17 @@ A atribuição ao designer é automática ao entrar em uma etapa dedicada. Ao mo
 A nova migração `drizzle/0001_clammy_energizer.sql` adiciona os vínculos de pessoa e o registro de uploads. Em bancos locais existentes, aplique somente essa migração após atualizar o build; em bancos novos, aplique as duas na ordem. A publicação Sites aplica a migração pendente na produção.
 
 Testes adicionais: `node tests/areas.mjs` (regras de permissão) e `node tests/areas-api.mjs` (integração exclusivamente local, com tarefas fictícias e restauração do administrador ao final).
+
+## Fluxo por empresa — configuração atual
+
+Esta seção substitui a distribuição anterior de aprovações por designer.
+
+Nas áreas **Luiz** e **Farias**, o quadro tem exatamente sete colunas: a fazer, em andamento, aprovação, ajustar, aprovados, stand-by e concluidos e postados. As aprovações de todas as empresas podem ser atribuídas a qualquer um dos dois designers. A visibilidade continua seguindo o responsável do cartão.
+
+O campo **Empresa** grava uma etiqueta no cartão: fibroplast, postos, ervateira, materiais, concreto ou luke group. Ao enviar para **aprovação**, pelo seletor ou arrastando, o aplicativo verifica a etiqueta e encaminha o mesmo cartão para **aprovação [empresa]** na área **Lançamentos e aprovações**. O responsável é preservado; não são criadas cópias.
+
+Sem etiqueta de empresa ou com mais de uma empresa, o envio para aprovação é bloqueado e a posição anterior é preservada. Alterar a empresa de um cartão que está em aprovação redireciona-o para a aprovação correspondente no salvamento. A validação também acontece no servidor.
+
+Os status canônicos e suas cores permanecem nos registros e na visão geral. As sete colunas dos designers agrupam esses status na interface; não é necessária uma migração nem apagar tarefas. Para compatibilidade, tarefas antigas em “ideias” aparecem em “a fazer” de Luiz até serem movimentadas.
+
+Testes atuais das regras: `node tests/run-workflow.cjs` (compila e executa as verificações de áreas e de roteamento). O teste de integração continua em `node tests/areas-api.mjs`, exclusivamente na prévia local. Esses comandos substituem a execução direta anterior de `tests/areas.mjs`.

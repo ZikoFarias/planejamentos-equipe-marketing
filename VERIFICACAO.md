@@ -47,3 +47,13 @@ Os testes usam exclusivamente `http://127.0.0.1:5173` e autenticação simulada 
 - Lançamento em “a fazer luiz” atribui Luiz automaticamente; Lucio pode registrar a postagem mantendo a atribuição.
 - Visualizador continua sem escrita; editor sem pessoa vinculada não recebe tarefas nem pode salvar.
 - A migração é aditiva e preserva tarefas existentes. E-mails reais serão adicionados pelo administrador posteriormente.
+
+## Atualização: sete colunas e roteamento por empresa
+
+- Luiz e Farias: sete colunas verificadas no navegador.
+- Seis empresas × dois designers: destino de aprovação, manutenção do responsável e visibilidade verificados nos testes de regras.
+- Etiqueta ausente ou múltiplas empresas: envio bloqueado; destino incompatível corrigido no servidor.
+- Mudança de empresa em aprovação: destino atualizado no salvamento.
+- Navegador: cartão fictício criado na área Luiz com Fibroplast; enviado para aprovação; mesmo cartão localizado em “aprovação fibroplast” na área de lançamentos/aprovações.
+- Testes de integração por área continuam verificando isolamento, preservação de tarefas ocultas, visualizador e acesso aos anexos, agora com empresas nas tarefas em aprovação.
+- Nenhuma alteração de esquema ou migração de dados necessária nesta atualização.
