@@ -1,0 +1,1 @@
+export function weekDates(anchor:string,offset=0){const d=new Date(anchor+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7)+offset*7);return Array.from({length:7},(_,i)=>{const x=new Date(d);x.setUTCDate(x.getUTCDate()+i);return x.toISOString().slice(0,10)})}

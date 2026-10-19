@@ -70,3 +70,10 @@ Os testes usam exclusivamente `http://127.0.0.1:5173` e autenticação simulada 
 - Acesso anônimo à prévia bloqueado; requisição parcial retornou 206 e os 16 bytes solicitados. Arquivo maior que 100 MB foi rejeitado na inicialização.
 - Ctrl + roda: lógica do evento verificada em teste automatizado; listener não passivo anexado ao quadro. Rolagem comum não é interceptada.
 - Testes anteriores de isolamento, atribuição, aprovação por empresa, visualizador e proteção dos anexos continuaram passando; a área de Mateus/Lucio agora inclui a produção, conforme solicitado.
+
+### Aparência e calendário — revisão atual
+- Tipagem e testes de áreas/roteamento, anexos e calendário passaram.
+- API local: visualizador personaliza a aparência, mas não envia anexos de tarefa nem edita tarefas; fundo de outro usuário bloqueado; valores inválidos rejeitados sem sobrescrever preferências.
+- Navegador: upload de fundo pelo seletor do computador, salvamento e permanência após recarga; ausência da antiga barra; colunas de 218 px; arte de teste na empresa e dia corretos e abertura dos detalhes pelo calendário.
+- Tela de 390 px: largura do documento 390 px; calendário rola internamente. Semana anterior/seguinte e virada de ano verificadas.
+- Tarefas fictícias e aparência de teste usadas apenas no ambiente local. Nenhuma tarefa real publicada foi alterada.

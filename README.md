@@ -113,3 +113,13 @@ Esta seção substitui os limites e a organização visual descritos anteriormen
 O novo upload não requer migração do banco: a propriedade de uploads usa a tabela existente; o estado temporário multipart fica no R2. Um envio cancelado é abortado; envios interrompidos sem cancelamento podem deixar partes pendentes e precisam de política de limpeza no armazenamento.
 
 Testes: `node tests/run-workflow.cjs`, `node tests/areas-api.mjs` e `node tests/polish-api.mjs`. O último usa apenas arquivos fictícios locais, gera automaticamente os fixtures em `.sites-runtime/capa-azul.png` e `.sites-runtime/capa-laranja.png` quando necessário e limpa a tarefa criada ao terminar. A flag `--keep` destina-se exclusivamente à inspeção visual local.
+
+## Atualização: aparência pessoal e calendário semanal
+
+A engrenagem ao lado da pesquisa reúne atualização, acessos (administrador), ocultar vazias e aparência. Colunas de 218 px, espaços vazios compactos e preenchimento integral da cor com contraste automático. Cada usuário salva cores e imagem de fundo (PNG/JPG/WebP/GIF/AVIF até 20 MB) na sua conta. As preferências são autenticadas e persistidas no R2, separadas dos dados das tarefas; visualizadores também podem personalizar sua aparência sem ganhar permissão de edição. A imagem deve ter sido enviada pelo próprio usuário. Os arquivos de tarefas continuam com limite de 100 MB.
+
+A aba final Calendário semanal foi adicionada por solicitação posterior, substituindo a restrição inicial de visualização exclusivamente Kanban. Empresas nas linhas, segunda a domingo nas colunas, navegação por semanas e abertura de detalhes. Usa a **data de entrega**, não uma data presumida de postagem. Respeita o escopo da área selecionada e permissões do usuário. Artes sem data ficam abaixo do calendário; a pesquisa também se aplica a ele.
+
+Etiquetas recebem preenchimento integral, contraste automático e letras maiúsculas. Rodapé: Todos os direitos à FAAN Design. Sem integração nova com ClickUp e sem alteração de tarefas reais durante os testes.
+
+Verificação adicional: `node tests/appearance-api.mjs` testa persistência, upload pessoal pelo visualizador, bloqueio de edição de tarefas, validação de cores/URL, bloqueio de fundos de outro usuário e preservação anterior em falhas. Requer servidor local, assim como os demais testes de API.
