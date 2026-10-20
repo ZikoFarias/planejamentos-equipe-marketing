@@ -1,0 +1,1 @@
+ALTER TABLE `marketing_board` ADD `status_config` text DEFAULT '{}' NOT NULL;

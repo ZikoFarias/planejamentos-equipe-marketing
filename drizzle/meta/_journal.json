@@ -15,6 +15,13 @@
       "when": 1792438134208,
       "tag": "0001_clammy_energizer",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792503370419,
+      "tag": "0002_lovely_lightspeed",
+      "breakpoints": true
     }
   ]
 }

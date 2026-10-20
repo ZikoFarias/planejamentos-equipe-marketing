@@ -100,3 +100,6 @@ Os testes usam exclusivamente `http://127.0.0.1:5173` e autenticação simulada 
 - Interface local: quatro cartões selecionados por coluna, prioridade alterada em conjunto, movimentação em conjunto, publicação em momentos diferentes e ordem preservada após recarga. Confirmação de exclusão exibiu os quatro cartões; cancelar manteve os dados.
 - Celular de 390 px sem excesso de largura, com seleção e ações acessíveis. Controles inferiores ausentes; marca em faixa separada; rodapé à direita.
 - Fixtures removidas somente do ambiente local; nenhum cartão real foi alterado nos testes.
+
+## Status configuráveis e recolhimento automático — 20/10/2026
+Administrador pode criar status com nome/cor e excluir escolhendo destino obrigatório. Transferência de cartões e redirecionamento dos lançamentos futuros são atômicos e protegidos por revisão. Migração 0002 adiciona status_config. Em Lançamentos, andamento e aprovação vazios ficam recolhidos; receber cartão expande automaticamente. Testes de permissões, conflitos, migração de cartões, programação semanal e áreas passaram. Verificação visual local confirmou criação e expansão. Dados fictícios removidos.
