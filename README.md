@@ -133,3 +133,12 @@ O campo separado Empresa foi removido: a etiqueta de empresa/unidade é a única
 Cartões históricos com MATERIAIS ou POSTOS permanecem com a indicação UNIDADE NÃO DEFINIDA, sem escolher uma unidade por suposição. A etiqueta antiga só aparece nos detalhes quando já está no cartão e é substituída ao selecionar uma das novas unidades. Esses cartões continuam visíveis no calendário, em linha própria até a unidade ser definida.
 
 Responsáveis e etiquetas usam menus suspensos com múltipla seleção, fechamento por Escape, navegação por Tab e controles nativos de checkbox. Visualizador pode consultar as opções sem alterá-las. Etiquetas adicionais podem ser criadas no menu e são persistidas ao salvar a tarefa. Cabeçalhos de colunas e opções de status aparecem sempre em caixa alta.
+
+### Lançamentos semanais manuais e cores nos menus
+Na área Lançamentos, administradores e editores vinculados a Mateus ou Lucio podem usar Tarefas semanais, ao lado de Nova tarefa. Escolhem a semana e todos os dias ou um dia isolado, conferem a prévia e clicam em Criar tarefas. Não existe execução automática nem integração com ClickUp nessa ação.
+
+A grade soma 25 cartões com MATERIAIS-PS e MATERIAIS-SMO em todas as ocorrências de Materiais: 3 segunda, 4 terça, 5 quarta, 1 quinta, 7 sexta, 3 sábado e 2 domingo. Título exato DESIGN PARA REDE-SOCIAIS; etiqueta da unidade; prioridade normal; início e entrega no dia da grade; responsáveis Luiz ou Farias conforme empresa, mais Lucio Alves Xavier e Mateus. A confirmação do lote é gravada em uma única atualização do quadro. A verificação usa identificador determinístico ou título/empresa/data e preserva cartões já existentes em qualquer status; cliques concorrentes usam a revisão do banco para evitar duplicações.
+
+Status e prioridades nos detalhes usam menus coloridos com seleção por teclado. O seletor de status dos cartões também recebe cores. As cores de status respeitam a aparência pessoal. As cores das colunas podem ser digitadas em HEX de três ou seis dígitos; códigos inválidos bloqueiam o salvamento. Etiquetas seguem a ordem Luke Group, Fibroplast, Postos (PS/RV/BRR), Ervateira, Materiais (PS/SMO) e Concreto; etiquetas adicionais vêm depois.
+
+A abertura do cartão tem expansão de 260 ms, respeitando a preferência do sistema por movimento reduzido. O nome completo de Lucio é exibido sem perder a seleção de tarefas antigas que usam Lucio.

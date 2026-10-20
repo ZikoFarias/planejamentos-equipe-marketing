@@ -85,3 +85,11 @@ Os testes usam exclusivamente `http://127.0.0.1:5173` e autenticação simulada 
 - Teclado: Enter abre e Escape fecha a lista sem fechar os detalhes; Tab e checkboxes nativos disponíveis.
 - Celular de 390 px: documento mede 390 px, menus legíveis com rolagem interna.
 - Tarefa fictícia removida apenas do ambiente local. Nenhum cartão real teve unidade presumida ou etiqueta alterada nos testes.
+
+### Revisão de lançamentos semanais, menus e HEX
+- Testes de grade: 25 cartões, datas, ambas unidades, assignees, status, dia isolado, deduplicação e ordem das etiquetas passaram.
+- API local: lançamento diário e completo; repetição; dois pedidos concorrentes; cartão aprovado preservado; editores de Lançamentos permitidos e visualizador/designers bloqueados.
+- Navegador: menus de status e prioridade coloridos; seleção por teclado; ordem de etiquetas conferida; criação de um dia pelo botão; repetição desabilitada; semana escolhida persistida no formulário.
+- HEX válido aplicado, código inválido bloqueia salvar; expansão de cartão confirmada com duração de 260 ms.
+- Tela 390 px sem exceder a largura; botão Tarefas semanais e prévia responsivos.
+- Tarefas fictícias de API e interface removidas do ambiente local. Nenhuma tarefa real foi criada ou alterada durante a conferência.

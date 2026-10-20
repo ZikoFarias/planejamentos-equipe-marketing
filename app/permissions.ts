@@ -4,7 +4,8 @@ export const personas=['luiz','farias','mateus','lucio'] as const;
 export type Persona=typeof personas[number]|'';
 export type Actor={role:string,persona:Persona};
 export type Area='geral'|'luiz'|'farias'|'aprovacoes';
-export const names:Record<string,string>={luiz:'Luiz',farias:'Farias',mateus:'Mateus',lucio:'Lucio'};
+export const names:Record<string,string>={luiz:'Luiz',farias:'Farias',mateus:'Mateus',lucio:'Lucio Alves Xavier'};
+export function personId(name:string){const n=name.trim().toLocaleLowerCase('pt-BR');return n==='lucio alves xavier'?'lucio':personas.find(p=>p===n)||''}
 export const luizStatuses=['a fazer luiz','em andamento luiz','ideias','aprovação postos','aprovação ervateira','aprovação luke group'];
 export const fariasStatuses=['a fazer farias','em andamento farias','aprovação fibroplast','aprovação materiais','aprovação concreto'];
 export const sharedStatuses=['ajustar ⚠️','aprovado ✅','stand-by ⛔','concluidos e postados'];
