@@ -10,4 +10,4 @@ assert.throws(()=>mergeScopedTasks([original],[{...original,status:'aprovação 
 assert.throws(()=>approvalFor({...original,tags:['fibroplast','concreto']}),/apenas uma/);
 const changed=setCompany({...original,status:'aprovação fibroplast'},'concreto');assert.equal(changed.status,'aprovação concreto');assert.deepEqual(changed.tags,['concreto']);
 const hidden=task('f','a fazer farias',['Farias'],['materiais']);const merged=mergeScopedTasks([original,hidden],[{...original,status:'aprovação fibroplast'}],{role:'editor',persona:'luiz'});assert.deepEqual(merged.find(t=>t.id==='f'),hidden);
-console.log('PASS: sete colunas por designer; roteamento das seis empresas para Luiz e Farias; bloqueio sem empresa e múltiplas empresas; destino incorreto corrigido; troca de etiqueta redireciona aprovação; responsável e tarefas ocultas preservados.');
+console.log('PASS: sete colunas por designer; roteamento das nove etiquetas de empresa/unidade para Luiz e Farias; bloqueio sem empresa e múltiplas empresas; destino incorreto corrigido; troca de etiqueta redireciona aprovação; responsável e tarefas ocultas preservados.');

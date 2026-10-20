@@ -77,3 +77,11 @@ Os testes usam exclusivamente `http://127.0.0.1:5173` e autenticação simulada 
 - Navegador: upload de fundo pelo seletor do computador, salvamento e permanência após recarga; ausência da antiga barra; colunas de 218 px; arte de teste na empresa e dia corretos e abertura dos detalhes pelo calendário.
 - Tela de 390 px: largura do documento 390 px; calendário rola internamente. Semana anterior/seguinte e virada de ano verificadas.
 - Tarefas fictícias e aparência de teste usadas apenas no ambiente local. Nenhuma tarefa real publicada foi alterada.
+
+### Unidades e listas suspensas — revisão atual
+- Tipagem, testes de roteamento das nove etiquetas, compatibilidade de etiquetas antigas, preservação de responsáveis e bloqueio de duas unidades simultâneas passaram.
+- APIs locais: permissões dos quatro perfis, anexos e catálogo atualizado passaram.
+- Navegador local: campo Empresa ausente; seleção MATERIAIS-SMO mais etiqueta personalizada e dois responsáveis, salvamento em aprovação materiais e persistência após recarga confirmados.
+- Teclado: Enter abre e Escape fecha a lista sem fechar os detalhes; Tab e checkboxes nativos disponíveis.
+- Celular de 390 px: documento mede 390 px, menus legíveis com rolagem interna.
+- Tarefa fictícia removida apenas do ambiente local. Nenhum cartão real teve unidade presumida ou etiqueta alterada nos testes.

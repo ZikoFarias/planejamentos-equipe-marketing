@@ -126,3 +126,10 @@ Verificação adicional: `node tests/appearance-api.mjs` testa persistência, up
 
 ### Logo central e fogos de comemoração
 A logo fica no centro geométrico do cabeçalho em desktop e celular. Entradas confirmadas em `aprovado ✅` e `concluidos e postados` disparam três explosões de partículas por cerca de dois segundos, sem som e sem bloquear cliques. Funciona pela criação, detalhes, seletor e arraste, usando o mesmo salvamento. Não dispara ao carregar, editar sem trocar a etapa, reordenar ou em falha do salvamento. Respeita a preferência do sistema por movimento reduzido, mantendo uma mensagem acessível.
+
+### Etiquetas por unidade e seletores suspensos
+O campo separado Empresa foi removido: a etiqueta de empresa/unidade é a única seleção usada para encaminhar a aprovação. Catálogo atual: FIBROPLAST, POSTO-PS, POSTO-RV, POSTO-BRR, ERVATEIRA, MATERIAIS-PS, MATERIAIS-SMO, CONCRETO e LUKE GROUP. Postos encaminham para aprovação postos; Materiais para aprovação materiais, preservando as 15 etapas e os responsáveis. Apenas uma empresa/unidade por cartão, com etiquetas adicionais livres.
+
+Cartões históricos com MATERIAIS ou POSTOS permanecem com a indicação UNIDADE NÃO DEFINIDA, sem escolher uma unidade por suposição. A etiqueta antiga só aparece nos detalhes quando já está no cartão e é substituída ao selecionar uma das novas unidades. Esses cartões continuam visíveis no calendário, em linha própria até a unidade ser definida.
+
+Responsáveis e etiquetas usam menus suspensos com múltipla seleção, fechamento por Escape, navegação por Tab e controles nativos de checkbox. Visualizador pode consultar as opções sem alterá-las. Etiquetas adicionais podem ser criadas no menu e são persistidas ao salvar a tarefa. Cabeçalhos de colunas e opções de status aparecem sempre em caixa alta.
