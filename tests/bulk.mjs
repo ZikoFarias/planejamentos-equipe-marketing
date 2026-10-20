@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {blank} from '../app/model.ts';
+import {orderColumn,stampPosted,postedStatus} from '../app/task-order.ts';
+import {bulkEdit} from '../app/bulk-edit.ts';
+const make=(id,due,status='a fazer farias',tags=['fibroplast'])=>({...blank(status),id,title:id,due,tags,assignees:['Farias']});
+const tasks=[make('b','2026-10-21'),make('n',''),make('a','2026-10-19'),make('c','2026-10-20')];
+assert.deepEqual(orderColumn(tasks,'a fazer farias').map(t=>t.id),['a','c','b','n']);assert.deepEqual(tasks.map(t=>t.id),['b','n','a','c']);
+const posted=[{...make('older','2026-12-31',postedStatus),postedAt:'2026-10-19T10:00:00Z'},{...make('newer','2026-01-01',postedStatus),postedAt:'2026-10-20T10:00:00Z'}];assert.deepEqual(orderColumn(posted,postedStatus).map(t=>t.id),['newer','older']);assert.deepEqual(orderColumn(tasks,postedStatus).map(t=>t.id),['b','c','a','n']);
+assert.equal(stampPosted(tasks[0],{...tasks[0],status:postedStatus},'2026-10-20T12:00:00Z').postedAt,'2026-10-20T12:00:00Z');assert.equal(stampPosted(posted[0],{...posted[0],postedAt:'2099-01-01'},'2026-10-20T12:00:00Z').postedAt,posted[0].postedAt);
+const mixed=[make('f','','a fazer farias',['fibroplast']),make('p','','a fazer luiz',['posto-brr'])];mixed[0].status='a fazer farias';
+const result=bulkEdit(mixed,['f','p'],{status:'aprovação'},'aprovacoes','Teste');assert.equal(result[0].status,'aprovação fibroplast');assert.equal(result[1].status,'aprovação postos');
+const changed=bulkEdit(tasks,['a','b'],{priority:'alta',due:'2026-11-01',tags:['campanha']},'aprovacoes','Teste');assert.equal(changed.find(t=>t.id==='a').due,'2026-11-01');assert(changed.find(t=>t.id==='b').tags.includes('campanha'));assert.deepEqual(changed.find(t=>t.id==='n'),tasks.find(t=>t.id==='n'));
+const source=[{...tasks[0],start:'2026-10-25'}];assert.throws(()=>bulkEdit(source,['b'],{due:'2026-10-20'},'aprovacoes','Teste'),/Nenhum cartão/);assert.equal(source[0].due,'2026-10-21');
+console.log('PASS: vencimento crescente, sem prazo no fim, postagem recente primeiro, timestamp preservado, edição selecionada, aprovação por empresa e falha sem mutação.');

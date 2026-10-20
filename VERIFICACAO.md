@@ -93,3 +93,10 @@ Os testes usam exclusivamente `http://127.0.0.1:5173` e autenticação simulada 
 - HEX válido aplicado, código inválido bloqueia salvar; expansão de cartão confirmada com duração de 260 ms.
 - Tela 390 px sem exceder a largura; botão Tarefas semanais e prévia responsivos.
 - Tarefas fictícias de API e interface removidas do ambiente local. Nenhuma tarefa real foi criada ou alterada durante a conferência.
+
+### Revisão de seleção e ordenação
+- Testes puros: vencimento crescente, sem prazo ao final, postagem por momento real (independente do vencimento), edição sem atualizar a postagem, troca de status em lote por empresa e preservação de não selecionados.
+- API local: lote inválido/sem permissão rejeitado por inteiro; timestamp do servidor preservado; conflito bloqueia exclusão; visualizador bloqueado; exclusão em lote autorizada testada com fixtures.
+- Interface local: quatro cartões selecionados por coluna, prioridade alterada em conjunto, movimentação em conjunto, publicação em momentos diferentes e ordem preservada após recarga. Confirmação de exclusão exibiu os quatro cartões; cancelar manteve os dados.
+- Celular de 390 px sem excesso de largura, com seleção e ações acessíveis. Controles inferiores ausentes; marca em faixa separada; rodapé à direita.
+- Fixtures removidas somente do ambiente local; nenhum cartão real foi alterado nos testes.

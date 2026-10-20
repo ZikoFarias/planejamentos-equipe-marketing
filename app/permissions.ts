@@ -1,3 +1,4 @@
+import {stampPosted} from './task-order';
 import type {Task} from './model';
 import {normalizeApproval,personalColumns} from './workflow';
 export const personas=['luiz','farias','mateus','lucio'] as const;
@@ -17,11 +18,11 @@ export function areaStatuses(area:Area){return area==='luiz'||area==='farias'?pe
 export function inArea(t:Task,area:Area){if(area==='geral')return true;if(area==='aprovacoes')return true;return (area==='luiz'?['a fazer luiz','em andamento luiz','ideias']:['a fazer farias','em andamento farias']).includes(t.status)||((t.status.startsWith('aprovação ')||sharedStatuses.includes(t.status))&&assignedTo(t,area))}
 export function canSeeTask(t:Task,actor:Actor){if(actor.role==='administrador')return true;if(!actor.persona)return false;return inArea(t,defaultArea(actor.persona))}
 export function assignStatusOwner(t:Task):Task{const owner=ownerOf(t.status);return owner&&!assignedTo(t,owner)?{...t,assignees:[...t.assignees,names[owner]]}:t}
-export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor):Task[]{
+export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=new Date().toISOString()):Task[]{
  if(actor.role==='visualizador'||(actor.role!=='administrador'&&!actor.persona))throw Error('Seu perfil não permite alterar tarefas.');
  const old=new Map(current.map(t=>[t.id,t]));
  const next=incoming.map(t=>{const previous=old.get(t.id);if(previous&&!canSeeTask(previous,actor))throw Error('Você não tem acesso a esta tarefa.');
- const changed=!previous||JSON.stringify(previous)!==JSON.stringify(t);const task=changed?{...assignStatusOwner(normalizeApproval(t)),title:t.title.trim().toLocaleUpperCase('pt-BR')}:t;
+ const changed=!previous||JSON.stringify(previous)!==JSON.stringify(t);const task=changed?stampPosted(previous,{...assignStatusOwner(normalizeApproval(t)),title:t.title.trim().toLocaleUpperCase('pt-BR')},now):t;
  if(!canSeeTask(task,actor))throw Error('Esta etapa ou tarefa não pertence à sua área.');
  if(changed&&(sharedStatuses.includes(task.status)||task.status.startsWith('aprovação '))&&!assignedTo(task,'luiz')&&!assignedTo(task,'farias'))throw Error('Atribua a tarefa a Luiz e/ou Farias antes de enviar para aprovação ou uma etapa compartilhada.');
  return task;});
