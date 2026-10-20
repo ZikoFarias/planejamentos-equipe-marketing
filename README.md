@@ -123,3 +123,6 @@ A aba final Calendário semanal foi adicionada por solicitação posterior, subs
 Etiquetas recebem preenchimento integral, contraste automático e letras maiúsculas. Rodapé: Todos os direitos à FAAN Design. Sem integração nova com ClickUp e sem alteração de tarefas reais durante os testes.
 
 Verificação adicional: `node tests/appearance-api.mjs` testa persistência, upload pessoal pelo visualizador, bloqueio de edição de tarefas, validação de cores/URL, bloqueio de fundos de outro usuário e preservação anterior em falhas. Requer servidor local, assim como os demais testes de API.
+
+### Logo central e fogos de comemoração
+A logo fica no centro geométrico do cabeçalho em desktop e celular. Entradas confirmadas em `aprovado ✅` e `concluidos e postados` disparam três explosões de partículas por cerca de dois segundos, sem som e sem bloquear cliques. Funciona pela criação, detalhes, seletor e arraste, usando o mesmo salvamento. Não dispara ao carregar, editar sem trocar a etapa, reordenar ou em falha do salvamento. Respeita a preferência do sistema por movimento reduzido, mantendo uma mensagem acessível.
