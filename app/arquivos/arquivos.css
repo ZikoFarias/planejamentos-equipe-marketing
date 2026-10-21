@@ -1,0 +1,47 @@
+.drive-ui{min-height:100vh;background:#0d1720;color:#eaf0f5;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.drive-ui *{box-sizing:border-box}.drive-ui button,.drive-ui input{font:inherit}
+.drive-shell{width:min(1320px,100%);margin:0 auto;padding:36px 28px 64px}
+.drive-heading{display:flex;gap:20px;align-items:center;justify-content:space-between;margin-bottom:36px}
+.drive-back{color:#b6ccda;display:inline-flex;gap:8px;align-items:center;margin-bottom:28px;font-size:13px;text-decoration:none}
+.drive-back:hover,.drive-download:hover{color:#6bd7e7}
+.drive-eyebrow{display:block;letter-spacing:.13em;color:#69bac7;font-size:11px;font-weight:800;margin-bottom:9px}
+.drive-heading h1{font-size:clamp(28px,3vw,42px);letter-spacing:-.04em;font-weight:760;line-height:1.12;margin:0 0 12px}
+.drive-heading p,.drive-caption{color:#a9bac9;font-size:14px;margin:0;line-height:1.6}
+.drive-refresh,.drive-more{border:1px solid #395268;border-radius:12px;background:#152632;color:#edf6fa;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 16px;cursor:pointer;white-space:nowrap}
+.drive-refresh:disabled,.drive-more:disabled{opacity:.5;cursor:wait}
+.drive-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px}
+.drive-units,.drive-content{background:#15222e;border:1px solid #293c49;border-radius:20px}
+.drive-units{padding:18px 10px;align-self:start}
+.drive-units h2{margin:2px 12px 15px;letter-spacing:.1em;font-weight:750;font-size:10px;color:#8eabba}
+.drive-units button{width:100%;display:flex;align-items:center;gap:10px;border:0;border-radius:10px;background:transparent;color:#b9cbd6;text-align:left;font-size:13px;padding:12px;cursor:pointer}
+.drive-units button span{flex:1}.drive-units button:hover{background:#233847}
+.drive-units button.is-active{background:#234756;color:#d3f6ff;font-weight:750}
+.drive-content{padding:28px;min-height:560px}.drive-content h2{font-size:24px;margin:0 0 26px;letter-spacing:-.025em}
+.drive-tabs{display:flex;flex-wrap:wrap;gap:10px;border-bottom:1px solid #304554;padding-bottom:12px}
+.drive-tabs button{border:1px solid transparent;border-radius:10px;background:transparent;color:#b0c6d2;font-weight:750;font-size:12px;padding:11px 16px;cursor:pointer}
+.drive-tabs button.is-active{background:#254653;color:#a6eef7;border-color:#447684}.drive-tabs button:hover{background:#213742}
+.drive-caption{padding:17px 0}
+.drive-empty{min-height:200px;display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;border:1px dashed #355061;border-radius:14px;color:#b4c7d1;font-size:13px;text-align:center}
+.drive-empty strong{color:#e6f2f6;font-size:16px}
+.drive-file-list{border:1px solid #304454;border-radius:14px;overflow:hidden}
+.drive-file{display:flex;gap:14px;align-items:center;padding:15px 16px;border-bottom:1px solid #304454}
+.drive-file:last-child{border-bottom:0}.drive-file-icon{background:#253c49;color:#8ee3ee;padding:11px;border-radius:12px}
+.drive-file-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.drive-file-info strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:620;font-size:14px}
+.drive-file-info span{color:#a9bdc8;font-size:12px}
+.drive-download{display:inline-flex;align-items:center;gap:6px;color:#bce7ee;font-size:12px;font-weight:700;text-decoration:none}
+.drive-more{margin-top:16px;width:100%}
+.drive-upload{margin-top:26px;border-radius:15px;background:#1b313e;border:1px solid #365262;padding:20px}
+.drive-upload-title{display:flex;align-items:center;gap:13px;margin-bottom:17px}
+.drive-upload-title svg{color:#75dae9}.drive-upload-title strong{font-size:14px}
+.drive-upload-title p{color:#acc1cb;font-size:12px;margin:5px 0 0}
+.drive-upload-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.drive-upload-actions input{flex:1;min-width:180px;max-width:100%;color:#ecf6fb;font-size:12px}
+.drive-upload-actions input::file-selector-button{padding:10px 12px;border:1px solid #5a7282;color:#e5f1f7;border-radius:8px;background:#263c48;margin-right:12px;cursor:pointer}
+.drive-upload-actions button{border:0;background:#7cdee9;color:#09242d;padding:12px 18px;font-size:12px;font-weight:800;cursor:pointer;border-radius:10px}
+.drive-upload-actions button:disabled{opacity:.5;cursor:wait}
+.drive-upload small{display:block;margin-top:13px;font-size:11px;color:#a8bfcb}
+.drive-notice{padding:12px 14px;border-radius:10px;border:1px solid #2c7f7f;color:#d5fbf6;background:#1d3b3b;font-size:13px;margin:10px 0 14px}
+.drive-notice.is-error{border-color:#915c54;color:#f8d9d1;background:#402c2c}
+@media(max-width:800px){.drive-shell{padding:22px 14px 48px}.drive-heading{align-items:flex-start;margin-bottom:24px}.drive-layout{grid-template-columns:1fr}.drive-units{display:flex;overflow-x:auto;gap:5px;align-items:center;padding:12px}.drive-units h2{display:none}.drive-units button{min-width:max-content;width:auto}.drive-units button span{flex:initial}.drive-content{padding:20px 14px;min-height:440px}}
+@media(max-width:510px){.drive-heading{flex-direction:column;gap:18px}.drive-heading h1{font-size:30px}.drive-refresh{align-self:flex-end}.drive-file{gap:9px;padding:13px 10px}.drive-download{font-size:11px}.drive-file-icon{padding:7px}.drive-upload-actions button{width:100%}}
