@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {validAttachmentMetadata} from '../app/attachment-validation.ts';
-import {exportAttachment,localAttachment,validId,driveError,chooseDriveFolder} from '../app/drive-client.ts';
+import {exportAttachment,localAttachment,validId,driveError,chooseDriveFolder,authorizeDrive,getDriveToken} from '../app/drive-client.ts';
 import {driveConfig,driveFolders} from '../app/drive-config.ts';
 
 const originalFetch=globalThis.fetch;
@@ -48,6 +48,11 @@ try{
   selection={action:'picked',docs:[{id:'chosen_folder_second',name:'Outra',mimeType:'application/vnd.google-apps.folder'}]};
   assert.equal((await chooseDriveFolder('token','concreto','reference')).id,'chosen_folder_second');
   assert.equal(disposed,3,'Release the picker after cancellation and every selection');
+  const now=Date.now;
+  globalThis.window.google.accounts={oauth2:{hasGrantedAllScopes:()=>true,initTokenClient(config){assert.equal(config.scope,'https://www.googleapis.com/auth/drive.file');return {requestAccessToken(){config.callback({access_token:'transient-token',expires_in:3600})}}}}};
+  await authorizeDrive();assert.equal(getDriveToken(),'transient-token');
+  try{Date.now=()=>now()+3600000;assert.equal(getDriveToken(),'','Expired tokens cannot start automatic backups')}finally{Date.now=now}
+  await authorizeDrive();assert.equal(getDriveToken(),'transient-token');
   await assert.rejects(()=>exportAttachment({...attachment,url:'https://example.test/x'},'token',folder,'reference',()=>{}),/Links externos/);
   await assert.rejects(()=>exportAttachment(attachment,'token',{id:'../x'},'reference',()=>{}),/Pasta inválida/);
   mockUpload();const progress=[];
@@ -67,6 +72,8 @@ try{
   await assert.rejects(()=>exportAttachment(attachment,'token',folder,'reference',()=>{}),/sessão do site expirou/);
   globalThis.fetch=async url=>url===attachment.url?new Response(new Uint8Array([1])):new Response('<html>login</html>');
   await assert.rejects(()=>exportAttachment(attachment,'token',folder,'reference',()=>{}),/resposta inválida/);
+  globalThis.fetch=async url=>url===attachment.url?new Response(new Uint8Array([1])):response({},401);
+  await assert.rejects(()=>exportAttachment(attachment,'transient-token',folder,'reference',()=>{}),/expirou/);assert.equal(getDriveToken(),'','A revoked token requires explicit reconnection');
   mockUpload();const baseFetch=globalThis.fetch;
   globalThis.fetch=async(url,init)=>url.includes('uploadType=resumable')?response({},403):baseFetch(url,init);
   await assert.rejects(()=>exportAttachment(attachment,'transient-token',folder,'reference',()=>{}),/Google recusou/);

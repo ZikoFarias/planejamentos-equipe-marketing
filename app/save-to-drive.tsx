@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import type {Attachment} from './model';
 import {driveConfig,artworkLabels,type ArtworkKind} from './drive-config';
-import {prepareDrive,authorizeDrive,chooseDriveFolder,exportAttachment,localAttachment} from './drive-client';
+import {prepareDrive,authorizeDrive,getDriveToken,chooseDriveFolder,exportAttachment,localAttachment} from './drive-client';
 import {ColorSelect} from './color-select';
 
 export function SaveToDrive({attachment,company,disabled,onBusy,onSaved}:{attachment:Attachment,company:string,disabled:boolean,onBusy:(busy:boolean)=>void,onSaved:(attachment:Attachment)=>void}){
@@ -19,18 +19,18 @@ export function SaveToDrive({attachment,company,disabled,onBusy,onSaved}:{attach
     const dialog=button.current?.closest('dialog') as HTMLDialogElement|null;
     let token='';
     try{
-      token=await authorizeDrive();
+      token=getDriveToken()||await authorizeDrive();
       const wasOpen=!!dialog?.open;if(wasOpen)dialog!.close();
       let folder;
       try{folder=await chooseDriveFolder(token,company,kind)}finally{if(wasOpen&&dialog?.isConnected&&!dialog.open)dialog.showModal()}
       if(!folder){setStatus('Seleção cancelada. Nenhum arquivo enviado.');return}
       const drive=await exportAttachment(attachment,token,folder,kind,setStatus);
-      onSaved({...attachment,artworkKind:kind,drive});
+      onSaved({...attachment,artworkKind:kind,drive,backup:undefined});
       setStatus('Arquivo salvo em '+folder.name+'. Salve a tarefa para guardar o vínculo.');
     }catch(e){setStatus('');setError(e instanceof Error?e.message:'Não foi possível salvar no Drive.')}
     finally{token='';running.current=false;onBusy(false);button.current?.focus()}
   }
-  return <details className="drive-export"><summary>Salvar no Drive</summary><div className="drive-export-content">
+  return <details className="drive-export"><summary>{attachment.backup?'Tentar backup no Drive':'Salvar no Drive'}</summary><div className="drive-export-content">
     <label>Tipo de arquivo<ColorSelect label="Tipo de arquivo no Drive" value={kind} disabled={disabled} onChange={value=>setKind(value as ArtworkKind)} options={Object.entries(artworkLabels).map(([value,label])=>({value,label,color:'#579dff'}))}/></label>
     <small>A pasta será escolhida no próximo passo. O envio cria uma cópia e mantém o anexo original.</small>
     <button ref={button} type="button" disabled={disabled||!ready} onClick={save}>{running.current?'Salvando…':'Escolher pasta e salvar'}</button>

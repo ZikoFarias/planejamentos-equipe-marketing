@@ -5,6 +5,8 @@ import {MAX_FILE_SIZE} from './media';
 const scope='https://www.googleapis.com/auth/drive.file';
 type GoogleWindow=Window & {google?:any,gapi?:any};
 let libraries:Promise<void>|undefined;
+let authorization:{token:string,expiresAt:number}|undefined;
+export function getDriveToken(){if(authorization&&authorization.expiresAt>Date.now())return authorization.token;authorization=undefined;return ''}
 function script(src:string){return new Promise<void>((resolve,reject)=>{
   const node=document.createElement('script');node.src=src;node.async=true;
   const timer=setTimeout(()=>{node.remove();reject(Error('O Google demorou para carregar. Tente novamente.'))},15000);
@@ -18,12 +20,15 @@ export function prepareDrive(){
 }
 // Call directly from a click, after prepareDrive, so Google can open its popup.
 export function authorizeDrive():Promise<string>{return new Promise((resolve,reject)=>{
+  authorization=undefined;
   const google=(window as GoogleWindow).google;
   if(!google?.accounts?.oauth2){reject(Error('Aguarde o Google carregar e tente novamente.'));return}
   google.accounts.oauth2.initTokenClient({client_id:driveConfig.clientId,scope,include_granted_scopes:false,
     callback:(response:any)=>{
       if(response.error||!response.access_token){reject(Error('A autorização do Drive não foi concluída.'));return}
       if(!google.accounts.oauth2.hasGrantedAllScopes(response,scope)){reject(Error('Autorize o acesso aos arquivos escolhidos para continuar.'));return}
+      const seconds=Number(response.expires_in)||300;
+      authorization={token:response.access_token,expiresAt:Date.now()+Math.max(0,Math.min(seconds,3600)-60)*1000};
       resolve(response.access_token);
     },error_callback:()=>reject(Error('A janela do Google foi fechada ou bloqueada. Abra novamente para continuar.'))
   }).requestAccessToken({prompt:'select_account'});
@@ -47,7 +52,7 @@ export function chooseDriveFolder(token:string,company:string,kind:ArtworkKind):
 })}
 export const validId=(id:unknown):id is string=>typeof id==='string'&&/^[a-zA-Z0-9_-]{10,200}$/.test(id);
 export function driveError(status:number){return status===401?'A autorização do Google expirou. Conecte novamente.':status===403?'O Google recusou o acesso. Confira a permissão de gravação da pasta e o espaço disponível.':status===429?'O Drive recebeu muitos envios. Aguarde antes de tentar novamente.':'Não foi possível concluir o envio ao Drive.'}
-async function readJson(response:Response):Promise<any>{if(!response.ok)throw Error(driveError(response.status));try{return await response.json()}catch{throw Error('O Drive retornou uma resposta inválida.')}}
+async function readJson(response:Response):Promise<any>{if(response.status===401)authorization=undefined;if(!response.ok)throw Error(driveError(response.status));try{return await response.json()}catch{throw Error('O Drive retornou uma resposta inválida.')}}
 async function boundedFetch(url:string,init:RequestInit,timeout=30000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeout);try{return await fetch(url,{...init,signal:controller.signal})}finally{clearTimeout(timer)}}
 // Only authenticated same-origin attachments may be exported. Never proxy arbitrary URLs.
 export function localAttachment(a:Attachment){return /^\/api\/files\/[a-f0-9-]{36}$/.test(a.url)}
@@ -73,6 +78,7 @@ export async function exportAttachment(a:Attachment,token:string,folder:{id:stri
     method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','X-Upload-Content-Type':type,'X-Upload-Content-Length':String(blob.size)},
     body:JSON.stringify({id,name:a.name,mimeType:type,parents:[folder.id],description:artworkLabels[kind]+' — Planejamentos Marketing',appProperties:{artworkKind:kind}})
   });
+  if(started.status===401)authorization=undefined;
   if(!started.ok)throw Error(driveError(started.status));const location=started.headers.get('Location');
   if(!location||!location.startsWith('https://www.googleapis.com/upload/'))throw Error('O Drive não iniciou o envio.');
   onProgress('Enviando ao Drive…');
