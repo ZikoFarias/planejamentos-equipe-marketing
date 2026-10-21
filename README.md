@@ -149,3 +149,10 @@ A logo tem uma faixa própria acima do cabeçalho. O crédito da FAAN Design fic
 Selecionar cartões permite marcar itens individuais, toda uma coluna ou todos os cartões exibidos. Ctrl/clique também inicia a seleção. Ações: mover, alterar prioridade/prazo/responsáveis, adicionar etiquetas/trocar unidade e excluir os selecionados. Exclusão exige confirmação com a relação dos cartões. A seleção se restringe à área/pesquisa/colunas abertas; mudanças de área e calendário encerram a seleção. As permissões do servidor, o salvamento atômico e a verificação de revisão preservam tarefas ocultas e impedem alterações parciais em falhas. Visualizadores não recebem controles de alteração.
 
 As colunas ordenam por vencimento crescente (atrasados primeiro e sem prazo ao final). Concluidos e postados ordena pela data/hora de entrada nessa etapa, mais recente primeiro, registrada no servidor em `postedAt`. Editar depois não muda a posição de postagem; sair e entrar novamente registra uma nova postagem. Cartões antigos sem esse campo usam o histórico da entrada nessa etapa e, na ausência dele, vencimento decrescente. A ordem manual dentro da coluna foi substituída pela ordem automática solicitada.
+
+
+## Arquivos no Google Drive
+
+A nova página **/arquivos** permite consultar e enviar arquivos nas pastas REFERÊNCIAS e ARTES FINALIZADAS das nove unidades, sem alterar o Kanban e os anexos R2. A ativação depende de configuração privada OAuth no servidor. Leia [docs/google-drive.md](docs/google-drive.md) antes de disponibilizar a função à equipe.
+
+Teste local isolado: `node tests/google-drive-integration.mjs`.
