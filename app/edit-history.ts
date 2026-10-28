@@ -1,0 +1,5 @@
+import type {Task} from './model';
+export type BoardEdit={before:Task[],after:Task[]};
+const ignored=new Set(['history','approval','postedAt']);
+export function boundedPush<T>(items:T[],item:T){return [...items,item].slice(-10)}
+export function restoreEdit(current:Task[],edit:BoardEdit,redo=false){const from=redo?edit.before:edit.after,to=redo?edit.after:edit.before;const changes=from.filter(a=>to.some(b=>b.id===a.id));if(changes.some(a=>{const b=to.find(t=>t.id===a.id)!;return JSON.stringify(a)!==JSON.stringify(b)&&!current.some(t=>t.id===a.id)}))throw Error('O cartão foi removido por outra pessoa.');return current.map(task=>{const previous=changes.find(t=>t.id===task.id),target=to.find(t=>t.id===task.id);if(!previous||!target)return task;const next={...task};for(const key of [...new Set([...Object.keys(previous),...Object.keys(target)])] as (keyof Task)[]){if(ignored.has(key)||JSON.stringify(previous[key])===JSON.stringify(target[key]))continue;if(JSON.stringify(task[key])!==JSON.stringify(previous[key]))throw Error('Outra pessoa alterou este campo. Reabra o cartão antes de desfazer.');(next as any)[key]=structuredClone(target[key]);}return next;})}
