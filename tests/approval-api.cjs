@@ -38,6 +38,11 @@ const compile=()=>build({entryPoints:['app/api/approval/route.ts'],bundle:true,p
  const retry=await POST(request());assert.equal(retry.status,200);assert.equal((await retry.json()).task.status,'aprovado ✅');
  row={data:JSON.stringify([task]),revision:0,status_config:'{}'};globalThis.__approvalActor=actor('lucio');
  const negative=await POST(request('adjust'));assert.equal(negative.status,200);assert.equal((await negative.json()).task.status,'ajustar ⚠️');
+ row={data:JSON.stringify([task]),revision:0,status_config:'{}'};globalThis.__approvalActor={...actor(''),role:'administrador'};
+ const adminFirst=await POST(request('approved',row.revision,{reviewer:'lucio'}));assert.equal(adminFirst.status,200);const adminFinal=await POST(request('approved',row.revision,{reviewer:'mateus'}));assert.equal(adminFinal.status,200);const resultAdmin=await adminFinal.json();assert.equal(resultAdmin.task.status,'aprovado ✅');assert.equal(resultAdmin.task.approval.votes.mateus.by,'@example.test');
+ const purchase={...task,status:'a fazer farias',tags:['fibroplast','COMPRA'],purchase:{requiresArt:false,stage:'orçamento',quote:{place:'Loja',quantity:3,unitPrice:20}}};row={data:JSON.stringify([purchase]),revision:0,status_config:'{}'};
+ globalThis.__approvalActor=actor('mateus');assert.equal((await POST(request('approved',0,{scope:'quote'}))).status,403);
+ globalThis.__approvalActor=actor('lucio');assert.equal((await POST(request('adjust',0,{scope:'quote'}))).status,400);const quoteResponse=await POST(request('approved',0,{scope:'quote'}));assert.equal(quoteResponse.status,200);assert.equal((await quoteResponse.json()).task.purchase.stage,'aprovado');
  delete globalThis.__approvalActor;
  console.log('PASS: approval HTTP authentication, origin and role checks, reviewer spoofing ignored, idempotent writes, stale revisions, concurrent vote CAS, retry preserves first vote and immediate negative routing.');
 })().catch(error=>{console.error(error);process.exitCode=1});

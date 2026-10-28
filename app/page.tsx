@@ -1,2 +1,4 @@
 import Board from './board';
-export default function Home(){return <Board/>}
+import {redirect} from 'next/navigation';
+import {getTeamSession} from './team-session';
+export default async function Home(){if(!await getTeamSession())redirect('/login');return <Board/>}

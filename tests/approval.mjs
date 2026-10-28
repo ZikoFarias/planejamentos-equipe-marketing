@@ -15,7 +15,7 @@ const approved=castApprovalVote(first,mateus,'approved',config,at);assert.equal(
 const rejected=castApprovalVote(pending,mateus,'adjust',config,at);assert.equal(rejected.status,'ajustar ⚠️');
 const mixed=castApprovalVote(first,mateus,'adjust',config,at);assert.equal(mixed.status,'ajustar ⚠️','One negative must override an existing positive');
 assert.throws(()=>castApprovalVote(mixed,lucio,'approved',config,at),/nova rodada/,'Terminal rounds cannot be reopened by changing a vote');
-for(const actor of [{...lucio,persona:'farias'},{...lucio,persona:''},{...lucio,role:'visualizador'},{...lucio,role:'administrador',persona:''}])assert.throws(()=>castApprovalVote(pending,actor,'approved',config,at),/Apenas Lucio e Mateus/);
+for(const actor of [{...lucio,persona:'farias'},{...lucio,persona:''},{...lucio,role:'visualizador'}])assert.throws(()=>castApprovalVote(pending,actor,'approved',config,at),/Apenas Lucio e Mateus/);
 assert.throws(()=>castApprovalVote(pending,lucio,'fake',config,at),/inválido/);
 assert.throws(()=>castApprovalVote(pending,lucio,'approved',{custom:[],removed:{'ajustar ⚠️':'stand-by ⛔'}},at),/precisam estar ativos/);
 assert.throws(()=>protectApproval(first,{...first,approval:approved.approval}),/próprio voto/);
@@ -28,3 +28,5 @@ const revised=protectApproval(approved,{...approved,description:'Nova versão da
 assert.deepEqual(protectApproval(first,{...first,due:'2026-11-01'}).approval,first.approval,'Changing a due date does not erase votes');
 assert.equal(columnFor({...draft,status:'ideias'},'aprovacoes'),'a fazer luiz','Legacy idea cards remain reachable without the Ideas column');
 console.log('PASS: two independent positives, immediate negative routing, reviewer identity and role restrictions, duplicate vote idempotency, protected board writes, terminal rounds, artwork changes and resubmission reset, due dates preserved, legacy Ideas cards retained.');
+
+const admin={role:'administrador',persona:'',email:'admin@test.com',name:'Administrador'};const adminFirst=castApprovalVote(pending,{...admin,reviewer:'lucio'},'approved',config,at);const adminFinal=castApprovalVote(adminFirst,{...admin,reviewer:'mateus'},'approved',config,at);assert.equal(adminFinal.status,'aprovado ✅');assert.equal(adminFinal.approval.votes.lucio.by,admin.email);assert.match(adminFinal.history[0].text,/por mateus/);
