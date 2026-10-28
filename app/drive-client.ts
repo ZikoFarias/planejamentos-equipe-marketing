@@ -87,7 +87,7 @@ async function writeDriveBlob(blob:Blob,name:string,type:string,token:string,fol
   // A preallocated ID prevents a transport retry from creating a second file.
   const generated=await readJson(await boundedFetch('https://www.googleapis.com/drive/v3/files/generateIds?count=1&space=drive',{headers:{Authorization:'Bearer '+token},signal}));
   const id=generated.ids?.[0];if(!validId(id))throw Error('O Drive não retornou a identificação do arquivo.');
-  const started=await boundedFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,name,webViewLink',{
+  const started=await boundedFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,name,webViewLink,parents,size',{
     method:'POST',signal,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','X-Upload-Content-Type':type,'X-Upload-Content-Length':String(blob.size)},
     body:JSON.stringify({id,name,mimeType:type,parents:[folder.id],description:artworkLabels[kind]+' — Planejamentos Marketing',appProperties:{artworkKind:kind}})
   });
@@ -97,12 +97,12 @@ async function writeDriveBlob(blob:Blob,name:string,type:string,token:string,fol
   onProgress('Enviando ao Drive…');
   try{
     const saved=await readJson(await boundedFetch(location,{method:'PUT',signal,headers:{Authorization:'Bearer '+token,'Content-Type':type},body:blob},120000));
-    if(saved.id!==id)throw Error('O Drive não confirmou a identificação do arquivo.');
+    if(saved.id!==id||!Array.isArray(saved.parents)||!saved.parents.includes(folder.id)||Number(saved.size)!==blob.size)throw Error('O Drive não confirmou o arquivo na pasta correta.');
     return {fileId:id,folderId:folder.id,folderName:folder.name,url:'https://drive.google.com/file/d/'+id+'/view',savedAt:new Date().toISOString()};
   }catch{
     // An interrupted response may follow a successful upload. Verify this exact ID.
-    try{const confirmed=await readJson(await boundedFetch('https://www.googleapis.com/drive/v3/files/'+id+'?fields=id,size&supportsAllDrives=true',{headers:{Authorization:'Bearer '+token}}));
-      if(confirmed.id===id&&Number(confirmed.size)===blob.size)return {fileId:id,folderId:folder.id,folderName:folder.name,url:'https://drive.google.com/file/d/'+id+'/view',savedAt:new Date().toISOString()};
+    try{const confirmed=await readJson(await boundedFetch('https://www.googleapis.com/drive/v3/files/'+id+'?fields=id,size,parents&supportsAllDrives=true',{headers:{Authorization:'Bearer '+token}}));
+      if(confirmed.id===id&&Number(confirmed.size)===blob.size&&Array.isArray(confirmed.parents)&&confirmed.parents.includes(folder.id))return {fileId:id,folderId:folder.id,folderName:folder.name,url:'https://drive.google.com/file/d/'+id+'/view',savedAt:new Date().toISOString()};
     }catch{}
     throw Error('Não foi possível confirmar o envio. Confira a pasta no Drive antes de tentar novamente.');
   }

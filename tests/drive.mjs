@@ -25,8 +25,8 @@ function mockUpload({lost=false,uploadStatus=200}={}){
     assert(!url.includes(driveConfig.apiKey),'The browser API key is not used as Drive authorization');
     if(url.includes('generateIds'))return response({ids:[fileId]});
     if(url.includes('uploadType=resumable'))return response({},200,{Location:'https://www.googleapis.com/upload/drive/v3/files?upload_id=session'});
-    if(url.includes('upload_id=')){if(lost)throw Error('connection lost');return response({id:fileId},uploadStatus)}
-    if(url.includes('/files/'+fileId))return response({id:fileId,size:'3'});
+    if(url.includes('upload_id=')){if(lost)throw Error('connection lost');return response({id:fileId,size:3,parents:[folder.id]},uploadStatus)}
+    if(url.includes('/files/'+fileId))return response({id:fileId,size:'3',parents:[folder.id]});
     assert.fail('Unexpected request '+url);
   };
 }
