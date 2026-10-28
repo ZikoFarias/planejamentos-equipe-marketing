@@ -52,3 +52,13 @@ O pacote e os dados atuais cabem nas franquias de tamanho e armazenamento. A com
 - Última versão: 065846d7-a9fe-4e95-8b13-e9ef6ae3f9e3.
 
 Resultado: publicação e fluxos principais funcionam no Free nas amostras testadas; o orçamento de CPU ainda exige otimização. Esta é uma prévia de teste, não a migração do site real.
+
+## Otimização do login — 28/10/2026
+
+Publicada na prévia, versão 470be079-ca93-48ee-9650-a4df27cdfbf7. Senha, salt, força PBKDF2 e permissões mantidos. O cálculo derivativo ocorre no navegador; o Worker verifica uma prova HMAC associada a desafio único e e-mail. A página de entrada é estática, gerada a partir do componente atual. Não houve contratação ou ativação de plano pago.
+
+Cinco contas autenticaram, consultaram o quadro e saíram com sucesso. Repetição de cada prova retornou 401. Teste no navegador confirmou entrada de Farias e saída. Testes locais cobrem expiração, corrida de duas provas, identidade diferente, senha errada, mudança de vínculo, origem, limite e cookies. Nenhum cartão foi alterado nesses testes.
+
+Amostra sanitizada do tail: GET /login 0–1 ms de CPU (3 eventos); POST /api/auth/challenge 2–4 ms (4 eventos); POST /api/auth/login 1–5 ms (8 eventos, incluindo rejeições 401). Nenhum evento de autenticação capturado ultrapassou 10 ms. O tail não é um censo de todas as requisições; desempenho futuro não é garantido por essa amostra.
+
+Limitação separada: abertura do quadro GET / chegou a 34 ms, e uma leitura inicial do quadro chegou a 26 ms. O login otimizado não comprova que o sistema inteiro cabe nos limites gratuitos. Os anexos e migração definitiva permanecem pendentes.

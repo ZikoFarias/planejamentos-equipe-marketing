@@ -1,0 +1,27 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {createRequire} from 'node:module';
+import {build} from 'esbuild';
+import React from 'react';
+import {renderToStaticMarkup} from 'react-dom/server';
+const root=path.resolve('.sites-runtime/cloudflare-free-preview');
+// Reuse the isolated preview configuration, including its database identity.
+const configPath=path.join(root,'server/wrangler.json');
+const config=JSON.parse(await fs.readFile(configPath,'utf8'));
+await fs.cp('dist/server',path.join(root,'server'),{recursive:true,filter:source=>path.basename(source)!=='wrangler.json'});
+await fs.cp('dist/client',path.join(root,'client'),{recursive:true});
+await build({entryPoints:['server/cloudflare-entry.ts'],bundle:true,platform:'browser',format:'esm',target:'es2022',external:['./index.js'],outfile:path.join(root,'server/preview.js')});
+const markupModule=path.resolve('.sites-runtime/static-login-markup.cjs');
+await build({entryPoints:['app/login/login-form.tsx'],bundle:true,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],outfile:markupModule});
+const LoginForm=createRequire(import.meta.url)(markupModule).default;
+const directory=path.join(root,'client/_team');await fs.mkdir(directory,{recursive:true});
+const client=await build({entryPoints:['app/login-static.ts'],bundle:true,platform:'browser',format:'esm',minify:true,write:false});
+const {createHash}=await import('node:crypto');const script='login-'+createHash('sha256').update(client.outputFiles[0].contents).digest('hex').slice(0,12)+'.js';
+await fs.writeFile(path.join(directory,script),client.outputFiles[0].contents);
+async function cssFiles(dir){const files=[];for(const entry of await fs.readdir(dir,{withFileTypes:true})){const file=path.join(dir,entry.name);if(entry.isDirectory())files.push(...await cssFiles(file));else if(file.endsWith('.css'))files.push(file)}return files}
+const css=await cssFiles('dist/client');
+const links=css.map(file=>'<link rel="stylesheet" href="/'+path.relative('dist/client',file).replaceAll('\\','/')+'">').join('');
+await fs.writeFile(path.join(directory,'login.html'),'<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Acesso · Planejamento de Marketing</title>'+links+'</head><body>'+renderToStaticMarkup(React.createElement(LoginForm))+'<noscript>Ative o JavaScript para entrar no planejamento.</noscript><script type="module" src="/_team/'+script+'"></script></body></html>');
+config.assets={...config.assets,binding:'ASSETS'};
+await fs.writeFile(configPath,JSON.stringify(config,null,2)+'\n');
+console.log('Preview prepared: static login uses the existing React markup and stylesheet; isolated authentication entry is ready.');
