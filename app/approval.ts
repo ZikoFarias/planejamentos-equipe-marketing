@@ -1,3 +1,4 @@
+import {spellingFlagged} from './spelling';
 import {isPurchase} from './purchases';
 import type {Task} from './model';
 import type {Actor} from './permissions';
@@ -10,6 +11,7 @@ export const isApproval=(status:string)=>status.startsWith('aprovação ');
 export function approvalContent(task:Task){return JSON.stringify({title:task.title.trim().toLocaleUpperCase('pt-BR'),description:task.description,companies:task.tags,art:task.attachments.filter(a=>a.artworkKind!=='reference').map(a=>({url:a.url,name:a.name})),cover:task.coverUrl})}
 // Ordinary task writes cannot add, erase or impersonate another person's vote.
 export function protectApproval(previous:Task|undefined,next:Task):Task{
+ if(next.status==='aprovado ✅'&&spellingFlagged(next))throw Error('Revise ou descarte o alerta ortográfico antes de aprovar.');
  if(JSON.stringify(previous?.approval)!==JSON.stringify(next.approval))throw Error('Use os botões de votação para registrar seu próprio voto.');
  const entering=isApproval(next.status)&&(!previous||!isApproval(previous.status));
  const changed=!!previous&&(!!previous.approval||previous.status==='aprovado ✅')&&approvalContent(previous)!==approvalContent(next);
@@ -18,6 +20,7 @@ export function protectApproval(previous:Task|undefined,next:Task):Task{
  return next;
 }
 export function castApprovalVote(task:Task,actor:Actor&{email:string,name:string,reviewer?:Reviewer},decision:Decision,config:StatusConfig,now=new Date().toISOString()):Task{
+ if(decision==='approved'&&spellingFlagged(task))throw Error('Revise ou descarte o alerta ortográfico antes de aprovar.');
  if(actor.role!=='administrador'&&!(actor.role==='editor'&&['lucio','mateus'].includes(actor.persona)))throw Error('Apenas Lucio e Mateus podem votar, cada um pela própria conta.');
  if(!['approved','adjust'].includes(decision))throw Error('Voto inválido.');
  if(!isApproval(task.status))throw Error('Encaminhe o cartão para aprovação antes de votar. Uma nova aprovação inicia uma nova rodada.');

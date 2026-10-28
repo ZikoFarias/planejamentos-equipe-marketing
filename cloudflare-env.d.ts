@@ -1,6 +1,7 @@
 declare namespace Cloudflare {
   interface Env {
     DB?: D1Database;
+    GEMINI_API_KEY?: string;
     GOOGLE_DRIVE_CLIENT_ID?: string;
     GOOGLE_DRIVE_CLIENT_SECRET?: string;
     GOOGLE_DRIVE_ENCRYPTION_KEY?: string;

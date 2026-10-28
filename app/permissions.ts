@@ -1,3 +1,4 @@
+import {protectSpelling} from './spelling';
 import {withParticipants} from './participants';
 import {isPurchase,purchaseReady,normalizePurchase} from './purchases';
 import {protectApproval} from './approval';
@@ -26,7 +27,7 @@ export function assignStatusOwner(t:Task):Task{const owner=ownerOf(t.status);ret
 export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=new Date().toISOString(),config:StatusConfig=emptyStatusConfig):Task[]{
  if(actor.role==='visualizador'||(actor.role!=='administrador'&&!actor.persona))throw Error('Seu perfil não permite alterar tarefas.');
  const old=new Map(current.map(t=>[t.id,t]));
- const next=incoming.map(t=>{const previous=old.get(t.id);if(previous&&!canManageTask(previous,actor)){if(JSON.stringify(previous)!==JSON.stringify(t))throw Error('Você pode visualizar este cartão, mas apenas o responsável pode alterá-lo.');return previous;}
+ const next=incoming.map(t=>{const previous=old.get(t.id);t=protectSpelling(previous,t);if(previous&&!canManageTask(previous,actor)){if(JSON.stringify(previous)!==JSON.stringify(t))throw Error('Você pode visualizar este cartão, mas apenas o responsável pode alterá-lo.');return previous;}
  if(isPurchase(t)&&previous&&actor.role!=='administrador'&&actor.persona!=='farias'&&JSON.stringify(t.purchase)!==JSON.stringify(previous.purchase))throw Error('Farias é responsável por editar e direcionar as compras.');
  const changed=!previous||JSON.stringify(previous)!==JSON.stringify(t);const task=changed?stampPosted(previous,normalizePurchase(protectApproval(previous,{...assignStatusOwner(configuredTask(assignStatusOwner(normalizeApproval(t)),config)),title:t.title.trim().toLocaleUpperCase('pt-BR')}),previous),now):t;
  if(!canManageTask(task,actor))throw Error('Esta etapa ou tarefa não pertence à sua área.');
