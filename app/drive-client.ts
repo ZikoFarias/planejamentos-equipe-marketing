@@ -119,3 +119,18 @@ export async function readDriveImage(a:Attachment,token:string,signal:AbortSigna
  return blob;
 }
 export function disconnectDrive(){authRequest++;authorization=undefined;window.dispatchEvent(new Event('marketing-drive-auth'))}
+
+// The card company and attachment category are the only source of the destination.
+export async function companyDriveFolder(token:string,company:string,kind:ArtworkKind,grant=chooseDriveFolder){
+ const id=driveFolders[company]?.[kind];if(!id)throw Error('Selecione uma empresa válida no cartão antes de anexar arquivos.');
+ const read=()=>boundedFetch('https://www.googleapis.com/drive/v3/files/'+id+'?fields=id,name,mimeType,trashed,capabilities(canAddChildren)&supportsAllDrives=true',{headers:{Authorization:'Bearer '+token}});
+ let response=await read();
+ if(response.status===404||response.status===403){
+  const selected=await grant(token,company,kind);if(!selected)return null;
+  if(selected.id!==id)throw Error('Selecione a pasta '+artworkLabels[kind]+' da empresa '+company.toUpperCase()+'. O envio não pode ir para outra empresa.');
+  response=await read();
+ }
+ const folder=await readJson(response);
+ if(folder.id!==id||folder.mimeType!=='application/vnd.google-apps.folder'||folder.trashed||folder.capabilities?.canAddChildren!==true)throw Error('Sua conta Google precisa de permissão de gravação na pasta da empresa.');
+ return {id,name:folder.name||company+' — '+artworkLabels[kind]};
+}

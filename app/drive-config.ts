@@ -9,7 +9,7 @@ export const driveConfig = {
 };
 export type ArtworkKind = 'reference' | 'final';
 export const artworkLabels: Record<ArtworkKind,string> = {reference:'Referência',final:'Arte finalizada'};
-// Suggested starting location only. The person always chooses the destination.
+// Automatic destination by company and artwork category.
 export const driveFolders: Record<string,Record<ArtworkKind,string>> = {
   'luke group': {reference:'1atMYLs-ZQUdSZFMsTebJ1jYMc2aNxixX',final:'1XaVGtFidlEDXTQQ6KcqmMcH_Vv-4kfZV'},
   fibroplast: {reference:'1pc2mDmoVT6dSHjVFslqTcH4jh3TRfgKB',final:'18nXrBO9e3LnpwuPFkIt1ZXVpr7AUj-8y'},

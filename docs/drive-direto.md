@@ -2,7 +2,7 @@
 
 A prévia Cloudflare habilita a integração somente no endereço externo autorizado; Sites permanece desativado. O acesso do site segue por e-mail e senha compartilhada. Conectar Drive é uma autorização Google separada, temporária, com escopo drive.file. Tokens ficam apenas em memória, não são enviados ao banco nem persistidos em localStorage. Sair limpa essa autorização.
 
-Cada envio abre o seletor de pasta, sugerindo empresa e tipo (referência ou arte final). O navegador envia os bytes diretamente à API Google Drive. Não passa por R2 nem por /api/files e não ativa armazenamento Cloudflare. O arquivo entra no rascunho somente após confirmação do Drive; salvar a tarefa guarda o vínculo no banco. A arte final tem prioridade como capa, com referência como alternativa. Remover um anexo do cartão não exclui o arquivo do Drive.
+O destino é automático conforme a empresa do cartão e o tipo (referência ou arte final). O seletor só aparece se o Google ainda não concedeu acesso à pasta configurada; uma pasta diferente é recusada. O navegador envia os bytes diretamente à API Google Drive. Não passa por R2 nem por /api/files e não ativa armazenamento Cloudflare. O arquivo entra no rascunho somente após confirmação do Drive; salvar a tarefa guarda o vínculo no banco. A arte final tem prioridade como capa, com referência como alternativa. Remover um anexo do cartão não exclui o arquivo do Drive.
 
 IDs pré-alocados e consulta ao mesmo ID/tamanho reconciliam uma resposta perdida sem repetir automaticamente o envio. Falhas parciais preservam os arquivos já confirmados; o usuário vê quais precisam de conferência. Não se alteram permissões de compartilhamento das pastas ou arquivos.
 
