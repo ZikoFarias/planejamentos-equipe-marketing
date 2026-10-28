@@ -2,7 +2,7 @@ import {driveConfig,driveFolders,artworkLabels,type ArtworkKind} from './drive-c
 import type {Attachment} from './model';
 import {MAX_FILE_SIZE} from './media';
 
-const scope='https://www.googleapis.com/auth/drive.file';
+const scope='https://www.googleapis.com/auth/drive';
 type GoogleWindow=Window & {google?:any,gapi?:any};
 let libraries:Promise<void>|undefined;
 let authorization:{token:string,expiresAt:number}|undefined;
@@ -45,7 +45,7 @@ export function chooseDriveFolder(token:string,company:string,kind:ArtworkKind):
   const finish=(value:{id:string,name:string}|null)=>{picker?.dispose();resolve(value)};
   try{picker=new p.PickerBuilder().addView(view).setOAuthToken(token).setDeveloperKey(driveConfig.apiKey)
     .setAppId(driveConfig.projectNumber).setOrigin(window.location.origin).setLocale('pt-BR')
-    .setTitle('Escolha a pasta — '+artworkLabels[kind]).setCallback((data:any)=>{
+    .setTitle(company==='root'?'Selecione a pasta mãe Planejamentos — Marketing':'Escolha a pasta — '+artworkLabels[kind]).setCallback((data:any)=>{
       if(data.action===p.Action.CANCEL)finish(null);
       if(data.action===p.Action.PICKED){const folder=data.docs?.[0];
         if(!folder||folder.mimeType!=='application/vnd.google-apps.folder'||!validId(folder.id)){picker?.dispose();reject(Error('Escolha uma pasta válida do Drive.'));return}
@@ -118,19 +118,20 @@ export async function readDriveImage(a:Attachment,token:string,signal:AbortSigna
  const blob=await response.blob();if(!blob.type.startsWith('image/')||blob.size>MAX_FILE_SIZE)throw Error('Prévia de imagem indisponível. Abra no Drive.');
  return blob;
 }
-export function disconnectDrive(){authRequest++;authorization=undefined;window.dispatchEvent(new Event('marketing-drive-auth'))}
+export function disconnectDrive(){authRequest++;confirmedRootToken='';authorization=undefined;window.dispatchEvent(new Event('marketing-drive-auth'))}
 
-// The card company and attachment category are the only source of the destination.
+// The chosen root is only an authorization/confirmation boundary, never an upload destination.
+let confirmedRootToken='';
 export async function companyDriveFolder(token:string,company:string,kind:ArtworkKind,grant=chooseDriveFolder){
  const id=driveFolders[company]?.[kind];if(!id)throw Error('Selecione uma empresa válida no cartão antes de anexar arquivos.');
- const read=()=>boundedFetch('https://www.googleapis.com/drive/v3/files/'+id+'?fields=id,name,mimeType,trashed,capabilities(canAddChildren)&supportsAllDrives=true',{headers:{Authorization:'Bearer '+token}});
- let response=await read();
- if(response.status===404||response.status===403){
-  const selected=await grant(token,company,kind);if(!selected)return null;
-  if(selected.id!==id)throw Error('Selecione a pasta '+artworkLabels[kind]+' da empresa '+company.toUpperCase()+'. O envio não pode ir para outra empresa.');
-  response=await read();
+ if(confirmedRootToken!==token){
+  const selected=await grant(token,'root',kind);if(!selected)return null;
+  if(selected.id!==driveConfig.rootFolder)throw Error('Selecione a pasta mãe Planejamentos — Marketing. As subpastas serão definidas automaticamente.');
+  const root=await readJson(await boundedFetch('https://www.googleapis.com/drive/v3/files/'+driveConfig.rootFolder+'?fields=id,mimeType,trashed&supportsAllDrives=true',{headers:{Authorization:'Bearer '+token}}));
+  if(root.id!==driveConfig.rootFolder||root.mimeType!=='application/vnd.google-apps.folder'||root.trashed)throw Error('Pasta mãe indisponível.');
+  confirmedRootToken=token;
  }
- const folder=await readJson(response);
+ const folder=await readJson(await boundedFetch('https://www.googleapis.com/drive/v3/files/'+id+'?fields=id,name,mimeType,parents,trashed,capabilities(canAddChildren)&supportsAllDrives=true',{headers:{Authorization:'Bearer '+token}}));
  if(folder.id!==id||folder.mimeType!=='application/vnd.google-apps.folder'||folder.trashed||folder.capabilities?.canAddChildren!==true)throw Error('Sua conta Google precisa de permissão de gravação na pasta da empresa.');
  return {id,name:folder.name||company+' — '+artworkLabels[kind]};
 }

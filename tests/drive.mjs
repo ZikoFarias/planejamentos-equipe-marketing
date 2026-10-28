@@ -49,7 +49,7 @@ try{
   assert.equal((await chooseDriveFolder('token','concreto','reference')).id,'chosen_folder_second');
   assert.equal(disposed,3,'Release the picker after cancellation and every selection');
   const now=Date.now;
-  globalThis.window.google.accounts={oauth2:{hasGrantedAllScopes:()=>true,initTokenClient(config){assert.equal(config.scope,'https://www.googleapis.com/auth/drive.file');return {requestAccessToken(){config.callback({access_token:'transient-token',expires_in:3600})}}}}};
+  globalThis.window.google.accounts={oauth2:{hasGrantedAllScopes:()=>true,initTokenClient(config){assert.equal(config.scope,'https://www.googleapis.com/auth/drive');return {requestAccessToken(){config.callback({access_token:'transient-token',expires_in:3600})}}}}};
   await authorizeDrive();assert.equal(getDriveToken(),'transient-token');
   try{Date.now=()=>now()+3600000;assert.equal(getDriveToken(),'','Expired tokens cannot start automatic backups')}finally{Date.now=now}
   await authorizeDrive();assert.equal(getDriveToken(),'transient-token');
