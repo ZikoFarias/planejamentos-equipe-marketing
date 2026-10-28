@@ -50,6 +50,13 @@
       "when": 1793221300000,
       "tag": "0006_login_challenges",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1793221400000,
+      "tag": "0007_central_drive",
+      "breakpoints": true
     }
   ]
 }
