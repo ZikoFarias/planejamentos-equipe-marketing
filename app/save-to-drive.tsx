@@ -9,8 +9,8 @@ export function SaveToDrive({attachment,company,disabled,onBusy,onSaved}:{attach
   const [ready,setReady]=useState(false),[error,setError]=useState(''),[status,setStatus]=useState('');
   const [kind,setKind]=useState<ArtworkKind>(attachment.artworkKind||'reference');
   const button=useRef<HTMLButtonElement>(null),running=useRef(false);
-  useEffect(()=>{let alive=true;if(driveConfig.enabled)prepareDrive().then(()=>{if(alive)setReady(true)}).catch(e=>{if(alive)setError(e.message)});return()=>{alive=false}},[]);
-  if(!driveConfig.enabled||!localAttachment(attachment))return null;
+  useEffect(()=>{let alive=true;if(false)prepareDrive().then(()=>{if(alive)setReady(true)}).catch(e=>{if(alive)setError(e.message)});return()=>{alive=false}},[]);
+  if(driveConfig.enabled||!localAttachment(attachment))return null;
   async function save(){
     if(running.current||disabled||!ready)return;
     running.current=true;setError('');setStatus('Autorizando Google…');onBusy(true);
