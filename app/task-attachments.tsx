@@ -28,10 +28,10 @@ export function TaskAttachments({task,company,writable,busy,onBusy,onUpdate,acti
         <AttachmentPreview attachment={a}/><div className="attachment-caption">
           <a href={(/^https?:\/\//.test(a.url)||/^\/api\/files\/[a-f0-9-]{36}$/.test(a.url))?a.url:'#'} target="_blank" rel="noreferrer">{a.name}</a><small>{sizeLabel(a.size)}</small>
           {a.backup&&<div className="backup-warning" role="status"><strong>{a.backup.status==='pending'?'Backup em andamento':'Backup não confirmado'}</strong>{a.backup.message&&<small>{a.backup.message}</small>}</div>}
-          {a.drive&&!a.backup&&<small className="backup-confirmed">Backup confirmado no Drive</small>}
+          {a.drive&&!a.backup&&<small className="backup-confirmed">Arquivo confirmado no Drive</small>}
           {!a.artworkKind&&<small>Sem classificação</small>}
           {writable&&<ColorSelect label={'Classificação de '+a.name} value={a.artworkKind||''} disabled={busy} onChange={value=>{onUpdate(t=>{const attachments=t.attachments.map((item,j)=>j===i?{...item,artworkKind:(value||undefined) as ArtworkKind|undefined}:item);return {...t,attachments,coverUrl:automaticCover(attachments)}});if(value)onKindChange(value as ArtworkKind)}} options={[{value:'',label:'Sem classificação',color:'#9faebd'},...Object.entries(artworkLabels).map(([value,label])=>({value,label,color:'#579dff'}))]}/>}
-          {a.drive&&/^[a-zA-Z0-9_-]{10,200}$/.test(a.drive.fileId)&&<a href={'https://drive.google.com/file/d/'+a.drive.fileId+'/view'} target="_blank" rel="noreferrer">Abrir cópia no Drive</a>}
+          {a.drive&&/^[a-zA-Z0-9_-]{10,200}$/.test(a.drive.fileId)&&<a href={'https://drive.google.com/file/d/'+a.drive.fileId+'/view'} target="_blank" rel="noreferrer">Abrir no Drive</a>}
         </div>
         {writable&&<SaveToDrive attachment={a} company={company} disabled={busy} onBusy={onBusy} onSaved={attachment=>onUpdate(t=>({...t,attachments:t.attachments.map((item,j)=>j===i?attachment:item)}))}/>}
         <div className="attachment-actions">{previewKind(a)==='image'&&<button disabled={!writable||busy} aria-pressed={coverFor(task)?.url===a.url} onClick={()=>onUpdate(t=>({...t,coverUrl:t.coverUrl===a.url?undefined:a.url}))}>{coverFor(task)?.url===a.url?'✓ Capa do cartão':'Usar como capa'}</button>}

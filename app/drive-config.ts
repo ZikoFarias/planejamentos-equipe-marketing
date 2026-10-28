@@ -1,7 +1,7 @@
 // Public browser identifiers, restricted to the registered origins in Google Cloud.
-// Keep disabled on ChatGPT Sites. Enable only after the external hosting migration.
+// Enable only on the external preview and local development; never on Sites.
 export const driveConfig = {
-  enabled: false as boolean,
+  enabled: typeof window!=='undefined'&&['https://planejamentos-marketing-teste-gratis.marketinglukegroup.workers.dev','http://127.0.0.1:5173','http://localhost:5173'].includes(window.location.origin),
   clientId: '1091183989197-gvdika8rt3352m3icn3uqi7vil7gts57.apps.googleusercontent.com',
   apiKey: 'AIzaSyBvw2xcX0oeSNNlQ2hAxi0Ka3hhxblE-Rw',
   projectNumber: '1091183989197',

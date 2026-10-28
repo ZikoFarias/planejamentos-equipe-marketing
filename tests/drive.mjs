@@ -26,7 +26,7 @@ function mockUpload({lost=false,uploadStatus=200}={}){
     if(url.includes('generateIds'))return response({ids:[fileId]});
     if(url.includes('uploadType=resumable'))return response({},200,{Location:'https://www.googleapis.com/upload/drive/v3/files?upload_id=session'});
     if(url.includes('upload_id=')){if(lost)throw Error('connection lost');return response({id:fileId},uploadStatus)}
-    if(url.includes('/files/'+fileId))return response({id:fileId});
+    if(url.includes('/files/'+fileId))return response({id:fileId,size:'3'});
     assert.fail('Unexpected request '+url);
   };
 }
@@ -39,7 +39,7 @@ try{
     setCallback(callback){pickerCallback=callback;return this}
     build(){return {setVisible(){queueMicrotask(()=>pickerCallback(selection))},dispose(){disposed++}}}
   }
-  globalThis.window={location:{origin:'https://zikofarias.github.io'},google:{picker:{DocsView,PickerBuilder,ViewId:{FOLDERS:'folders'},Action:{CANCEL:'cancel',PICKED:'picked'}}}};
+  globalThis.window={dispatchEvent(){},location:{origin:'https://zikofarias.github.io'},google:{picker:{DocsView,PickerBuilder,ViewId:{FOLDERS:'folders'},Action:{CANCEL:'cancel',PICKED:'picked'}}}};
   assert.equal(await chooseDriveFolder('token','fibroplast','reference'),null);
   assert.equal(parent,driveFolders.fibroplast.reference);
   selection={action:'picked',docs:[{id:'chosen_folder_first',name:'Primeira',mimeType:'application/vnd.google-apps.folder'}]};
