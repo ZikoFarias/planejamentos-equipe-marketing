@@ -39,8 +39,8 @@ export function authorizeDrive():Promise<string>{return new Promise((resolve,rej
 })}
 export function chooseDriveFolder(token:string,company:string,kind:ArtworkKind):Promise<{id:string,name:string}|null>{return new Promise((resolve,reject)=>{
   const p=(window as GoogleWindow).google.picker;
-  const view=new p.DocsView(p.ViewId.FOLDERS).setIncludeFolders(true).setSelectFolderEnabled(true)
-    .setParent(driveFolders[company]?.[kind]||driveConfig.rootFolder);
+  // Show folders themselves, not the contents of an empty destination folder.
+  const view=new p.DocsView(p.ViewId.FOLDERS).setIncludeFolders(true).setSelectFolderEnabled(true);
   let picker:any;
   const finish=(value:{id:string,name:string}|null)=>{picker?.dispose();resolve(value)};
   try{picker=new p.PickerBuilder().addView(view).setOAuthToken(token).setDeveloperKey(driveConfig.apiKey)

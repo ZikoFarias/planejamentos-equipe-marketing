@@ -41,10 +41,10 @@ try{
   }
   globalThis.window={dispatchEvent(){},location:{origin:'https://zikofarias.github.io'},google:{picker:{DocsView,PickerBuilder,ViewId:{FOLDERS:'folders'},Action:{CANCEL:'cancel',PICKED:'picked'}}}};
   assert.equal(await chooseDriveFolder('token','fibroplast','reference'),null);
-  assert.equal(parent,driveFolders.fibroplast.reference);
+  assert.equal(parent,undefined,'Do not trap the picker inside an empty destination folder');
   selection={action:'picked',docs:[{id:'chosen_folder_first',name:'Primeira',mimeType:'application/vnd.google-apps.folder'}]};
   assert.equal((await chooseDriveFolder('token','fibroplast','final')).id,'chosen_folder_first');
-  assert.equal(parent,driveFolders.fibroplast.final);
+  assert.equal(parent,undefined);
   selection={action:'picked',docs:[{id:'chosen_folder_second',name:'Outra',mimeType:'application/vnd.google-apps.folder'}]};
   assert.equal((await chooseDriveFolder('token','concreto','reference')).id,'chosen_folder_second');
   assert.equal(disposed,3,'Release the picker after cancellation and every selection');
