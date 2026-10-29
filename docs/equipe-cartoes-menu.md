@@ -1,7 +1,8 @@
 # Equipe e ações do cartão
 
 - Acessos e permissões mostra cartões quadrados com nome, foto, cargo, e-mail e nível de acesso. Os cargos iniciais são Gerente (Lúcio), Social Media e Videomaker (Mateus) e Designer (Farias/Luiz).
-- O lápis de cada membro abre diretamente o editor administrativo. Fotos PNG/JPEG/WebP de até 100 MB usam o Drive central privado; fundos continuam limitados a 20 MB.
+- O lápis de cada membro abre diretamente o editor administrativo. Fotos PNG/JPEG/WebP de até 100 MB são compactadas no navegador antes de usar o Drive central privado; fundos continuam limitados a 20 MB.
+- Novas fotos de perfil são exportadas em JPEG, até 1600 pixels no lado maior, com limite final de 10 MB validado também no servidor. Proporção e enquadramento são preservados; transparência recebe fundo branco. O original local não é alterado. Fotos antigas precisam ser reenviadas para receber a compactação; artes dos cartões não passam por essa transformação.
 - O editor de foto oferece gabarito quadrado com guia circular, arraste, zoom de 1 a 3 e posição horizontal/vertical. O enquadramento validado no servidor é salvo no perfil e aplicado aos avatares redondos; o original é preservado no Drive.
 - E-mail de login personalizado resolve para a identidade original, preservando atribuições e histórico. O endereço anterior deixa de autenticar. O administrador mantém o próprio nível; papéis não autorizados e e-mails duplicados são rejeitados.
 - As ações Duplicar, Excluir, Fechar e o estado de salvamento ficam nos três pontos ao lado do X. Não há rodapé no cartão.

@@ -8,8 +8,8 @@ const transport=async(url,init)=>{assert.equal(init.headers.Authorization,'Beare
 const input=()=>({env,name:'fundo.png',type:'image/png',size:3,body:new Blob(['abc']).stream(),owner:'farias@example.test'});
 const result=await storeCentralBackground(input(),transport);assert(created);assert.equal(written,3);assert.equal(result.url,'/api/background/background_image_123');assert.equal(registered[0][2],'_background');assert.equal(registered[0][1],'farias@example.test');assert(!JSON.stringify(result).includes('private-token'));
 await assert.rejects(()=>storeCentralBackground({...input(),type:'image/svg+xml'},transport));await assert.rejects(()=>storeCentralBackground({...input(),size:21*1024*1024},transport));
-await assert.rejects(()=>storeCentralBackground({...input(),profile:true,size:101*1024*1024},transport));
-let profileAccepted=false;await assert.rejects(()=>storeCentralBackground({...input(),profile:true,size:100*1024*1024},async()=>{profileAccepted=true;throw Error('Boundary reached transport')}),/Boundary reached transport/);assert(profileAccepted,'A 100 MB profile reaches the authorized Drive transport');
+await assert.rejects(()=>storeCentralBackground({...input(),profile:true,size:11*1024*1024},transport));
+let profileAccepted=false;await assert.rejects(()=>storeCentralBackground({...input(),profile:true,size:10*1024*1024},async()=>{profileAccepted=true;throw Error('Boundary reached transport')}),/Boundary reached transport/);assert(profileAccepted,'A 10 MB profile reaches the authorized Drive transport');
 console.log('PASS: personal backgrounds use central Drive, confirmed folder and bytes, per-owner registry, image and size limits, no R2 and no browser tokens.');
 }finally{globalThis.fetch=original}
 
