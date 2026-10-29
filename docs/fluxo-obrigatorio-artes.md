@@ -1,5 +1,7 @@
 # Fluxo obrigatório das artes
 
+Atualização: Luiz e Farias podem retornar diretamente de Ajustar para Aprovação, iniciando uma nova rodada de votos. O administrador é exceção às restrições de etapas e anexos; uma entrada administrativa direta em Aprovado é identificada em `approval.administrative` e registrada no histórico com o autor real, sem fabricar votos de revisores. As restrições abaixo descrevem os perfis comuns. As colunas pessoais reutilizam as cores dos respectivos status de Lançamentos; Compras reutiliza as cores das etapas equivalentes.
+
 Lúcio, Mateus, Farias e Luiz podem criar demandas em A Fazer Farias ou A Fazer Luiz. A criação não dá permissão para editar a execução de outra pessoa.
 
 Sequência: A Fazer → Em Andamento → Aprovação da empresa → Aprovado → Concluído e Postado. Farias e Luiz iniciam a execução e encaminham para revisão. Lúcio e Mateus registram seus votos na etapa de aprovação. Um voto negativo envia para Ajustar; dois positivos enviam para Aprovado. Ajustar retorna para Em Andamento antes de nova aprovação.

@@ -3,6 +3,7 @@ export function recordActivity(previous:Task|undefined,next:Task,by:string,at=ne
  const events:Task['history']=[],add=(text:string,attachments?:Task['attachments'])=>events.push({text,by,at,...(attachments?{attachments}:{})});
  if(!previous)add('Criou o cartão');
  else {
+  if(next.approval?.administrative&&JSON.stringify(previous.approval)!==JSON.stringify(next.approval))add('Registrou aprovação administrativa, sem votos atribuídos a Lúcio ou Mateus');
   if(previous.status!==next.status)add(`Alterou o status de ${previous.status} para ${next.status}`);
   if(previous.purchase?.stage!==next.purchase?.stage&&next.purchase)add(`Compra: ${next.purchase.stage}`);
   if(previous.purchase?.requiresArt!==next.purchase?.requiresArt&&next.purchase)add(next.purchase.requiresArt?'Solicitou criação de arte antes da compra':'Compra sem criação de arte');

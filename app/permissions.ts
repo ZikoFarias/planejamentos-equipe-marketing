@@ -30,10 +30,10 @@ export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=
  const old=new Map(current.map(t=>[t.id,t]));
  const next=incoming.map(t=>{const previous=old.get(t.id);t=protectSpelling(previous,t);if(previous&&!canManageTask(previous,actor)){if(JSON.stringify(previous)!==JSON.stringify(t))throw Error('Você pode visualizar este cartão, mas apenas o responsável pode alterá-lo.');return previous;}
  if(isPurchase(t)&&previous&&actor.role!=='administrador'&&actor.persona!=='farias'&&JSON.stringify(t.purchase)!==JSON.stringify(previous.purchase))throw Error('Farias é responsável por editar e direcionar as compras.');
- const changed=!previous||JSON.stringify(previous)!==JSON.stringify(t);const task=changed?stampPosted(previous,normalizePurchase(protectApproval(previous,{...assignStatusOwner(configuredTask(assignStatusOwner(normalizeApproval(t)),config)),title:t.title.trim().toLocaleUpperCase('pt-BR')}),previous),now):t;
+ const changed=!previous||JSON.stringify(previous)!==JSON.stringify(t);const task=changed?stampPosted(previous,normalizePurchase(protectApproval(previous,{...assignStatusOwner(configuredTask(assignStatusOwner(normalizeApproval(t)),config)),title:t.title.trim().toLocaleUpperCase('pt-BR')},actor.role==='administrador'),previous),now):t;
  if(!previous&&!isPurchase(task)&&actor.role==='editor'&&['farias','luiz'].includes(actor.persona)&&['a fazer farias','a fazer luiz'].includes(task.status))return guardArtFlow(previous,task,actor);
  if(!canManageTask(task,actor))throw Error('Esta etapa ou tarefa não pertence à sua área.');
- if(!previous&&!isPurchase(task)&&!['a fazer farias','a fazer luiz'].includes(task.status))throw Error('Crie as artes apenas em A FAZER FARIAS ou A FAZER LUIZ.');
+ if(!previous&&!isPurchase(task)&&actor.role!=='administrador'&&!['a fazer farias','a fazer luiz'].includes(task.status))throw Error('Crie as artes apenas em A FAZER FARIAS ou A FAZER LUIZ.');
 
  if(changed&&(sharedStatuses.includes(task.status)||task.status.startsWith('aprovação ')||customStatus(task.status))&&!assignedTo(task,'luiz')&&!assignedTo(task,'farias'))throw Error('Atribua a tarefa a Luiz e/ou Farias antes de enviar para aprovação ou uma etapa compartilhada.');
  return guardArtFlow(previous,task,actor);});

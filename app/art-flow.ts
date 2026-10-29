@@ -1,9 +1,10 @@
 import type {Task} from './model';
 import type {Actor} from './permissions';
 import {isPurchase} from './purchases';
-export function canAttachArt(task:Task,actor:Actor){return !(['lucio','mateus'].includes(actor.persona)&&(task.status.startsWith('em andamento ')||task.status.startsWith('aprovação ')))}
+export function canAttachArt(task:Task,actor:Actor){return actor.role==='administrador'||!(['lucio','mateus'].includes(actor.persona)&&(task.status.startsWith('em andamento ')||task.status.startsWith('aprovação ')))}
 export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor):Task{
  // Purchases retain their separate budget workflow and Lucio-only approval.
+ if(actor.role==='administrador')return {...next,workflowResume:next.status==='stand-by ⛔'?previous?.status:undefined};
  if(isPurchase(next))return next;
  const before=previous?.status,after=next.status;
  if(previous&&!canAttachArt(previous,actor)&&JSON.stringify(previous.attachments)!==JSON.stringify(next.attachments))throw Error('Lúcio e Mateus apenas revisam nesta etapa; não podem inserir ou alterar artes.');
@@ -35,7 +36,7 @@ export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor):Task
   return {...next,workflowResume:undefined};
  }
  if(source?.startsWith('aprovação ')&&after==='ajustar ⚠️')return {...next,workflowResume:undefined};
- if(source==='ajustar ⚠️'&&after.startsWith('em andamento ')){
+ if(source==='ajustar ⚠️'&&(after.startsWith('em andamento ')||after.startsWith('aprovação '))){
   if(!['farias','luiz'].includes(actor.persona))throw Error('Farias ou Luiz devem iniciar os ajustes.');
   return {...next,workflowResume:undefined};
  }

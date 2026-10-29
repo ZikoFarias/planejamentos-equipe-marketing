@@ -6,12 +6,13 @@ import {approvalFor} from './workflow';
 import {statusDefinitions,type StatusConfig} from './status-config';
 export type Reviewer='lucio'|'mateus';
 export type Decision='approved'|'adjust';
-export type Approval={round:number,votes:Partial<Record<Reviewer,{decision:Decision,by:string,at:string}>>};
+export type Approval={administrative?:boolean,round:number,votes:Partial<Record<Reviewer,{decision:Decision,by:string,at:string}>>};
 export const isApproval=(status:string)=>status.startsWith('aprovação ');
 export function approvalContent(task:Task){return JSON.stringify({title:task.title.trim().toLocaleUpperCase('pt-BR'),description:task.description,companies:task.tags,art:task.attachments.filter(a=>a.artworkKind!=='reference').map(a=>({url:a.url,name:a.name})),cover:task.coverUrl})}
 // Ordinary task writes cannot add, erase or impersonate another person's vote.
-export function protectApproval(previous:Task|undefined,next:Task):Task{
+export function protectApproval(previous:Task|undefined,next:Task,admin=false):Task{
  if(next.status==='aprovado ✅'&&spellingFlagged(next))throw Error('Revise ou descarte o alerta ortográfico antes de aprovar.');
+ if(admin&&next.status==='aprovado ✅'&&previous?.status!==next.status){if(JSON.stringify(previous?.approval)!==JSON.stringify(next.approval))throw Error('Use os botões de votação para registrar seu próprio voto.');return {...next,approval:{round:(previous?.approval?.round||0)+1,votes:{},administrative:true}}}
  if(next.status==='aprovado ✅'&&previous?.status!==next.status)throw Error('Use os votos obrigatórios de Lúcio e Mateus para aprovar.');
  if(JSON.stringify(previous?.approval)!==JSON.stringify(next.approval))throw Error('Use os botões de votação para registrar seu próprio voto.');
  const entering=isApproval(next.status)&&(!previous||!isApproval(previous.status));
