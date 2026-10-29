@@ -3,7 +3,7 @@
 Referência: vídeo fornecido pelo usuário, duração 10,37 segundos. Quadros locais foram examinados sem alterar o arquivo original.
 
 - Prévia com rotação de 10 graus, opacidade total, pequena ampliação e sombra. O arraste pelo cartão e pela alça é controlado por eventos de ponteiro, sem a imagem de arraste nativa do navegador. A prévia acompanha o cursor até soltar/cancelar.
-- A coluna sob o cursor expande, abre se estiver recolhida e reserva um espaço proporcional à altura do cartão. Colunas vazias permanecem disponíveis durante o arraste.
+- A coluna sob o cursor expande, abre se estiver recolhida e reserva um espaço proporcional à altura do cartão. As aprovações por empresa sem cartões ficam ocultas inclusive durante o arraste; só aparecem quando há cartões aguardando aprovação naquela empresa.
 - O cartão original permanece no lugar com opacidade reduzida; a prévia não intercepta o destino do drop.
 - Após uma movimentação gravada, o cartão retorna à posição reta em 230 ms. Preferência de movimento reduzido remove rotação e animação.
 - Nenhuma regra de aprovação, atribuição ou permissão foi alterada. TypeScript, build e suíte completa passaram. A validação visual interativa permanece pendente porque o navegador está desativado no Work.
