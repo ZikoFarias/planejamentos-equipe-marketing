@@ -12,6 +12,7 @@ Esta é a instalação externa de uso da equipe. O nome técnico do Worker e do 
 - Arquivos e backup pela conta central do Drive, com destino por empresa e categoria.
 - Revisão ortográfica auxiliar pelo Gemini, conforme `revisao-ortografica.md`.
 - Cores pessoais salvas no D1 por e-mail; cada conta mantém a própria aparência entre dispositivos.
+- As cores escolhidas pelo administrador em 29/10/2026 foram aplicadas às cinco contas e guardadas em `_team_defaults` como padrão para contas sem personalização. Fundos pessoais foram preservados. As etiquetas continuam no `status_config.labels`, compartilhado por toda a equipe.
 - Imagens de fundo de até 20 MB enviadas ao Drive, na pasta **Fundos do quadro**, com leitura privada restrita ao dono.
 - Prévia de anexos antigos do Drive, após confirmar que o arquivo vinculado ao cartão está em uma das pastas autorizadas das empresas.
 
