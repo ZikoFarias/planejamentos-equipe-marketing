@@ -1,6 +1,10 @@
 import {names} from './permissions';
 import {teamAccounts} from './team-auth';
-export type Profiles=Record<string,{name:string,photo:string,job?:string,loginEmail?:string}>;
+export type PhotoFrame={x:number,y:number,zoom:number};
+export const defaultPhotoFrame:PhotoFrame={x:50,y:50,zoom:1};
+export const validPhotoFrame=(frame:any):frame is PhotoFrame=>!!frame&&typeof frame==='object'&&Number.isFinite(frame.x)&&frame.x>=0&&frame.x<=100&&Number.isFinite(frame.y)&&frame.y>=0&&frame.y<=100&&Number.isFinite(frame.zoom)&&frame.zoom>=1&&frame.zoom<=3;
+export function photoFrameStyle(frame:PhotoFrame=defaultPhotoFrame){return {objectPosition:`${frame.x}% ${frame.y}%`,transform:`scale(${frame.zoom})`,transformOrigin:`${frame.x}% ${frame.y}%`}}
+export type Profiles=Record<string,{name:string,photo:string,job?:string,loginEmail?:string,photoFrame?:PhotoFrame}>;
 export const teamJobs:Record<string,string>={lucio:'Gerente',mateus:'Social Media e Videomaker',farias:'Designer',luiz:'Designer'};
 export function loginAccount(email:string,profiles:Profiles){return Object.keys(teamAccounts).find(account=>(profiles[account]?.loginEmail||account)===email)}
 export function validProfile(email:unknown,name:unknown,photo:unknown){return typeof email==='string'&&Object.hasOwn(teamAccounts,email)&&typeof name==='string'&&name.trim().length>0&&name.trim().length<=80&&typeof photo==='string'&&(!photo||/^\/api\/background\/[\w-]{10,200}$/.test(photo))}
