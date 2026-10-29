@@ -1,0 +1,5 @@
+import {env} from 'cloudflare:workers';
+import {getActor} from '../../access';
+import {mediaType} from '../../media';
+import {storeCentralBackground} from '../../../server/drive-central-storage';
+export async function POST(req:Request){try{if(req.headers.get('origin')!==new URL(req.url).origin)return Response.json({error:'Origem inválida.'},{status:403});const actor=await getActor();if(!actor?.role)return Response.json({error:'Entre novamente.'},{status:401});if(!req.body)return Response.json({error:'Imagem vazia.'},{status:400});const url=new URL(req.url),name=url.searchParams.get('name')||'',size=Number(url.searchParams.get('size'));const attachment=await storeCentralBackground({env,name,size,type:mediaType({name,type:req.headers.get('Content-Type')||''}),body:req.body,owner:actor.user.email.toLowerCase()});return Response.json(attachment,{headers:{'Cache-Control':'no-store'}})}catch(e){return Response.json({error:e instanceof Error?e.message:'Não foi possível salvar o fundo.'},{status:503})}}

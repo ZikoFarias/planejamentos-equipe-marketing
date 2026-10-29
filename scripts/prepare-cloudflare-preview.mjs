@@ -22,7 +22,11 @@ async function cssFiles(dir){const files=[];for(const entry of await fs.readdir(
 const css=await cssFiles('dist/client');
 const links=css.map(file=>'<link rel="stylesheet" href="/'+path.relative('dist/client',file).replaceAll('\\','/')+'">').join('');
 await fs.writeFile(path.join(directory,'login.html'),'<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Acesso · Planejamento de Marketing</title>'+links+'</head><body>'+renderToStaticMarkup(React.createElement(LoginForm))+'<noscript>Ative o JavaScript para entrar no planejamento.</noscript><script type="module" src="/_team/'+script+'"></script></body></html>');
+const boardClient=await build({entryPoints:['app/board-static.tsx'],bundle:true,platform:'browser',format:'esm',jsx:'automatic',minify:true,define:{'process.env.NODE_ENV':'"production"'},write:false});
+const boardScript='board-'+createHash('sha256').update(boardClient.outputFiles[0].contents).digest('hex').slice(0,12)+'.js';
+await fs.writeFile(path.join(directory,boardScript),boardClient.outputFiles[0].contents);
+await fs.writeFile(path.join(directory,'board.html'),'<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Planejamento de Marketing</title>'+links+'</head><body><div id="marketing-root"><p class="loading" role="status">Carregando seu planejamento…</p></div><noscript>Ative o JavaScript para abrir o quadro.</noscript><script type="module" src="/_team/'+boardScript+'"></script></body></html>');
 config.assets={...config.assets,binding:'ASSETS'};
 config.triggers={...config.triggers,crons:['* * * * *']};
 await fs.writeFile(configPath,JSON.stringify(config,null,2)+'\n');
-console.log('Preview prepared: static login uses the existing React markup and stylesheet; isolated authentication entry is ready.');
+console.log('Installation prepared: authenticated board and login use lightweight static entry pages; all APIs remain protected.');

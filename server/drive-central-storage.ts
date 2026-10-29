@@ -1,5 +1,5 @@
 import {CENTRAL_DRIVE_EMAIL,refreshCentralAccess,revealCentralToken} from './drive-central-auth';
-import {driveFolders} from '../app/drive-config';
+import {driveFolders,driveConfig} from '../app/drive-config';
 import {MAX_FILE_SIZE} from '../app/media';
 let access:{cipher:string,token:string,until:number}|undefined;
 export async function centralAccess(env:Cloudflare.Env){
@@ -12,7 +12,10 @@ export async function centralAccess(env:Cloudflare.Env){
 }
 async function json(response:Response){if(!response.ok)throw Error('O Drive recusou a operação. Confira a conexão central e o espaço disponível.');return await response.json() as any}
 export async function storeCentralFile(input:{env:Cloudflare.Env,company:string,kind:'reference'|'final',name:string,type:string,size:number,body:ReadableStream<Uint8Array>,owner:string,taskId:string},fetcher:typeof fetch=fetch){
- const folderId=driveFolders[input.company]?.[input.kind];if(!folderId||!input.name.trim()||input.name.length>300||!Number.isSafeInteger(input.size)||input.size<1||input.size>MAX_FILE_SIZE)throw Error('Empresa, nome ou tamanho inválido.');
+ const folderId=driveFolders[input.company]?.[input.kind];if(!folderId)throw Error('Empresa inválida.');return storeFileInFolder({...input,folderId},fetcher);
+}
+async function storeFileInFolder(input:{env:Cloudflare.Env,folderId:string,kind:'reference'|'final',name:string,type:string,size:number,body:ReadableStream<Uint8Array>,owner:string,taskId:string},fetcher:typeof fetch=fetch){
+ const folderId=input.folderId;if(!folderId||!input.name.trim()||input.name.length>300||!Number.isSafeInteger(input.size)||input.size<1||input.size>MAX_FILE_SIZE)throw Error('Empresa, nome ou tamanho inválido.');
  const token=await centralAccess(input.env),headers={Authorization:'Bearer '+token};
  const folder=await json(await fetcher('https://www.googleapis.com/drive/v3/files/'+folderId+'?fields=id,name,mimeType,capabilities(canAddChildren)&supportsAllDrives=true',{headers}));
  if(folder.id!==folderId||folder.mimeType!=='application/vnd.google-apps.folder'||folder.capabilities?.canAddChildren!==true)throw Error('A conta central não pode gravar na pasta desta empresa.');
@@ -26,4 +29,13 @@ export async function storeCentralFile(input:{env:Cloudflare.Env,company:string,
  if(saved.id!==id||Number(saved.size)!==input.size||!saved.parents?.includes(folderId))throw Error('Não foi possível confirmar o arquivo na pasta da empresa. Confira o Drive antes de repetir.');
  await input.env.DB!.prepare('INSERT INTO marketing_central_uploads(file_id,email,task_id,created_at) VALUES(?,?,?,?)').bind(id,input.owner,input.taskId,Date.now()).run();
  const url='https://drive.google.com/file/d/'+id+'/view';return {name:input.name,url,type:input.type,size:input.size,artworkKind:input.kind,drive:{central:true,fileId:id,folderId,folderName:folder.name,url,savedAt:new Date().toISOString()}};
+}
+
+export async function storeCentralBackground(input:{env:Cloudflare.Env,name:string,type:string,size:number,body:ReadableStream<Uint8Array>,owner:string},fetcher:typeof fetch=fetch){
+ if(!Number.isSafeInteger(input.size)||input.size<1||input.size>20*1024*1024||!/^image\/(png|jpeg|webp|gif|avif)$/.test(input.type))throw Error('Escolha uma imagem de até 20 MB.');
+ const token=await centralAccess(input.env),headers={Authorization:'Bearer '+token};const query=new URLSearchParams({q:"'"+driveConfig.rootFolder+"' in parents and trashed=false and mimeType='application/vnd.google-apps.folder' and appProperties has { key='marketingPurpose' and value='backgrounds' }",fields:'files(id)',pageSize:'10'});
+ const found=await json(await fetcher('https://www.googleapis.com/drive/v3/files?'+query,{headers}));let folderId=found.files?.[0]?.id;
+ if(!folderId){const created=await json(await fetcher('https://www.googleapis.com/drive/v3/files?fields=id',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({name:'Fundos do quadro',mimeType:'application/vnd.google-apps.folder',parents:[driveConfig.rootFolder],appProperties:{marketingPurpose:'backgrounds'}})}));folderId=created.id;}
+ if(typeof folderId!=='string'||!/^[\w-]{10,200}$/.test(folderId))throw Error('Não foi possível preparar a pasta de fundos.');
+ const saved=await storeFileInFolder({...input,folderId,kind:'reference',taskId:'_background'},fetcher);return {name:saved.name,url:'/api/background/'+saved.drive.fileId,type:saved.type,size:saved.size};
 }
