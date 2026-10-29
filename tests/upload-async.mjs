@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {attachCentralArtwork} from '../server/attach-central-artwork';
+import {mergeUploadDraft} from '../app/upload-display';
+import {blank} from '../app/model';
+const attachment={name:'arte.png',url:'https://drive.google.com/file/d/async_upload_123/view',type:'image/png',size:3,artworkKind:'final',drive:{central:true,fileId:'async_upload_123',folderId:'folder_123456',folderName:'Arte',url:'https://drive.google.com/file/d/async_upload_123/view',savedAt:'2026-10-29T12:00:00Z'}};
+const initial={...blank(),id:'async-test',title:'Arte',status:'a fazer farias',tags:['fibroplast'],assignees:['Farias']};
+let tasks=[structuredClone(initial)],revision=0,writes=0,conflict=true;
+const db={prepare(sql){let args=[];return {bind(...a){args=a;return this},async first(){return {data:JSON.stringify(tasks),revision,status_config:'{}'}},async run(){if(conflict){conflict=false;tasks[0].description='Descrição alterada em outro acesso';revision++;return {meta:{changes:0}}}if(args[1]!==revision)return {meta:{changes:0}};tasks=JSON.parse(args[0]);revision++;writes++;return {meta:{changes:1}}}}}};
+const actor={role:'editor',persona:'farias',db,user:{email:'farias@test',displayName:'Farias'}};
+const result=await attachCentralArtwork(actor,initial.id,'fibroplast',attachment);assert.equal(result.revision,2);assert.equal(tasks[0].description,'Descrição alterada em outro acesso');assert.equal(tasks[0].attachments.length,1);assert.equal(tasks[0].coverUrl,attachment.url);assert(tasks[0].history.some(h=>h.attachments?.[0].url===attachment.url));
+await attachCentralArtwork(actor,initial.id,'fibroplast',attachment);assert.equal(writes,1,'same confirmed upload must not duplicate or rewrite');
+await assert.rejects(()=>attachCentralArtwork({...actor,persona:'luiz'},initial.id,'fibroplast',{...attachment,url:'other'}),/acesso mudou/);
+await assert.rejects(()=>attachCentralArtwork(actor,initial.id,'posto-ps',attachment),/empresa/);
+const local={...initial,title:'Título ainda não salvo',comments:[{text:'Comentário local',by:'Farias',at:'now'}]};const merged=mergeUploadDraft(local,initial,tasks[0]);assert.equal(merged.title,local.title);assert.equal(merged.description,tasks[0].description);assert.equal(merged.attachments[0].url,attachment.url);assert.equal(merged.comments[0].text,'Comentário local');assert.deepEqual(merged.history,tasks[0].history);assert(!JSON.stringify(merged).includes('blob:'));
+const both=mergeUploadDraft(local,initial,{...tasks[0],comments:[{text:'Comentário remoto',by:'Lucio',at:'later'}]});assert.equal(both.comments.length,2);assert(both.comments.some(c=>c.text==='Comentário local'));assert(both.comments.some(c=>c.text==='Comentário remoto'));
+console.log('PASS: server-side attachment survives a closed dialog, concurrent changes retained, CAS retry, idempotency, role/company protection and unsaved local edits merged without blob persistence.');

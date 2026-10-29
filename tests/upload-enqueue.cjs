@@ -1,0 +1,10 @@
+const {build}=require('esbuild'),assert=require('node:assert/strict'),path=require('node:path'),{pathToFileURL}=require('node:url');
+(async()=>{const outfile=path.resolve('.sites-runtime/upload-enqueue-test.mjs');await build({entryPoints:['server/cloudflare-entry.ts'],bundle:true,platform:'node',format:'esm',outfile,plugins:[{name:'mock-enqueue',setup(b){b.onResolve({filter:/^\.\/index\.js$/},()=>({path:'runtime',namespace:'test'}));b.onResolve({filter:/^\.\/spelling-review$/},()=>({path:'spelling',namespace:'test'}));b.onLoad({filter:/.*/,namespace:'test'},a=>({contents:a.path==='runtime'?'export default {async fetch(){return Response.json(globalThis.__uploadResponse)}}':'export async function enqueueSpelling(env,ids){globalThis.__queued.push(...ids)};export async function processSpellingQueue(){}',loader:'js'}))}}]});
+const app=(await import(pathToFileURL(outfile))).default,waits=[],ctx={waitUntil(p){waits.push(p)}},env={DB:{prepare(){return {async first(){return {data:'[]'}}}}}};
+const file={name:'arte.png',url:'https://drive.google.com/file/d/upload_image_123/view',type:'image/png',artworkKind:'final',drive:{central:true,fileId:'upload_image_123'}};
+globalThis.__queued=[];globalThis.__uploadResponse={...file,board:{tasks:[{id:'card',attachments:[file]}],revision:1}};const call=query=>app.fetch(new Request('https://board.test/api/drive/central/upload'+query,{method:'POST'}),env,ctx);
+assert.equal((await call('?attach=1')).status,200);await Promise.all(waits);assert.deepEqual(globalThis.__queued,['card']);
+globalThis.__queued=[];globalThis.__uploadResponse.board.tasks[0].attachments[0]={...file,artworkKind:'reference'};await call('?attach=1');assert.deepEqual(globalThis.__queued,[]);
+globalThis.__uploadResponse.board.tasks[0].attachments[0]=file;await call('');assert.deepEqual(globalThis.__queued,[],'legacy uploads are queued only when their board save completes');
+console.log('PASS: auto-linked final art still enqueues spelling in the background, references do not, and old upload clients retain their previous save flow.');
+})().catch(error=>{console.error(error);process.exitCode=1});

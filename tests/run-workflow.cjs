@@ -1,4 +1,4 @@
-const {buildSync}=require('esbuild');const {execFileSync}=require('node:child_process');const path=require('node:path');for(const name of ['background-storage','spelling','edit-history','board-sync','areas','workflow','interface','week','units','weekly','bulk','status-config','drive','drive-direct','drive-folders','drive-central','drive-central-storage','upload-artwork','approval','purchases']){const file=path.resolve('.sites-runtime/'+name+'-tests.mjs');buildSync({entryPoints:['tests/'+name+'.mjs'],bundle:true,platform:'node',format:'esm',outfile:file});execFileSync(process.execPath,[file],{stdio:'inherit'})}
+const {buildSync}=require('esbuild');const {execFileSync}=require('node:child_process');const path=require('node:path');for(const name of ['board-rebase','upload-async','upload-progress','background-storage','spelling','edit-history','board-sync','areas','workflow','interface','week','units','weekly','bulk','status-config','drive','drive-direct','drive-folders','drive-central','drive-central-storage','upload-artwork','approval','purchases']){const file=path.resolve('.sites-runtime/'+name+'-tests.mjs');buildSync({entryPoints:['tests/'+name+'.mjs'],bundle:true,platform:'node',format:'esm',outfile:file});execFileSync(process.execPath,[file],{stdio:'inherit'})}
 
 
 
@@ -14,3 +14,5 @@ execFileSync(process.execPath,['tests/spelling-api.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/preferences-api.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['tests/production-entry.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/upload-enqueue.cjs'],{stdio:'inherit'});

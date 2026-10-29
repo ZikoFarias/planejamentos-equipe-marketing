@@ -17,9 +17,12 @@ export async function storeCentralFile(input:{env:Cloudflare.Env,company:string,
 async function storeFileInFolder(input:{env:Cloudflare.Env,folderId:string,kind:'reference'|'final',name:string,type:string,size:number,body:ReadableStream<Uint8Array>,owner:string,taskId:string},fetcher:typeof fetch=fetch){
  const folderId=input.folderId;if(!folderId||!input.name.trim()||input.name.length>300||!Number.isSafeInteger(input.size)||input.size<1||input.size>MAX_FILE_SIZE)throw Error('Empresa, nome ou tamanho inválido.');
  const token=await centralAccess(input.env),headers={Authorization:'Bearer '+token};
- const folder=await json(await fetcher('https://www.googleapis.com/drive/v3/files/'+folderId+'?fields=id,name,mimeType,capabilities(canAddChildren)&supportsAllDrives=true',{headers}));
+ const [folder,generated]=await Promise.all([
+  fetcher('https://www.googleapis.com/drive/v3/files/'+folderId+'?fields=id,name,mimeType,capabilities(canAddChildren)&supportsAllDrives=true',{headers}).then(json),
+  fetcher('https://www.googleapis.com/drive/v3/files/generateIds?count=1&space=drive',{headers}).then(json),
+ ]);
  if(folder.id!==folderId||folder.mimeType!=='application/vnd.google-apps.folder'||folder.capabilities?.canAddChildren!==true)throw Error('A conta central não pode gravar na pasta desta empresa.');
- const generated=await json(await fetcher('https://www.googleapis.com/drive/v3/files/generateIds?count=1&space=drive',{headers})),id=generated.ids?.[0];if(typeof id!=='string'||!/^[\w-]{10,200}$/.test(id))throw Error('Identificação do Drive inválida.');
+ const id=generated.ids?.[0];if(typeof id!=='string'||!/^[\w-]{10,200}$/.test(id))throw Error('Identificação do Drive inválida.');
  const started=await fetcher('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,size,parents',{method:'POST',headers:{...headers,'Content-Type':'application/json','X-Upload-Content-Type':input.type,'X-Upload-Content-Length':String(input.size)},body:JSON.stringify({id,name:input.name,mimeType:input.type,parents:[folderId],appProperties:{artworkKind:input.kind,taskId:input.taskId}})});
  const location=started.headers.get('Location');if(!started.ok||!location?.startsWith('https://www.googleapis.com/upload/'))throw Error('Não foi possível iniciar o arquivo no Drive.');
  // Stream bytes through the Worker; never buffer a 100 MB artwork in memory.

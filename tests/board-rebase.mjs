@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {blank} from '../app/model';
+import {rebaseBoardEdit} from '../app/board-rebase';
+const old={...blank(),id:'card',title:'Arte',description:'Original'},edit={...old,title:'Nova edição'};
+const pending={...old,spelling:{state:'pending',fingerprint:'[]',message:'Verificando',issues:[],checkedAt:'now'},history:[{text:'Revisão',by:'Sistema',at:'now'}]};
+const merged=rebaseBoardEdit([old],[edit],[pending])[0];assert.equal(merged.title,edit.title);assert.deepEqual(merged.spelling,pending.spelling);assert.deepEqual(merged.history,pending.history);
+assert.equal(rebaseBoardEdit([old],[edit],[{...old,description:'Descrição remota'}])[0].description,'Descrição remota');
+assert.equal(rebaseBoardEdit([old],[edit],[{...old,status:'ajustar ⚠️'}])[0].status,'ajustar ⚠️');
+assert.throws(()=>rebaseBoardEdit([old],[edit],[{...old,title:'Outro título'}]),/mesmo campo/);
+assert.throws(()=>rebaseBoardEdit([old],[edit],[]),/removido/);
+assert.throws(()=>rebaseBoardEdit([old],[],[{...old,description:'Nova descrição'}]),/exclusão/);
+const other={...blank(),id:'other',title:'Outro'};assert.equal(rebaseBoardEdit([old],[edit],[old,other]).length,2);assert.equal(rebaseBoardEdit([old],[old,other],[old]).length,2);
+const voted={...old,approval:{round:2,votes:{lucio:{decision:'approved',by:'lucio@test',at:'now'}}}};assert.deepEqual(rebaseBoardEdit([old],[edit],[voted])[0].approval,voted.approval);
+console.log('PASS: safe revision retry retains spelling, votes and unrelated changes; real field conflicts, deleted cards and changed deletions remain protected.');
