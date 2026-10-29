@@ -26,7 +26,7 @@ export function TaskAttachments({task,company,writable,busy,onBusy,onUpdate,acti
       {!items.length&&<div className="attachment-empty"><Paperclip size={22}/><strong>{group.kind==='reference'?'Nenhuma referência adicionada':'Nenhuma arte adicionada'}</strong><p>{group.kind==='reference'?'Reúna aqui os arquivos que orientam a criação.':'Adicione aqui a arte produzida para esta tarefa.'}</p></div>}
       <div className="attachment-grid">{items.map(({a,i})=><div className="attachment-tile" key={a.url+'-'+i}>
         <AttachmentPreview attachment={a}/><div className="attachment-caption">
-          <a href={(/^https?:\/\//.test(a.url)||/^\/api\/files\/[a-f0-9-]{36}$/.test(a.url))?a.url:'#'} target="_blank" rel="noreferrer">{a.name}</a><small>{sizeLabel(a.size)}</small>
+          <a href={(/^https?:\/\//.test(a.url)||/^\/api\/files\/[a-f0-9-]{36}$/.test(a.url))?a.url:'#'} target="_blank" rel="noreferrer">{a.name}</a><small>{sizeLabel(a.size)}</small>{a.drive?.fileId&&<a className="download-artwork" href={'/api/drive/central/media?id='+encodeURIComponent(a.drive.fileId)+'&download=1'} download={a.name}>Baixar arquivo</a>}
           {a.backup&&<div className="backup-warning" role="status"><strong>{a.backup.status==='pending'?'Backup em andamento':'Backup não confirmado'}</strong>{a.backup.message&&<small>{a.backup.message}</small>}</div>}
           {a.drive&&!a.backup&&<small className="backup-confirmed">Arquivo confirmado no Drive</small>}
           {!a.artworkKind&&<small>Sem classificação</small>}

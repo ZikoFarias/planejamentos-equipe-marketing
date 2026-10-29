@@ -5,8 +5,10 @@ export function canAttachArt(task:Task,actor:Actor){return actor.role==='adminis
 export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor):Task{
  // Purchases retain their separate budget workflow and Lucio-only approval.
  if(actor.role==='administrador')return {...next,workflowResume:next.status==='stand-by ⛔'?previous?.status:undefined};
+ if(next.status==='ajustar ⚠️'&&previous?.status!==next.status&&!['lucio','mateus'].includes(actor.persona))throw Error('Apenas Lúcio e Mateus podem encaminhar para Ajustar.');
  if(isPurchase(next))return next;
  const before=previous?.status,after=next.status;
+ if(after==='ajustar ⚠️'&&before!==after&&!['lucio','mateus'].includes(actor.persona))throw Error('Apenas Lúcio e Mateus podem encaminhar para Ajustar.');
  if(previous&&!canAttachArt(previous,actor)&&JSON.stringify(previous.attachments)!==JSON.stringify(next.attachments))throw Error('Lúcio e Mateus apenas revisam nesta etapa; não podem inserir ou alterar artes.');
  if(!previous){if(!['a fazer farias','a fazer luiz'].includes(after))throw Error('Crie o cartão em A Fazer Farias ou A Fazer Luiz.');return {...next,workflowResume:undefined};}
  if(before===after){const {workflowResume:ignored,...rest}=next;return previous.workflowResume?{...rest,workflowResume:previous.workflowResume}:rest;}

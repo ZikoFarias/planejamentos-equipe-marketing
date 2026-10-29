@@ -44,5 +44,9 @@ const compile=()=>build({entryPoints:['app/api/approval/route.ts'],bundle:true,p
  globalThis.__approvalActor=actor('mateus');assert.equal((await POST(request('approved',0,{scope:'quote'}))).status,403);
  globalThis.__approvalActor=actor('lucio');assert.equal((await POST(request('adjust',0,{scope:'quote'}))).status,400);const quoteResponse=await POST(request('approved',0,{scope:'quote'}));assert.equal(quoteResponse.status,200);assert.equal((await quoteResponse.json()).task.purchase.stage,'aprovado');
  delete globalThis.__approvalActor;
+ // A movement after approval can request adjustments only as a reviewer.
+ globalThis.__approvalActor=actor('lucio');row.data=JSON.stringify([{...task,status:'aprovado ✅'}]);
+ const moved=await POST(request('adjust',row.revision,{movement:true}));assert.equal(moved.status,200);assert.equal((await moved.json()).task.status,'ajustar ⚠️');
+ globalThis.__approvalActor=actor('farias');assert.equal((await POST(request('adjust',row.revision,{movement:true}))).status,403);
  console.log('PASS: approval HTTP authentication, origin and role checks, reviewer spoofing ignored, idempotent writes, stale revisions, concurrent vote CAS, retry preserves first vote and immediate negative routing.');
 })().catch(error=>{console.error(error);process.exitCode=1});

@@ -15,7 +15,7 @@ export async function GET(req:Request){try{
  if(!pending||(!linked&&pending.email!==actor.user.email))return new Response('Arquivo indisponível.',{status:403});
  const headers:Record<string,string>={Authorization:'Bearer '+await centralAccess(env)};const range=req.headers.get('Range');if(range)headers.Range=range;
  const file=await fetch('https://www.googleapis.com/drive/v3/files/'+id+'?alt=media&supportsAllDrives=true',{headers});if(!file.ok)return new Response('Arquivo indisponível no Drive.',{status:502});
- const out=new Headers({'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Disposition':'inline'});for(const name of ['Content-Type','Content-Length','Content-Range','Accept-Ranges']){const value=file.headers.get(name);if(value)out.set(name,value)}
+ const out=new Headers({'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Disposition':new URL(req.url).searchParams.get('download')==='1'?"attachment; filename*=UTF-8''"+encodeURIComponent(linkedTask?.attachments.find(a=>a.drive?.fileId===id)?.name||'arquivo'):'inline'});for(const name of ['Content-Type','Content-Length','Content-Range','Accept-Ranges']){const value=file.headers.get(name);if(value)out.set(name,value)}
  if(!/^(image\/(png|jpeg|webp|gif|avif)|video\/(mp4|webm|quicktime)|application\/pdf)(;|$)/.test(out.get('Content-Type')||''))out.set('Content-Disposition','attachment');
  return new Response(file.body,{status:file.status,headers:out});
  }catch{return new Response('Conexão central indisponível.',{status:503})}}

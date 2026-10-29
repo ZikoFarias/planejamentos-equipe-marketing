@@ -16,3 +16,5 @@ execFileSync(process.execPath,['tests/preferences-api.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['tests/production-entry.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/upload-enqueue.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/profiles-api.cjs'],{stdio:'inherit'});
