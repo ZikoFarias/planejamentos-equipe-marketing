@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {blank} from '../app/model';
+import {mergeScopedTasks} from '../app/permissions';
+import {canAttachArt} from '../app/art-flow';
+import {castApprovalVote} from '../app/approval';
+import {emptyStatusConfig} from '../app/status-config';
+const farias={role:'editor',persona:'farias'},lucio={role:'editor',persona:'lucio',email:'lucio@test',name:'Lucio'},mateus={role:'editor',persona:'mateus',email:'mateus@test',name:'Mateus'};
+const task={...blank(),title:'ARTE TESTE',tags:['fibroplast'],assignees:['Farias']};
+const move=(t,status,actor=farias)=>mergeScopedTasks([t],[{...t,status}],actor)[0];
+for(const persona of ['farias','luiz','lucio','mateus'])for(const status of ['a fazer farias','a fazer luiz'])assert.equal(mergeScopedTasks([],[{...task,status}],{role:'editor',persona})[0].status,status);
+assert.throws(()=>move(task,'aprovação fibroplast'),/etapa/);assert.throws(()=>move(task,'aprovado ✅'),/votos/);assert.throws(()=>move(task,'concluidos e postados'),/aprovação/);assert.throws(()=>move(task,'em andamento farias',lucio),/iniciar/);
+const progress=move(task,'em andamento farias');assert.throws(()=>move(progress,'aprovado ✅'),/votos/);const review=move(progress,'aprovação fibroplast');
+for(const actor of [lucio,mateus]){assert(!canAttachArt(progress,actor));assert(!canAttachArt(review,actor));assert(canAttachArt(task,actor));assert.throws(()=>mergeScopedTasks([review],[{...review,attachments:[{name:'arte.png',url:'https://example.com/a.png',artworkKind:'final'}]}],actor),/revisam/)}
+const one=castApprovalVote(review,lucio,'approved',emptyStatusConfig);assert.equal(one.status,review.status);assert.throws(()=>move(one,'aprovado ✅'),/votos/);
+const two=castApprovalVote(one,mateus,'approved',emptyStatusConfig);assert.equal(two.status,'aprovado ✅');assert.equal(move(two,'concluidos e postados').status,'concluidos e postados');
+const negative=castApprovalVote(review,mateus,'adjust',emptyStatusConfig);assert.equal(negative.status,'ajustar ⚠️');assert.throws(()=>move(negative,'aprovação fibroplast'),/etapa/);assert.equal(move(negative,'em andamento farias').status,'em andamento farias');
+const standby=move(task,'stand-by ⛔',lucio);assert.equal(standby.workflowResume,task.status);assert.throws(()=>move(standby,'concluidos e postados',lucio),/Retome/);assert.throws(()=>move(standby,'em andamento farias'),/Retome/);assert.equal(move(standby,task.status).status,task.status);
+const approvedStandby=move(two,'stand-by ⛔');assert.equal(move(approvedStandby,'concluidos e postados').status,'concluidos e postados');
+assert.throws(()=>move(task,'aprovação fibroplast',{role:'administrador',persona:'farias'}),/etapa/);
+console.log('PASS: strict artwork stages, all four create, designer starts, both votes required, reviewer attachment restriction, negative adjustment loop, no admin bypass and safe standby resume.');

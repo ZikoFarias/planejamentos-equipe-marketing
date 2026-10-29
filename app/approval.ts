@@ -12,6 +12,7 @@ export function approvalContent(task:Task){return JSON.stringify({title:task.tit
 // Ordinary task writes cannot add, erase or impersonate another person's vote.
 export function protectApproval(previous:Task|undefined,next:Task):Task{
  if(next.status==='aprovado ✅'&&spellingFlagged(next))throw Error('Revise ou descarte o alerta ortográfico antes de aprovar.');
+ if(next.status==='aprovado ✅'&&previous?.status!==next.status)throw Error('Use os votos obrigatórios de Lúcio e Mateus para aprovar.');
  if(JSON.stringify(previous?.approval)!==JSON.stringify(next.approval))throw Error('Use os botões de votação para registrar seu próprio voto.');
  const entering=isApproval(next.status)&&(!previous||!isApproval(previous.status));
  const changed=!!previous&&(!!previous.approval||previous.status==='aprovado ✅')&&approvalContent(previous)!==approvalContent(next);

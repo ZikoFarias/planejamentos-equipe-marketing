@@ -1,3 +1,4 @@
+import {canAttachArt} from '../app/art-flow';
 import type {Task,Attachment} from '../app/model';
 import {canManageTask,canSeeTask,mergeScopedTasks,names,type Actor} from '../app/permissions';
 import {companyOf} from '../app/workflow';
@@ -11,6 +12,7 @@ export async function attachCentralArtwork(actor:Actor&{db:D1Database,user:{emai
   const row=await actor.db.prepare('SELECT data,revision,status_config FROM marketing_board WHERE id=1').first<{data:string,revision:number,status_config:string}>();
   const tasks=JSON.parse(row?.data||'[]') as Task[],task=tasks.find(t=>t.id===id);
   if(!task||!canManageTask(task,actor))throw Error('O arquivo chegou ao Drive, mas o cartão foi removido ou seu acesso mudou. Confira antes de reenviar.');
+  if(!canAttachArt(task,actor))throw Error('A etapa mudou durante o envio. Lúcio e Mateus não podem inserir artes nesta etapa. O arquivo permanece no Drive.');
   if(companyOf(task)?.id!==company)throw Error('A empresa do cartão mudou durante o envio. O arquivo permanece na pasta original do Drive.');
   if(task.attachments.some(a=>a.drive?.fileId===attachment.drive?.fileId))return {tasks:tasks.filter(t=>canSeeTask(t,actor)),revision:row!.revision};
   const attachments=[...task.attachments,attachment],candidate={...task,attachments,coverUrl:automaticCover(attachments)};
