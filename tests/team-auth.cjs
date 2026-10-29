@@ -2,6 +2,7 @@ const {build}=require('esbuild'),assert=require('node:assert/strict'),fs=require
 const {DatabaseSync}=require('node:sqlite'),{pbkdf2Sync}=require('node:crypto'),{pathToFileURL}=require('node:url'),path=require('node:path');
 (async()=>{
  const sqlite=new DatabaseSync(':memory:');sqlite.exec('CREATE TABLE marketing_members(email TEXT PRIMARY KEY,role TEXT,persona TEXT)');
+ sqlite.exec('CREATE TABLE marketing_preferences(email TEXT PRIMARY KEY,data TEXT,updated_at INTEGER)');
  for(const file of ['0003_team_access','0004_team_login','0005_team_administrator','0006_login_challenges'])sqlite.exec(fs.readFileSync('drizzle/'+file+'.sql','utf8'));
  const db={prepare(sql){return {bind(...args){const statement=sqlite.prepare(sql);return {first:async()=>statement.get(...args)||null,run:async()=>({meta:{changes:statement.run(...args).changes}})}}}}};
  const salt='a'.repeat(32),password='test-only-password',hash=pbkdf2Sync(password,salt,100000,32,'sha256').toString('hex');
@@ -19,6 +20,10 @@ const {DatabaseSync}=require('node:sqlite'),{pbkdf2Sync}=require('node:crypto'),
   const body=await credentials(' '+email.toUpperCase()+' ');const response=await handle(req(body),env);assert.equal(response.status,200);const cookie=response.headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/SameSite=Lax/);assert.match(cookie,/Secure/);assert.match(cookie,/Max-Age=43200/);const token=cookie.match(/marketing_session=([a-f0-9]+)/)[1];assert.equal(sqlite.prepare('SELECT count(*) n FROM marketing_sessions WHERE token_hash=?').get(token).n,0);assert.equal((await handle(req(body),env)).status,401,'Replayed proofs are denied');
  }
  assert.equal((await handle(req(await credentials('unknown@test.com')),env)).status,401);
+ sqlite.prepare('INSERT INTO marketing_preferences(email,data) VALUES(?,?)').run('_profiles',JSON.stringify({'marketingluke02@gmail.com':{loginEmail:'luiz.novo@example.com',name:'Luiz',photo:''}}));
+ assert.equal((await handle(req(await credentials('luiz.novo@example.com')),env)).status,200,'New login email resolves to the existing account');
+ assert.equal((await handle(req(await credentials('marketingluke02@gmail.com')),env)).status,401,'Replaced email no longer signs in');
+ assert.equal(sqlite.prepare("SELECT count(*) n FROM marketing_sessions WHERE email='luiz.novo@example.com'").get().n,0,'Sessions keep stable canonical identity');
  const wrong=await credentials('marketingluke09@gmail.com','wrong');assert.equal((await handle(req(wrong),env)).status,401);assert.equal((await handle(req(wrong),env)).status,401);
  const expired=await credentials('marketingluke09@gmail.com');sqlite.exec('UPDATE marketing_login_challenges SET expires_at=0');assert.equal((await handle(req(expired),env)).status,401);
  const other=await credentials('marketingluke09@gmail.com');other.email='marketingluke24@gmail.com';assert.equal((await handle(req(other),env)).status,401,'Challenge is email-bound');

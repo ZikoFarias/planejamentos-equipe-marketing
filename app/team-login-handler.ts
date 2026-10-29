@@ -1,5 +1,6 @@
 import {teamAccounts,validTeamRole,newToken,tokenHash,validToken,sessionCookie,SESSION_SECONDS} from './team-auth';
 import {verifyLoginProof} from './login-proof';
+import {loginAccount} from './profiles';
 const json=(body:unknown,status=200,headers:Record<string,string>={})=>Response.json(body,{status,headers:{'Cache-Control':'no-store',...headers}});
 const denied=()=>json({error:'E-mail ou senha inválidos. Use uma conta autorizada da equipe.'},401);
 export async function handleTeamLogin(req:Request,env:Cloudflare.Env,challengeRequest=false){try{
@@ -24,9 +25,10 @@ export async function handleTeamLogin(req:Request,env:Cloudflare.Env,challengeRe
  const challenge=await db.prepare('DELETE FROM marketing_login_challenges WHERE token_hash=? RETURNING email,expires_at').bind(await tokenHash(body.challenge)).first<{email:string,expires_at:number}>();
  if(!challenge||challenge.email!==email||challenge.expires_at<=now)return denied();
  if(!await verifyLoginProof(env.BOARD_LOGIN_HASH,email,body.challenge,body.proof))return denied();
- const member=await db.prepare('SELECT role,persona FROM marketing_members WHERE email=?').bind(email).first<{role:string,persona:string}>();
- if(!teamAccounts[email]||!member||!validTeamRole(email,member.role)||member.persona!==teamAccounts[email])return denied();
- const token=newToken();await db.prepare('INSERT INTO marketing_sessions(token_hash,email,expires_at) VALUES(?,?,?)').bind(await tokenHash(token),email,now+SESSION_SECONDS*1000).run();
+ const profileRow=await db.prepare('SELECT data FROM marketing_preferences WHERE email=?').bind('_profiles').first<{data:string}>();const account=loginAccount(email,profileRow?JSON.parse(profileRow.data):{});if(!account)return denied();
+ const member=await db.prepare('SELECT role,persona FROM marketing_members WHERE email=?').bind(account).first<{role:string,persona:string}>();
+ if(!member||!validTeamRole(account,member.role)||member.persona!==teamAccounts[account])return denied();
+ const token=newToken();await db.prepare('INSERT INTO marketing_sessions(token_hash,email,expires_at) VALUES(?,?,?)').bind(await tokenHash(token),account,now+SESSION_SECONDS*1000).run();
  await db.prepare('DELETE FROM marketing_login_attempts WHERE key=? OR reset_at<=?').bind(await tokenHash(email),now).run();
  await db.prepare('DELETE FROM marketing_sessions WHERE expires_at<=?').bind(now).run();
  return json({ok:true},200,{'Set-Cookie':sessionCookie(token,new URL(req.url).protocol==='https:')});

@@ -34,8 +34,8 @@ async function storeFileInFolder(input:{env:Cloudflare.Env,folderId:string,kind:
  const url='https://drive.google.com/file/d/'+id+'/view';return {name:input.name,url,type:input.type,size:input.size,artworkKind:input.kind,drive:{central:true,fileId:id,folderId,folderName:folder.name,url,savedAt:new Date().toISOString()}};
 }
 
-export async function storeCentralBackground(input:{env:Cloudflare.Env,name:string,type:string,size:number,body:ReadableStream<Uint8Array>,owner:string},fetcher:typeof fetch=fetch){
- if(!Number.isSafeInteger(input.size)||input.size<1||input.size>20*1024*1024||!/^image\/(png|jpeg|webp|gif|avif)$/.test(input.type))throw Error('Escolha uma imagem de até 20 MB.');
+export async function storeCentralBackground(input:{profile?:boolean,env:Cloudflare.Env,name:string,type:string,size:number,body:ReadableStream<Uint8Array>,owner:string},fetcher:typeof fetch=fetch){
+ if(!Number.isSafeInteger(input.size)||input.size<1||input.size>(input.profile?25:20)*1024*1024||!/^image\/(png|jpeg|webp|gif|avif)$/.test(input.type))throw Error('Escolha uma imagem de até '+(input.profile?25:20)+' MB.');
  const token=await centralAccess(input.env),headers={Authorization:'Bearer '+token};const query=new URLSearchParams({q:"'"+driveConfig.rootFolder+"' in parents and trashed=false and mimeType='application/vnd.google-apps.folder' and appProperties has { key='marketingPurpose' and value='backgrounds' }",fields:'files(id)',pageSize:'10'});
  const found=await json(await fetcher('https://www.googleapis.com/drive/v3/files?'+query,{headers}));let folderId=found.files?.[0]?.id;
  if(!folderId){const created=await json(await fetcher('https://www.googleapis.com/drive/v3/files?fields=id',{method:'POST',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify({name:'Fundos do quadro',mimeType:'application/vnd.google-apps.folder',parents:[driveConfig.rootFolder],appProperties:{marketingPurpose:'backgrounds'}})}));folderId=created.id;}
