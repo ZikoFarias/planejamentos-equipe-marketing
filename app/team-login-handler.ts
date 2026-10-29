@@ -1,5 +1,6 @@
 import {teamAccounts,validTeamRole,newToken,tokenHash,validToken,sessionCookie,SESSION_SECONDS} from './team-auth';
 import {verifyLoginProof} from './login-proof';
+import {accountPassword} from './password-store';
 import {loginAccount} from './profiles';
 const json=(body:unknown,status=200,headers:Record<string,string>={})=>Response.json(body,{status,headers:{'Cache-Control':'no-store',...headers}});
 const denied=()=>json({error:'E-mail ou senha inválidos. Use uma conta autorizada da equipe.'},401);
@@ -18,14 +19,14 @@ export async function handleTeamLogin(req:Request,env:Cloudflare.Env,challengeRe
   if(!attempt||attempt.attempts>8)return json({error:'Muitas tentativas. Aguarde 15 minutos antes de tentar novamente.'},429,{'Retry-After':'900'});
   const challenge=newToken();await db.prepare('DELETE FROM marketing_login_challenges WHERE expires_at<=?').bind(now).run();
   await db.prepare('INSERT INTO marketing_login_challenges(token_hash,email,expires_at) VALUES(?,?,?)').bind(await tokenHash(challenge),email,now+120000).run();
-  return json({challenge,salt:env.BOARD_LOGIN_SALT});
+  const profiles=await db.prepare('SELECT data FROM marketing_preferences WHERE email=?').bind('_profiles').first<{data:string}>();const account=loginAccount(email,profiles?JSON.parse(profiles.data):{});const password=account?await accountPassword(db,account,{salt:env.BOARD_LOGIN_SALT,hash:env.BOARD_LOGIN_HASH}):{salt:env.BOARD_LOGIN_SALT};return json({challenge,salt:password.salt});
  }
  if(typeof body.challenge!=='string'||!validToken(body.challenge)||typeof body.proof!=='string'||!validToken(body.proof))return denied();
  // Consume before verification: wrong passwords and simultaneous replays cannot reuse a challenge.
  const challenge=await db.prepare('DELETE FROM marketing_login_challenges WHERE token_hash=? RETURNING email,expires_at').bind(await tokenHash(body.challenge)).first<{email:string,expires_at:number}>();
  if(!challenge||challenge.email!==email||challenge.expires_at<=now)return denied();
- if(!await verifyLoginProof(env.BOARD_LOGIN_HASH,email,body.challenge,body.proof))return denied();
  const profileRow=await db.prepare('SELECT data FROM marketing_preferences WHERE email=?').bind('_profiles').first<{data:string}>();const account=loginAccount(email,profileRow?JSON.parse(profileRow.data):{});if(!account)return denied();
+ const password=await accountPassword(db,account,{salt:env.BOARD_LOGIN_SALT,hash:env.BOARD_LOGIN_HASH});if(!await verifyLoginProof(password.hash,email,body.challenge,body.proof))return denied();
  const member=await db.prepare('SELECT role,persona FROM marketing_members WHERE email=?').bind(account).first<{role:string,persona:string}>();
  if(!member||!validTeamRole(account,member.role)||member.persona!==teamAccounts[account])return denied();
  const token=newToken();await db.prepare('INSERT INTO marketing_sessions(token_hash,email,expires_at) VALUES(?,?,?)').bind(await tokenHash(token),account,now+SESSION_SECONDS*1000).run();

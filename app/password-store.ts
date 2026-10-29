@@ -1,0 +1,2 @@
+export type PasswordVerifier={salt:string,hash:string};
+export async function accountPassword(db:D1Database,email:string,fallback:PasswordVerifier):Promise<PasswordVerifier>{const row=await db.prepare('SELECT data FROM marketing_preferences WHERE email=?').bind('_password:'+email).first<{data:string}>();if(!row)return fallback;const value=JSON.parse(row.data);if(!/^[a-f0-9]{32}$/.test(value.salt)||!/^[a-f0-9]{64}$/.test(value.hash))throw Error('Configuração de senha inválida.');return value}
