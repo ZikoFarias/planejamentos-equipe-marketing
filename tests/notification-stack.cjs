@@ -9,7 +9,7 @@ const fs=require('fs'),path=require('path'),assert=require('node:assert/strict')
  const React=require('react'),{act}=React,{createRoot}=require('react-dom/client'),{NotificationStack}=require(path.resolve('.sites-runtime/notification-stack-test.cjs'));
  const mount=document.createElement('div');document.body.appendChild(mount);const root=createRoot(mount);let closed=0;
  const render=active=>React.createElement(NotificationStack,{active},React.createElement('div',{role:'alert'},'Erro',React.createElement('button',{onClick:()=>closed++},'Fechar')),React.createElement('div',{role:'status'},'Confirmado'));
- await act(async()=>root.render(render(true)));let layer=document.querySelector('.notification-stack');assert.equal(layer.parentElement,document.body);assert.equal(layer.getAttribute('popover'),'manual');assert.equal(layer.children.length,2);assert.equal(shown.at(-1),layer);
+ await act(async()=>root.render(render(true)));let layer=document.querySelector('.notification-stack');assert.equal(layer.parentElement,document.body);assert.equal(layer.getAttribute('popover'),'manual');assert.equal(layer.querySelector('.notification-corner').children.length,2);assert.equal(shown.at(-1),layer);
  const first=document.createElement('dialog');document.body.appendChild(first);await act(async()=>{first.showModal();await new Promise(r=>setTimeout(r,0))});
  layer=document.querySelector('.notification-stack');assert.equal(layer.parentElement,first);assert.equal(shown.at(-1),layer);
  const second=document.createElement('dialog');document.body.appendChild(second);await act(async()=>{second.showModal();await new Promise(r=>setTimeout(r,0))});

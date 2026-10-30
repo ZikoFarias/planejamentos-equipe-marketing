@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {createPortal} from 'react-dom';
-export function NotificationStack({active,children}:{active:boolean,children:ReactNode}){
+export function NotificationStack({active,children,floating}:{active:boolean,children:ReactNode,floating?:ReactNode}){
  const [host,setHost]=useState<HTMLElement|null>(null),layer=useRef<HTMLDivElement>(null),dialogs=useRef<HTMLDialogElement[]>([]);
  useEffect(()=>{
   function update(preferred?:HTMLDialogElement){
@@ -33,5 +33,5 @@ export function NotificationStack({active,children}:{active:boolean,children:Rea
   else el.setAttribute('data-fallback','true');
  },[host,active]);
  if(!host||!active)return null;
- return createPortal(<div ref={layer} popover="manual" className="notification-stack" aria-label="Notificações" onClick={e=>e.stopPropagation()}>{children}</div>,host);
+ return createPortal(<div ref={layer} popover="manual" className="notification-stack" aria-label="Notificações" onClick={e=>e.stopPropagation()}><div className="notification-corner">{children}</div>{floating}</div>,host);
 }

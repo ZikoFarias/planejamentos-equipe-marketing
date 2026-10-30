@@ -1,3 +1,4 @@
+import {processPersonalNotifications} from './personal-notifications';
 import {requestTeamSession} from '../app/request-session';
 import {enqueueSpelling,processSpellingQueue} from './spelling-review';
 import {spellingFingerprint,finalImages} from '../app/spelling';
@@ -5,7 +6,7 @@ import type {Task} from '../app/model';
 import {handleTeamLogin} from '../app/team-login-handler';
 type Environment=Cloudflare.Env&{ASSETS:Fetcher};
 // Keep authentication independent of the server-rendering runtime on Workers Free.
-export default {async scheduled(_event:ScheduledController,env:Environment,ctx:ExecutionContext){ctx.waitUntil(processSpellingQueue(env))},async fetch(request:Request,env:Environment,ctx:ExecutionContext){
+export default {async scheduled(_event:ScheduledController,env:Environment,ctx:ExecutionContext){ctx.waitUntil(Promise.allSettled([processSpellingQueue(env),processPersonalNotifications(env.DB!)]))},async fetch(request:Request,env:Environment,ctx:ExecutionContext){
  const url=new URL(request.url),headers=new Headers(request.headers);
  for(const key of [...headers.keys()])if(key.startsWith('oai-authenticated-'))headers.delete(key);
  const clean=new Request(request,{headers});let response:Response;
