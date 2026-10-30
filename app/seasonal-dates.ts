@@ -1,9 +1,10 @@
-import {companies,companyById} from './workflow';
+import {companies} from './workflow';
+import {generalSeasonalCatalog,additionalSeasonalCatalog,seasonalCategory} from './seasonal-catalog';
 import {blank} from './model';
 import {withParticipants} from './participants';
 import {assignStatusOwner} from './permissions';
 import {validDate} from './weekly-plan';
-export type SeasonalDate={id:string,title:string,date:string,companies:string[],context:string,source:string};
+export type SeasonalDate={id:string,title:string,date:string,context:string,source:string,category?:string};
 const all=companies.map(c=>c.id),construction=['materiais-ps','materiais-smo','concreto'],roads=['fibroplast','posto-ps','posto-rv','posto-brr'],mate=['ervateira'];
 const calendar='https://www.sebraego.com.br/calendario-empreendedor/';
 const industry='https://goias.gov.br/industriaecomercio/calendario-de-datas-comemorativas/';
@@ -52,20 +53,29 @@ const fixed:Entry[]=[
 const iso=(date:Date)=>date.toISOString().slice(0,10);
 const sunday=(year:number,month:number)=>{const first=new Date(Date.UTC(year,month-1,1));return new Date(Date.UTC(year,month-1,1+(7-first.getUTCDay())%7+7))};
 function easter(year:number){const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31),day=(h+l-7*m+114)%31+1;return new Date(Date.UTC(year,month-1,day))}
-export function seasonalDates(day:string,company=''):SeasonalDate[]{
+export function seasonalDates(day:string):SeasonalDate[]{
  if(!validDate(day))return [];const year=Number(day.slice(0,4));if(year<1900||year>2199)return [];
- const entries:SeasonalDate[]=fixed.filter(([date])=>date===day.slice(5)).map(([date,title,companies,context,source],i)=>({id:date+'-'+i,title,date:day,companies,context,source:source||calendar}));
- const movable=(id:string,title:string,date:Date,context:string,source=calendar)=>{if(iso(date)===day)entries.push({id,title,date:day,companies:all,context,source})};
+ const entries:SeasonalDate[]=fixed.filter(([date])=>date===day.slice(5)).map(([date,title,companies,context,source],i)=>({id:date+'-'+i,title,date:day,context,source:source||calendar,category:seasonalCategory(title)}));
+ const movable=(id:string,title:string,date:Date,context:string,source=calendar)=>{if(iso(date)===day)entries.push({id,title,date:day,context,source,category:seasonalCategory(title)})};
  movable('maes','Dia das Mães',sunday(year,5),'Família, homenagem e campanhas de relacionamento.');
  movable('pais','Dia dos Pais',sunday(year,8),'Família, homenagem e campanhas de relacionamento.');
  const pascoa=easter(year);movable('pascoa','Páscoa',pascoa,'Mensagem de Páscoa e relacionamento com a comunidade.');
  const carnaval=new Date(pascoa);carnaval.setUTCDate(carnaval.getUTCDate()-47);movable('carnaval','Carnaval',carnaval,'Horários de funcionamento e segurança nas viagens.');
  const santa=new Date(pascoa);santa.setUTCDate(santa.getUTCDate()-2);movable('paixao','Sexta-feira Santa',santa,'Comunicação de horários durante a Semana Santa.');
  const first=new Date(Date.UTC(year,10,1)),friday=new Date(Date.UTC(year,10,1+(4-first.getUTCDay()+7)%7+22));movable('black-friday','Black Friday',friday,'Campanhas comerciais e ofertas reais planejadas.','https://agenciasebrae.com.br/cultura-empreendedora/black-friday-6-dicas-para-aumentar-as-vendas-na-data-queridinha-do-consumidor/');
- return entries.filter(entry=>!company||entry.companies.includes(company)).sort((a,b)=>a.title.localeCompare(b.title,'pt-BR'));
+ const ash=new Date(pascoa);ash.setUTCDate(ash.getUTCDate()-46);movable('cinzas','Quarta-feira de Cinzas',ash,'Data móvel após o Carnaval.');
+ const monday=new Date(pascoa);monday.setUTCDate(monday.getUTCDate()-48);movable('segunda-carnaval','Segunda-feira de Carnaval',monday,'Data móvel do período de Carnaval.');
+ const corpus=new Date(pascoa);corpus.setUTCDate(corpus.getUTCDate()+60);movable('corpus','Corpus Christi',corpus,'Data religiosa móvel, 60 dias após a Páscoa.');
+ const cyber=new Date(friday);cyber.setUTCDate(cyber.getUTCDate()+3);movable('cyber-monday','Cyber Monday',cyber,'Campanha comercial na segunda-feira após a Black Friday.');
+ const thanks=new Date(friday);thanks.setUTCDate(thanks.getUTCDate()-1);movable('acao-gracas','Dia de Ação de Graças · tradição dos EUA',thanks,'Quarta quinta-feira de novembro; referência do calendário comercial dos Estados Unidos.');
+ const programmer=new Date(Date.UTC(year,0,256));movable('programador','Dia do Programador',programmer,'Celebrado no 256º dia do ano; varia em anos bissextos.');
+ const seasons:Record<number,string[]>={2026:['03-20','06-21','09-22','12-21'],2027:['03-20','06-21','09-23','12-21'],2028:['03-19','06-20','09-22','12-21'],2029:['03-20','06-20','09-22','12-21'],2030:['03-20','06-21','09-22','12-21']};
+ seasons[year]?.forEach((date,index)=>{if(date===day.slice(5)){const title=['Início do Outono','Início do Inverno','Início da Primavera','Início do Verão'][index];entries.push({id:'estacao-'+index,title,date:day,context:'Início da estação no hemisfério sul, considerando o horário de Brasília. Datas conferidas para este ano.',source:'https://www.ipmet.unesp.br/4estacoes/4estacoes/ESTACOES_DO_ANO_DATAS.pdf',category:'Estações do ano'})}});
+ for(const [date,title,source] of [...generalSeasonalCatalog,...additionalSeasonalCatalog]){if(date!==day.slice(5))continue;const category=seasonalCategory(title);entries.push({id:'geral-'+date+'-'+title.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-'),title,date:day,category,context:category==='Regional'?'Data regional ou aniversário local. Confira o local de referência na fonte.':'Data do calendário comemorativo. A data completa e a fonte estão disponíveis abaixo para orientar o planejamento.',source})}
+ const unique=new Map<string,SeasonalDate>();for(const entry of entries){const key=entry.title.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();if(!unique.has(key))unique.set(key,entry)}
+ return [...unique.values()].sort((a,b)=>a.title.localeCompare(b.title,'pt-BR'));
 }
-export function seasonalTask(event:SeasonalDate,company:string,designer:'luiz'|'farias'){
- if(!validDate(event.date))throw Error('Data sazonal inválida.');if(company&&(!companyById(company)||!event.companies.includes(company)))throw Error('Escolha uma empresa indicada para esta data.');
- const owner=company?(company.startsWith('posto-')||company==='ervateira'?'luiz':'farias'):designer;
- return withParticipants(assignStatusOwner({...blank('a fazer '+owner),title:event.title,start:event.date,due:event.date,tags:company?[company]:[],description:event.context+'\nFonte: '+event.source}));
+export function seasonalTask(event:SeasonalDate,designer:'luiz'|'farias'){
+ if(!validDate(event.date))throw Error('Data sazonal inválida.');
+ return withParticipants(assignStatusOwner({...blank('a fazer '+designer),title:event.title,start:event.date,due:event.date,tags:[],description:event.context+'\nFonte: '+event.source}));
 }

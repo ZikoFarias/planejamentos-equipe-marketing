@@ -1,19 +1,18 @@
 # Datas sazonais no calendário
 
-- Os cabeçalhos dos dias abrem um menu sobre a grade, com datas sazonais cadastradas para o dia e as empresas indicadas. Os dias com sugestões exibem uma contagem.
-- O seletor de empresa filtra as sugestões. A opção inicial permite escolher a empresa posteriormente dentro do cartão. Cada sugestão tem fonte consultável.
-- Ao clicar, abre um cartão novo com título sazonal, início/entrega no dia selecionado e contexto na descrição. Quando há empresa escolhida, recebe sua etiqueta e o designer conforme o roteamento existente (postos/ervateira: Luiz; demais: Farias). Sem empresa, preserva a área Luiz quando aplicável; caso contrário, prepara para Farias. A revisão e os participantes seguem o fluxo existente.
-- Visualizadores podem consultar as sugestões/fontes, mas não criar cartões. Nenhum lançamento automático em lote é feito.
-- A base é uma seleção editorial de datas relevantes para os negócios, não uma lista universal de todas as comemorações existentes. Dias sem sugestão mostram mensagem explícita. Datas locais e aniversários de empresas dependem de cadastro futuro.
-- Datas móveis são calculadas por ano: segundo domingo de maio/agosto, Páscoa gregoriana, Carnaval, Sexta-feira Santa e Black Friday após a quarta quinta-feira de novembro. Relevância por empresa é uma escolha editorial.
+- Os cabeçalhos abrem todas as datas cadastradas para o dia, sem filtro, indicação ou restrição por empresa.
+- A base ampliada contém 361 ocorrências em 2026: datas gerais, profissionais, culturais, comerciais, de conscientização, regionais e datas móveis. É um catálogo de fontes identificadas, não uma afirmação de exaustividade de todas as comemorações existentes no mundo.
+- A lista é compacta: mostra apenas os nomes. Passar o mouse ou focar pelo teclado abre um pop-up com título, data completa, categoria, contexto e fonte. O ícone de informação permite consultar os detalhes por toque. O pop-up fecha com a lista e ao selecionar um item.
+- Clicar no nome abre um novo cartão com título, início e entrega preenchidos, sem atribuir uma empresa. A etiqueta de empresa é escolhida no editor do cartão. A área Luiz preserva seu designer; nos demais casos prepara para Farias. Aprovação, responsáveis fixos e permissões continuam no fluxo existente.
+- Visualizadores podem consultar informações, mas não criar cartões.
+- Datas móveis: Dia das Mães/Pais, Páscoa, Carnaval, Quarta-feira de Cinzas, Sexta-feira Santa, Corpus Christi, Black Friday, Cyber Monday, Ação de Graças (identificada como tradição dos EUA) e Dia do Programador (256º dia). Estações do ano conferidas para 2026–2030 em horário de Brasília.
+- Não são reutilizadas datas móveis fixadas em um ano de um calendário fonte. Divergências evidentes entre fontes não foram replicadas automaticamente.
 
-Fontes consultadas em 29/10/2026:
+Fontes consultadas em 30/10/2026:
 
 - [Calendário Empreendedor do Sebrae Goiás](https://www.sebraego.com.br/calendario-empreendedor/).
-- [Calendário da Secretaria de Indústria e Comércio de Goiás](https://goias.gov.br/industriaecomercio/calendario-de-datas-comemorativas/).
-- [Calendário de trânsito do Contran](https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/Resolucao10002023.pdf) e [Caminhoneiros — Ministério dos Transportes](https://www.gov.br/transportes/pt-br/assuntos/conteudo/caminhoneiros).
-- [Dia do Chimarrão — Ministério do Turismo](https://www.gov.br/turismo/pt-br/assuntos/ultimas-noticia/chimarrao-e-celebrado-como-simbolo-da-cultura-gaucha/).
-- [Trabalhador da construção civil — Agência Pará](https://www.agenciapara.com.br/noticia/23017/trabalhadores-da-construcao-civil-garantem-desenvolvimento-e-qualidade-de-vida-para-a-populacao).
-- [Datas do Confea](https://www.confea.org.br/midias/anexo_0053.pdf), calendários oficiais e fontes individuais vinculadas na base.
+- [Calendário de datas comemorativas da Prefeitura de São José dos Pinhais](https://www.sjp.pr.gov.br/secretarias/secretaria-industria-comercio-e-servicos/datas-comemorativas/).
+- [Estações do ano — IPMet/UNESP, dados IAG/USP](https://www.ipmet.unesp.br/4estacoes/4estacoes/ESTACOES_DO_ANO_DATAS.pdf).
+- Fontes específicas já vinculadas nas datas originais (Ministérios, Confea, calendários oficiais).
 
-Validação: TypeScript, build e suíte completa de fluxos passaram. `tests/seasonal-dates.mjs` cobre filtros, datas móveis entre anos, dias vazios, atribuição, título/data e criação sem aprovação antecipada. `tests/seasonal-menu.cjs` cobre abertura/seleção/filtro e bloqueio para visualizadores em DOM temporário happy-dom (`DOM_TEST_MODULE` opcional). Conferência visual no navegador não foi possível nesta sessão.
+Validação: TypeScript, build, suíte completa e teste DOM da lista passaram. Os testes verificam ausência de empresas e de filtro, base com mais de 300 entradas por ano, datas móveis/estações, duplicações, detalhes fora da lista, foco/hover, criação com um único argumento e acesso somente leitura. Nenhum cartão real foi criado para teste. Conferência visual interativa não executada nesta atualização.
