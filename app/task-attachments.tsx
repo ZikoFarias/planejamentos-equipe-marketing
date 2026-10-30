@@ -1,42 +1,32 @@
 'use client';
-import {useId,useRef} from 'react';
-import {X,Plus,Paperclip} from 'lucide-react';
-import type {Task} from './model';
+import {useEffect,useId,useRef,useState} from 'react';
+import {MoreVertical,Plus,Paperclip,Check,Download,ExternalLink,Trash2} from 'lucide-react';
+import type {Task,Attachment} from './model';
 import {AttachmentPreview} from './attachment-preview';
 import {SaveToDrive} from './save-to-drive';
-import {ColorSelect} from './color-select';
-import {artworkLabels,type ArtworkKind} from './drive-config';
+import type {ArtworkKind} from './drive-config';
 import {automaticCover,coverFor,previewKind,sizeLabel} from './media';
-
-export function TaskAttachments({task,company,writable,busy,onBusy,onUpdate,activeKind,onKindChange,onAdd,onDropFiles}:{task:Task,company:string,writable:boolean,busy:boolean,onBusy:(busy:boolean)=>void,onUpdate:(update:(task:Task)=>Task)=>void,activeKind:ArtworkKind,onKindChange:(kind:ArtworkKind)=>void,onAdd:(kind:ArtworkKind)=>void,onDropFiles:(files:File[],kind:ArtworkKind)=>void}){
-  const id=useId(),tabs=useRef<HTMLDivElement>(null);
-  const groups=[{kind:'reference' as const,label:'Referência'},{kind:'final' as const,label:'Arte'}];
-  const itemsFor=(kind:ArtworkKind)=>task.attachments.map((a,i)=>({a,i})).filter(({a})=>kind==='reference'?a.artworkKind!=='final':a.artworkKind==='final');
-  return <section className="detail-section task-attachments"><h3>Arquivos <small>{task.attachments.length}</small></h3>
-    <p className="muted">Arraste arquivos para Referência ou Arte. Arquivos de até 100 MB. A arte final vira a capa automaticamente; enquanto não houver, usamos a referência.</p>
-    <div className="attachment-tabs" role="tablist" aria-label="Tipos de arquivos" ref={tabs} onKeyDown={event=>{
-      if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;event.preventDefault();
-      const next=event.key==='Home'?'reference':event.key==='End'?'final':activeKind==='reference'?'final':'reference';
-      onKindChange(next);tabs.current?.querySelector<HTMLButtonElement>('[data-kind="'+next+'"]')?.focus();
-    }}>{groups.map(group=><button key={group.kind} type="button" role="tab" onDragOver={event=>{if(writable&&!busy&&event.dataTransfer.types.includes('Files')){event.preventDefault();event.dataTransfer.dropEffect='copy'}}} onDrop={event=>{if(!event.dataTransfer.files.length)return;event.preventDefault();event.stopPropagation();if(writable&&!busy){onKindChange(group.kind);onDropFiles(Array.from(event.dataTransfer.files),group.kind)}}} data-kind={group.kind} id={id+'-tab-'+group.kind} aria-selected={activeKind===group.kind} aria-controls={id+'-panel-'+group.kind} tabIndex={activeKind===group.kind?0:-1} onClick={()=>onKindChange(group.kind)}>{group.label}<span>{itemsFor(group.kind).length}</span></button>)}</div>
-    {groups.map(group=>{const items=itemsFor(group.kind);
-      return <section className="attachment-category attachment-panel" key={group.kind} role="tabpanel" onDragOver={event=>{if(writable&&!busy&&event.dataTransfer.types.includes('Files')){event.preventDefault();event.dataTransfer.dropEffect='copy'}}} onDrop={event=>{if(!event.dataTransfer.files.length)return;event.preventDefault();event.stopPropagation();if(writable&&!busy)onDropFiles(Array.from(event.dataTransfer.files),group.kind)}} tabIndex={0} id={id+'-panel-'+group.kind} aria-labelledby={id+'-tab-'+group.kind} hidden={activeKind!==group.kind}>
-      <div className="attachment-panel-heading"><span>{group.kind==='reference'?'Briefings, exemplos e inspirações':'Artes produzidas e arquivos finais'}</span>{writable&&<button type="button" className="attachment-add" disabled={busy} onClick={()=>onAdd(group.kind)}><Plus size={15}/>{group.kind==='reference'?'Adicionar referência':'Adicionar arte'}</button>}</div>
-      {group.kind==='reference'&&items.some(({a})=>!a.artworkKind)&&<p className="legacy-attachment-note">Os arquivos antigos sem classificação estão aqui. Você pode definir o tipo de cada um.</p>}
-      {!items.length&&<div className="attachment-empty"><Paperclip size={22}/><strong>{group.kind==='reference'?'Nenhuma referência adicionada':'Nenhuma arte adicionada'}</strong><p>{group.kind==='reference'?'Reúna aqui os arquivos que orientam a criação.':'Adicione aqui a arte produzida para esta tarefa.'}</p></div>}
-      <div className="attachment-grid">{items.map(({a,i})=><div className="attachment-tile" key={a.url+'-'+i}>
-        <AttachmentPreview attachment={a}/><div className="attachment-caption">
-          <a href={(/^https?:\/\//.test(a.url)||/^\/api\/files\/[a-f0-9-]{36}$/.test(a.url))?a.url:'#'} target="_blank" rel="noreferrer">{a.name}</a><small>{sizeLabel(a.size)}</small>{a.drive?.fileId&&<a className="download-artwork" href={'/api/drive/central/media?id='+encodeURIComponent(a.drive.fileId)+'&download=1'} download={a.name}>Baixar arquivo</a>}
-          {a.backup&&<div className="backup-warning" role="status"><strong>{a.backup.status==='pending'?'Backup em andamento':'Backup não confirmado'}</strong>{a.backup.message&&<small>{a.backup.message}</small>}</div>}
-          {a.drive&&!a.backup&&<small className="backup-confirmed">Arquivo confirmado no Drive</small>}
-          {!a.artworkKind&&<small>Sem classificação</small>}
-          {writable&&<ColorSelect label={'Classificação de '+a.name} value={a.artworkKind||''} disabled={busy} onChange={value=>{onUpdate(t=>{const attachments=t.attachments.map((item,j)=>j===i?{...item,artworkKind:(value||undefined) as ArtworkKind|undefined}:item);return {...t,attachments,coverUrl:automaticCover(attachments)}});if(value)onKindChange(value as ArtworkKind)}} options={[{value:'',label:'Sem classificação',color:'#9faebd'},...Object.entries(artworkLabels).map(([value,label])=>({value,label,color:'#579dff'}))]}/>}
-          {a.drive&&/^[a-zA-Z0-9_-]{10,200}$/.test(a.drive.fileId)&&<a href={'https://drive.google.com/file/d/'+a.drive.fileId+'/view'} target="_blank" rel="noreferrer">Abrir no Drive</a>}
-        </div>
-        {writable&&<SaveToDrive attachment={a} company={company} disabled={busy} onBusy={onBusy} onSaved={attachment=>onUpdate(t=>({...t,attachments:t.attachments.map((item,j)=>j===i?attachment:item)}))}/>}
-        <div className="attachment-actions">{previewKind(a)==='image'&&<button disabled={!writable||busy} aria-pressed={coverFor(task)?.url===a.url} onClick={()=>onUpdate(t=>({...t,coverUrl:t.coverUrl===a.url?undefined:a.url}))}>{coverFor(task)?.url===a.url?'✓ Capa do cartão':'Usar como capa'}</button>}
-          {writable&&<button className="icon danger" disabled={busy} aria-label={'Remover anexo '+a.name} onClick={()=>onUpdate(t=>{const attachments=t.attachments.filter((_,j)=>j!==i);return {...t,attachments,coverUrl:t.coverUrl===a.url?automaticCover(attachments):t.coverUrl}})}><X size={14}/></button>}
-        </div></div>)}</div></section>
-    })}
-  </section>
+function AttachmentTile({attachment:a,index,task,company,writable,busy,onBusy,onUpdate}:{attachment:Attachment,index:number,task:Task,company:string,writable:boolean,busy:boolean,onBusy:(busy:boolean)=>void,onUpdate:(update:(task:Task)=>Task)=>void}){
+ const menu=useRef<HTMLDivElement>(null),trigger=useRef<HTMLButtonElement>(null),id=useId(),[expanded,setExpanded]=useState(false);
+ function place(){const panel=menu.current,button=trigger.current;if(!panel||!button)return;const box=button.getBoundingClientRect(),width=Math.min(270,window.innerWidth-24),height=panel.offsetHeight;panel.style.width=width+'px';panel.style.left=Math.max(12,Math.min(box.right-width,window.innerWidth-width-12))+'px';panel.style.top=Math.max(12,box.bottom+height+8>window.innerHeight?box.top-height-6:box.bottom+6)+'px'}
+ function close(){menu.current?.hidePopover?.();setExpanded(false)}
+ useEffect(()=>{if(!expanded)return;window.addEventListener('resize',place);document.addEventListener('scroll',place,true);return()=>{window.removeEventListener('resize',place);document.removeEventListener('scroll',place,true)}},[expanded]);
+ const openUrl=a.drive?.fileId?'/api/drive/central/media?id='+encodeURIComponent(a.drive.fileId):(/^https?:\/\//.test(a.url)||/^\/api\/files\/[a-f0-9-]{36}$/.test(a.url))?a.url:'#';
+ return <div className="attachment-tile attachment-photo"><AttachmentPreview attachment={a}/>{a.artworkKind==='final'&&<span className="attachment-final-label"><Check size={12}/>Arte final</span>}<button ref={trigger} type="button" className="attachment-options-trigger" aria-label={'Opções de '+a.name} aria-controls={id} aria-expanded={expanded} onClick={()=>{if(expanded)close();else{menu.current?.showPopover?.();setExpanded(true);place()}}}><MoreVertical size={18}/></button>
+ <div ref={menu} id={id} popover="auto" className="attachment-options" aria-label={'Informações e ações de '+a.name} onToggle={e=>{const open=(e.nativeEvent as ToggleEvent).newState==='open';setExpanded(open);if(open)place()}}>
+  <strong className="attachment-file-name">{a.name}</strong><small>{sizeLabel(a.size)}</small>
+  {a.backup?<p className="attachment-backup-status">{a.backup.status==='pending'?'Backup em andamento':'Backup não confirmado'}{a.backup.message?' · '+a.backup.message:''}</p>:a.drive?<small>Arquivo confirmado no Drive</small>:null}
+  <a href={openUrl} target="_blank" rel="noreferrer"><ExternalLink size={14}/>Abrir arquivo</a>
+  <a href={a.drive?.fileId?'/api/drive/central/media?id='+encodeURIComponent(a.drive.fileId)+'&download=1':openUrl} download={a.name}><Download size={14}/>Baixar arquivo</a>
+  {a.drive&&/^[a-zA-Z0-9_-]{10,200}$/.test(a.drive.fileId)&&<a href={'https://drive.google.com/file/d/'+a.drive.fileId+'/view'} target="_blank" rel="noreferrer"><ExternalLink size={14}/>Abrir no Drive</a>}
+  {writable&&<><button type="button" disabled={busy} aria-pressed={a.artworkKind==='final'} onClick={()=>{onUpdate(t=>{const attachments=t.attachments.map((item,i)=>i===index?{...item,artworkKind:(a.artworkKind==='final'?'reference':'final') as ArtworkKind}:item);return {...t,attachments,coverUrl:automaticCover(attachments)}});close()}}><Check size={14}/>{a.artworkKind==='final'?'Usar como referência':'Marcar como arte final'}</button>
+  {previewKind(a)==='image'&&<button type="button" disabled={busy} aria-pressed={coverFor(task)?.url===a.url} onClick={()=>{onUpdate(t=>({...t,coverUrl:a.url}));close()}}>{coverFor(task)?.url===a.url?'Capa do cartão':'Usar como capa'}</button>}
+  <SaveToDrive attachment={a} company={company} disabled={busy} onBusy={onBusy} onSaved={attachment=>onUpdate(t=>({...t,attachments:t.attachments.map((item,i)=>i===index?attachment:item)}))}/>
+  <button type="button" className="danger" disabled={busy} onClick={()=>{onUpdate(t=>{const attachments=t.attachments.filter((_,i)=>i!==index);return {...t,attachments,coverUrl:automaticCover(attachments)}});close()}}><Trash2 size={14}/>Remover do cartão</button></>}
+ </div></div>;
+}
+export function TaskAttachments({task,company,writable,busy,onBusy,onUpdate,onAdd,onDropFiles}:{task:Task,company:string,writable:boolean,busy:boolean,onBusy:(busy:boolean)=>void,onUpdate:(update:(task:Task)=>Task)=>void,activeKind?:ArtworkKind,onKindChange?:(kind:ArtworkKind)=>void,onAdd:(kind:ArtworkKind)=>void,onDropFiles:(files:File[],kind:ArtworkKind)=>void}){
+ return <section className="detail-section task-attachments" onDragOver={e=>{if(e.dataTransfer.types.includes('Files')){e.preventDefault();e.dataTransfer.dropEffect=writable&&!busy?'copy':'none'}}} onDrop={e=>{if(!e.dataTransfer.files.length)return;e.preventDefault();e.stopPropagation();if(writable&&!busy)onDropFiles(Array.from(e.dataTransfer.files),'reference')}}><div className="attachments-heading"><h3>Arquivos <small>{task.attachments.length}</small></h3>{writable&&<button type="button" disabled={busy} onClick={()=>onAdd('reference')}><Plus size={15}/>Adicionar arquivos</button>}</div>
+ {!task.attachments.length?<div className="attachment-empty"><Paperclip size={22}/><p>Arraste arquivos para cá ou clique em Adicionar arquivos.</p></div>:<div className="attachment-grid">{task.attachments.map((a,index)=><AttachmentTile key={a.url+'-'+index} attachment={a} index={index} task={task} company={company} writable={writable} busy={busy} onBusy={onBusy} onUpdate={onUpdate}/>)}</div>}
+ </section>;
 }
