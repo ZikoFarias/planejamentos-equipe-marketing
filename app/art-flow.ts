@@ -7,6 +7,7 @@ export function canAttachArt(task:Task,actor:Actor){return actor.role==='adminis
 export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor,labels:LabelConfig={}):Task{
  // Purchases retain their separate budget workflow and Lucio-only approval.
  if(actor.role==='administrador')return {...next,workflowResume:next.status==='stand-by ⛔'?previous?.status:undefined};
+ if(previous?.status==='aprovado ✅'&&next.status==='ajustar ⚠️')return {...next,workflowResume:undefined};
  if(next.status==='ajustar ⚠️'&&previous?.status!==next.status&&!['lucio','mateus'].includes(actor.persona))throw Error('Apenas Lúcio e Mateus podem encaminhar para Ajustar.');
  if(isPurchase(next))return next;
  const before=previous?.status,after=next.status;

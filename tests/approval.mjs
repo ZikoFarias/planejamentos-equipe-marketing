@@ -24,7 +24,7 @@ assert.throws(()=>protectApproval(first,{...first,status:'aprovado ✅'}),/votos
 assert.throws(()=>protectApproval(undefined,{...draft,status:'aprovado ✅'}),/votos obrigatórios/,'New cards cannot skip both reviewers');
 assert.throws(()=>mergeScopedTasks([first],[{...first,approval:approved.approval}],{role:'administrador',persona:''},at),/próprio voto/,'Board API cannot be used to inject a second reviewer vote');
 const resubmitted=protectApproval(mixed,{...mixed,status:'aprovação fibroplast'});assert.deepEqual(resubmitted.approval,{round:2,votes:{}});
-const revised=protectApproval(approved,{...approved,description:'Nova versão da arte'});assert.equal(revised.status,'aprovação fibroplast');assert.deepEqual(revised.approval,{round:2,votes:{}});
+const revised=protectApproval(approved,{...approved,description:'Nova versão da arte'});assert.equal(revised.status,'ajustar ⚠️');assert.deepEqual(revised.approval,{round:2,votes:{}});
 assert.deepEqual(protectApproval(first,{...first,due:'2026-11-01'}).approval,first.approval,'Changing a due date does not erase votes');
 assert.equal(columnFor({...draft,status:'ideias'},'aprovacoes'),'a fazer luiz','Legacy idea cards remain reachable without the Ideas column');
 console.log('PASS: two independent positives, immediate negative routing, reviewer identity and role restrictions, duplicate vote idempotency, protected board writes, terminal rounds, artwork changes and resubmission reset, due dates preserved, legacy Ideas cards retained.');

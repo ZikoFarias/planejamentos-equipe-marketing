@@ -18,7 +18,8 @@ export function protectApproval(previous:Task|undefined,next:Task,admin=false,la
  if(JSON.stringify(previous?.approval)!==JSON.stringify(next.approval))throw Error('Use os botões de votação para registrar seu próprio voto.');
  const entering=isApproval(next.status)&&(!previous||!isApproval(previous.status));
  const changed=!!previous&&(!!previous.approval||previous.status==='aprovado ✅')&&approvalContent(previous)!==approvalContent(next);
- if(entering||changed){const status=changed&&['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(next.status)?approvalFor(next):next.status;return {...next,status,approval:{round:(previous?.approval?.round||0)+1,votes:{}}}}
+ if(previous?.status==='aprovado ✅'&&next.status==='ajustar ⚠️')return {...next,approval:{round:(previous.approval?.round||0)+1,votes:{}}};
+ if(entering||changed){const status=changed&&next.status==='aprovado ✅'?'ajustar ⚠️':changed&&['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(next.status)?approvalFor(next):next.status;return {...next,status,approval:{round:(previous?.approval?.round||0)+1,votes:{}}}}
  if(next.status==='aprovado ✅'&&previous?.status!==next.status&&!(previous?.approval?.votes.lucio?.decision==='approved'&&(lucioOnly(next,labels)||previous?.approval?.votes.mateus?.decision==='approved')))throw Error('A aprovação exige os votos positivos de Lucio e Mateus.');
  return next;
 }
