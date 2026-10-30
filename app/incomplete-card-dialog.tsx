@@ -8,6 +8,10 @@ export function missingCardFields(task:Pick<Task,'title'|'tags'>){
  if(!companyOf(task as Task)||taggedCompanies(task as Task).length!==1)missing.push('etiqueta de empresa');
  return missing;
 }
+export function emptyNewCard(task:Task,initial:Task,comment=''){
+ if(task.title.trim()||task.description.trim()||comment.trim()||task.tags.length||task.attachments.length||task.comments.length||task.subtasks.length||task.checklist.length)return false;
+ return ['start','due','dueTime','priority','assignees','purchase'].every(key=>JSON.stringify(task[key as keyof Task])===JSON.stringify(initial[key as keyof Task]));
+}
 export function IncompleteCardDialog({missing,isNew,onContinue,onDiscard}:{missing:string[],isNew:boolean,onContinue:()=>void,onDiscard:()=>void}){
  const dialog=useRef<HTMLDialogElement>(null),title=useId(),description=useId();
  useEffect(()=>{const el=dialog.current;el?.showModal();return()=>{el?.close()}},[]);

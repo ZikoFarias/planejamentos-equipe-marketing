@@ -6,11 +6,12 @@ const {buildSync}=require('esbuild'),path=require('path'),assert=require('node:a
  for(const name of ['window','document','HTMLElement','Element','MouseEvent','Event'])globalThis[name]=name==='window'?win:win[name];
  globalThis.IS_REACT_ACT_ENVIRONMENT=true;
  buildSync({entryPoints:['app/incomplete-card-dialog.tsx'],bundle:true,platform:'node',format:'cjs',jsx:'automatic',external:['react','react-dom'],outfile:'.sites-runtime/incomplete-card-test.cjs'});
- const {missingCardFields,IncompleteCardDialog}=require(path.resolve('.sites-runtime/incomplete-card-test.cjs'));
+ const {missingCardFields,emptyNewCard,IncompleteCardDialog}=require(path.resolve('.sites-runtime/incomplete-card-test.cjs'));
  assert.deepEqual(missingCardFields({title:'  ',tags:[]}),['título','etiqueta de empresa']);
  assert.deepEqual(missingCardFields({title:'Compra',tags:['COMPRA']}),['etiqueta de empresa']);
  assert.deepEqual(missingCardFields({title:'',tags:['FIBROPLAST']}),['título']);
  assert.deepEqual(missingCardFields({title:'Arte',tags:['FIBROPLAST']}),[]);
+ const blank={title:'',description:'',tags:[],attachments:[],comments:[],subtasks:[],checklist:[],assignees:['Lucio'],priority:'normal',start:'',due:''};assert.equal(emptyNewCard(blank,blank),true);for(const update of [{description:'Texto'},{title:'Título'},{tags:['FIBROPLAST']},{attachments:[{url:'file'}]},{due:'2026-11-01'}])assert.equal(emptyNewCard({...blank,...update},blank),false);assert.equal(emptyNewCard(blank,blank,'Comentário'),false);
  const React=require('react'),{act}=React,{createRoot}=require('react-dom/client');
  const mount=document.createElement('div');document.body.appendChild(mount);const root=createRoot(mount);
  let continued=0,discarded=0;const props={missing:['título','etiqueta de empresa'],isNew:true,onContinue:()=>continued++,onDiscard:()=>discarded++};

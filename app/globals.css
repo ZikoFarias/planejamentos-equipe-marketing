@@ -195,3 +195,5 @@ dialog.task-dialog{border-radius:22px;border-color:#bdd4ee38;box-shadow:0 28px 9
 .incomplete-card-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
 .incomplete-card-actions button{min-height:44px}
 .incomplete-card-actions .primary{background:#579dff;color:#10263a}
+
+dialog.incomplete-card-dialog{height:auto;min-height:0;width:min(340px,calc(100vw - 32px));max-width:340px;padding:20px;inset:0;margin:auto;backdrop-filter:none;-webkit-backdrop-filter:none}.incomplete-card-dialog h2{font-size:18px}.incomplete-card-actions{gap:6px;margin-top:16px}.incomplete-card-actions button{font-size:12px;padding:8px 10px}.card-approval-votes{display:flex;gap:7px;align-items:center;margin:10px 0;color:#8fe0b0}.card-approval-votes>span{display:inline-flex;align-items:center}
