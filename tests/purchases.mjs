@@ -12,13 +12,13 @@ const actor={role:'editor',persona:'farias'},lucio={role:'editor',persona:'lucio
 let t=normalizePurchase({...blank(),title:'Compra de banner',tags:['fibroplast','COMPRA'],purchase:{requiresArt:false,stage:'comprar'}});
 assert(purchaseReady(t));assert(inArea(t,'compras'));assert(!inArea(t,'farias'));assert(t.assignees.includes('Farias'));assert.equal(purchaseColumns.length,8);
 const change=(task,stage)=>mergeScopedTasks([task],[{...task,purchase:{...task.purchase,stage}}],actor)[0];
-assert.throws(()=>change(t,'aprovado'),/Lucio/);assert.throws(()=>change(t,'pagamento'),/Lucio/);
+assert.throws(()=>change(t,'aprovado'),/Lúcio/);assert.throws(()=>change(t,'pagamento'),/ordem/);
 t=change(t,'em andamento');t=mergeScopedTasks([t],[{...t,purchase:{...t.purchase,quote:{place:'Fornecedor',unitPrice:25,quantity:4}}}],actor)[0];t=change(t,'orçamento');
 assert.throws(()=>approveQuote(t,{...lucio,persona:'farias'}),/Apenas Lucio/);
 t=approveQuote(t,lucio);assert.equal(t.purchase.stage,'aprovado');assert(quoteApproved(t));
 assert.throws(()=>mergeScopedTasks([t],[{...t,purchase:{...t.purchase,quoteApproval:{...t.purchase.quoteApproval,by:'fake'}}}],actor),/registrada/);
 t=change(t,'pagamento');t=change(t,'aguardando chegada');t=change(t,'concluído');
-const revised=mergeScopedTasks([t],[{...t,purchase:{...t.purchase,quote:{...t.purchase.quote,unitPrice:40}}}],actor)[0];assert.equal(revised.purchase.stage,'orçamento');assert(!quoteApproved(revised));
+const revised=mergeScopedTasks([t],[{...t,purchase:{...t.purchase,quote:{...t.purchase.quote,unitPrice:40}}}],actor)[0];assert.equal(revised.purchase.stage,'concluído');assert(!quoteApproved(revised));
 assert.throws(()=>mergeScopedTasks([t],[{...t,purchase:{...t.purchase,stage:'comprar'}}],lucio),/responsável/);
 let art=normalizePurchase({...blank(),title:'Banner com arte',tags:['fibroplast','COMPRA'],purchase:{requiresArt:true,stage:'comprar'}});
 assert(!purchaseReady(art));assert(inArea(art,'farias'));assert(!inArea(art,'compras'));
@@ -37,7 +37,7 @@ console.log('PASS: compra direta, arte só Lucio, orçamento protegido, alteraç
 const optionA={id:'a',place:'Loja A',link:'https://example.com/a',unitPrice:10,quantity:3},optionB={id:'b',place:'Loja B',link:'https://example.com/b',unitPrice:8,quantity:3};
 const multiple={...t,purchase:{requiresArt:false,stage:'orçamento',quotes:[optionA,optionB],selectedQuoteId:'b'}};
 assert.equal(selectedQuote(multiple).id,'b');assert.equal(quotesFor(multiple).length,2);const accepted=approveQuote(multiple,lucio);assert(quoteApproved(accepted));assert.match(accepted.history[0].text,/Loja B/);
-const changedSelection=mergeScopedTasks([accepted],[{...accepted,purchase:{...accepted.purchase,selectedQuoteId:'a'}}],actor)[0];assert(!quoteApproved(changedSelection));assert.equal(changedSelection.purchase.stage,'orçamento');
+assert.throws(()=>mergeScopedTasks([accepted],[{...accepted,purchase:{...accepted.purchase,selectedQuoteId:'a'}}],actor),/selecionar/);const changedSelection=mergeScopedTasks([accepted],[{...accepted,purchase:{...accepted.purchase,selectedQuoteId:'a'}}],lucio)[0];assert(!quoteApproved(changedSelection));assert.equal(changedSelection.purchase.stage,'aprovado');
 assert.throws(()=>normalizePurchase({...multiple,purchase:{...multiple.purchase,quotes:[optionA,optionA]}}),/Revise/);
 assert.throws(()=>normalizePurchase({...multiple,purchase:{...multiple.purchase,selectedQuoteId:'missing'}}),/Selecione/);
 assert.throws(()=>normalizePurchase({...multiple,purchase:{...multiple.purchase,quotes:[{...optionA,link:'javascript:alert(1)'}]}}),/Revise/);

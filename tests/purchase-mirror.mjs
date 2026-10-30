@@ -17,10 +17,10 @@ for(const designer of ['luiz','farias']){
  assert.equal(task.status,'aprovado ✅');assert.ok(inArea(task,designer));assert.ok(inArea(task,'aprovacoes'));assert.ok(inArea(task,'compras'));
  const change=(stage)=>{const next=mergeScopedTasks([task],[{...task,purchase:{...task.purchase,stage}}],farias,now);assert.equal(next.length,1);assert.equal(next[0].id,id);task=next[0];};
  change('stand-by');assert.equal(task.status,'stand-by ⛔');assert.ok(inArea(task,'compras'));assert.ok(inArea(task,designer));
- change('em andamento');assert.equal(task.status,'aprovado ✅');
- assert.throws(()=>change('concluído'),/orçamento/);
- task=mergeScopedTasks([task],[{...task,purchase:{...task.purchase,quotes:[{id:'quote',place:'Loja',link:'',quantity:2,unitPrice:10}],selectedQuoteId:'quote',stage:'orçamento'}}],farias,now)[0];
- task=approveQuote(task,lucio,now);change('pagamento');change('aguardando chegada');change('concluído');
+ change('comprar');assert.equal(task.status,'aprovado ✅');change('em andamento');
+ assert.throws(()=>change('concluído'),/ordem/);
+ task=mergeScopedTasks([task],[{...task,purchase:{...task.purchase,quotes:[{id:'quote',place:'Loja',link:'',quantity:2,unitPrice:10}],stage:'orçamento'}}],farias,now)[0];
+ task=mergeScopedTasks([task],[{...task,purchase:{...task.purchase,selectedQuoteId:'quote'}}],lucio,now)[0];task=approveQuote(task,lucio,now);change('pagamento');change('aguardando chegada');change('concluído');
  assert.equal(task.status,'concluidos e postados');assert.equal(task.postedAt,now);assert.ok(inArea(task,'compras'));assert.ok(inArea(task,designer));assert.ok(inArea(task,'aprovacoes'));
  const edited=mergeScopedTasks([task],[{...task,description:'Alterar arte'}],farias,now)[0];
  assert.equal(edited.status,'aprovação fibroplast');assert.equal(purchaseReady(edited),false);assert.equal(edited.purchase.stage,'comprar');

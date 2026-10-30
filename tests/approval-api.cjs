@@ -43,6 +43,7 @@ const compile=()=>build({entryPoints:['app/api/approval/route.ts'],bundle:true,p
  const purchase={...task,status:'a fazer farias',tags:['fibroplast','COMPRA'],purchase:{requiresArt:false,stage:'orçamento',quote:{place:'Loja',quantity:3,unitPrice:20}}};row={data:JSON.stringify([purchase]),revision:0,status_config:'{}'};
  globalThis.__approvalActor=actor('mateus');assert.equal((await POST(request('approved',0,{scope:'quote'}))).status,403);
  globalThis.__approvalActor=actor('lucio');assert.equal((await POST(request('adjust',0,{scope:'quote'}))).status,400);const quoteResponse=await POST(request('approved',0,{scope:'quote'}));assert.equal(quoteResponse.status,200);assert.equal((await quoteResponse.json()).task.purchase.stage,'aprovado');
+ row={data:JSON.stringify([{...purchase,purchase:{requiresArt:false,stage:'orçamento',quotes:[]}}]),revision:0,status_config:'{}'};globalThis.__approvalActor=actor('lucio');const noQuoteResponse=await POST(request('approved',0,{scope:'quote',movement:true}));assert.equal(noQuoteResponse.status,200);assert.equal((await noQuoteResponse.json()).task.purchase.stage,'aprovado');
  delete globalThis.__approvalActor;
  // A movement after approval can request adjustments only as a reviewer.
  globalThis.__approvalActor=actor('lucio');row.data=JSON.stringify([{...task,status:'aprovado ✅'}]);
