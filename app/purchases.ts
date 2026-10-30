@@ -1,6 +1,6 @@
 import type {Task,QuoteOption} from './model';
 export const purchaseColumns=[['comprar','#579dff','Comprar'],['em andamento','#ffc2a9','Em andamento'],['orçamento','#a78bfa','Orçamento'],['aprovado','#00d99a','Aprovado'],['pagamento','#ffc53d','Pagamento'],['aguardando chegada','#61c8ed','Aguardando chegada'],['stand-by','#ff7373','Stand-by'],['concluído','#008844','Concluído']];
-export const isPurchase=(t:Task)=>t.tags.some(tag=>tag.trim().toLocaleUpperCase('pt-BR')==='COMPRA');
+export const isPurchase=(t:Task)=>t.tags.some(tag=>['COMPRA','COMPRAR'].includes(tag.trim().toLocaleUpperCase('pt-BR')));
 export const purchaseReady=(t:Task)=>isPurchase(t)&&(!t.purchase?.requiresArt||(t.status==='aprovado ✅'&&t.approval?.votes.lucio?.decision==='approved'));
 export const quotesFor=(t:Task):QuoteOption[]=>t.purchase?.quotes??(t.purchase?.quote?[{...t.purchase.quote,id:'legacy',link:''}]:[]);
 export const selectedQuote=(t:Task)=>quotesFor(t).find(q=>q.id===(t.purchase?.selectedQuoteId||quotesFor(t)[0]?.id));

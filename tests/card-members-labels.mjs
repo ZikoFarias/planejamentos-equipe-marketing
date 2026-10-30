@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import {blank} from '../app/model.ts';
+import {withParticipants} from '../app/participants.ts';
+import {assignStatusOwner} from '../app/permissions.ts';
+import {highlightedLabel} from '../app/external-media-label.ts';
+import {isPurchase} from '../app/purchases.ts';
+const base={...blank('a fazer luiz'),title:'Arte',tags:['fibroplast'],assignees:[]};
+assert.deepEqual(withParticipants(base).assignees,['Luiz','Lucio Alves Xavier','Mateus']);
+assert.deepEqual(withParticipants({...base,status:'a fazer farias'}).assignees,['Farias','Lucio Alves Xavier','Mateus']);
+for(const tag of ['COMPRA','COMPRAR']){
+ const purchase={...base,tags:['fibroplast',tag]};
+ assert.equal(isPurchase(purchase),true);
+ assert.deepEqual(withParticipants(purchase).assignees,['Luiz','Farias','Lucio Alves Xavier']);
+ assert.equal(highlightedLabel(purchase),tag);
+ const both={...purchase,tags:[...purchase.tags,'MÍDIA EXTERNA']};
+ assert.equal(highlightedLabel(both),'MÍDIA EXTERNA');
+ for(const status of ['aprovado ✅','concluidos e postados'])assert.equal(highlightedLabel({...both,status}),tag);
+ assert.equal(highlightedLabel({...both,status:'ajustar ⚠️'}),'MÍDIA EXTERNA');
+ assert.equal(highlightedLabel({...both,status:'stand-by ⛔',workflowResume:'aprovado ✅'}),tag);
+}
+const media={...base,tags:['fibroplast','MÍDIA EXTERNA'],assignees:['Luiz','Mateus','Lucio Alves Xavier']};
+assert.deepEqual(withParticipants(media).assignees,['Luiz','Lucio Alves Xavier']);
+assert.equal(highlightedLabel({...media,status:'aprovado ✅'}),'MÍDIA EXTERNA');
+assert.ok(withParticipants({...media,tags:['fibroplast']}).assignees.includes('Mateus'));
+const labels={special:{name:'MÍDIA EXTERIOR',color:'#abcdef'}};
+assert.deepEqual(withParticipants({...base,tags:['special']},labels).assignees,['Luiz','Lucio Alves Xavier']);
+assert.equal(highlightedLabel({...base,tags:['special']},labels),'special');
+const farias=assignStatusOwner({...base,status:'a fazer farias'});
+assert.ok(assignStatusOwner({...farias,status:'aprovação fibroplast'}).assignees.includes('Farias'));
+console.log('PASS: Lucio on all cards; Mateus excluded from media and purchases; creator-area designer retained; Farias on purchases; ribbon priority switches after approval and resets for adjustments.');

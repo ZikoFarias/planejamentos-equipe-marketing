@@ -1,3 +1,4 @@
+import {withParticipants} from '../../participants';
 import {lucioOnly} from '../../reviewer-policy';
 import {isPurchase,approveQuote} from '../../purchases';
 import {getActor} from '../../access';
@@ -20,7 +21,8 @@ export async function POST(req:Request){
   if(!task||!canSeeTask(task,actor))return json({error:'Cartão indisponível para sua conta.'},403);
   if(lucioOnly(task,readStatusConfig(row.status_config).labels)&&actor.role!=='administrador'&&actor.persona!=='lucio')return json({error:'Este cartão é aprovado apenas por Lucio.'},403);
   let updated:Task;try{updated=body.movement&&body.decision==='adjust'&&task.status==='aprovado ✅'?{...task,status:'ajustar ⚠️',approval:undefined,...(task.purchase?.requiresArt?{purchase:{...task.purchase,stage:'comprar',quoteApproval:undefined}}:{}),history:[{text:'Moveu o cartão para Ajustar',by:actor.user.displayName,at:new Date().toISOString()},...task.history]}:body.scope==='quote'?approveQuote(task,{...actor,email:actor.user.email,name:actor.user.displayName}):castApprovalVote(task,{...actor,email:actor.user.email,name:actor.user.displayName,reviewer:body.reviewer},body.decision,readStatusConfig(row.status_config))}catch(e:any){return json({error:e.message},400)}
-  if(updated===task)return json({task,revision:row.revision});
+  if(updated===task)return json({task:withParticipants(task,readStatusConfig(row.status_config).labels),revision:row.revision});
+  updated=withParticipants(updated,readStatusConfig(row.status_config).labels);
   const result=await actor.db.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(tasks.map(t=>t.id===task.id?updated:t)),row.revision).run();
   if(!result.meta.changes)return json({error:'Outra pessoa votou ou alterou o quadro. Recarregue o cartão antes de tentar novamente.'},409);
   return json({task:updated,revision:row.revision+1});
