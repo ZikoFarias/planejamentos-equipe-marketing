@@ -9,7 +9,7 @@ import {emptyStatusConfig} from '../app/status-config.ts';
 import {recordActivity} from '../app/activity.ts';
 import {labelName,labelStyle,validLabel} from '../app/labels.ts';
 const actor={role:'editor',persona:'farias'},lucio={role:'editor',persona:'lucio',email:'lucio@test.com',name:'Lucio'};
-let t=normalizePurchase({...blank(),title:'Compra de banner',tags:['fibroplast','COMPRA']});
+let t=normalizePurchase({...blank(),title:'Compra de banner',tags:['fibroplast','COMPRA'],purchase:{requiresArt:false,stage:'comprar'}});
 assert(purchaseReady(t));assert(inArea(t,'compras'));assert(!inArea(t,'farias'));assert(t.assignees.includes('Farias'));assert.equal(purchaseColumns.length,8);
 const change=(task,stage)=>mergeScopedTasks([task],[{...task,purchase:{...task.purchase,stage}}],actor)[0];
 assert.throws(()=>change(t,'aprovado'),/Lucio/);assert.throws(()=>change(t,'pagamento'),/Lucio/);
@@ -26,7 +26,7 @@ assert.throws(()=>normalizePurchase({...art,purchase:{requiresArt:true,stage:'pa
 art=mergeScopedTasks([art],[{...art,status:'aprovação fibroplast'}],actor)[0];
 assert.throws(()=>castApprovalVote(art,{...lucio,persona:'mateus'},'approved',emptyStatusConfig),/apenas por Lucio/);
 const negative=castApprovalVote(art,lucio,'adjust',emptyStatusConfig);assert.equal(negative.status,'ajustar ⚠️');assert(!purchaseReady(negative));
-art=castApprovalVote(art,lucio,'approved',emptyStatusConfig);assert(purchaseReady(art));assert(inArea(art,'compras'));assert(!inArea(art,'farias'));
+art=castApprovalVote(art,lucio,'approved',emptyStatusConfig);assert(purchaseReady(art));assert(inArea(art,'compras'));assert(inArea(art,'farias'));
 const edited=mergeScopedTasks([art],[{...art,description:'Arte alterada'}],actor)[0];assert(!purchaseReady(edited));assert.equal(edited.status,'aprovação fibroplast');
 const attachment={name:'banner.png',url:'https://example.com/banner.png',artworkKind:'final'};
 const logged=recordActivity(t,{...t,attachments:[attachment]},'Farias','2026-10-27T12:00:00Z');assert.equal(logged.history[0].by,'Farias');assert.equal(logged.history[0].attachments[0].url,attachment.url);
