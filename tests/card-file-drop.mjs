@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {cardFileDrop} from '../app/card-file-drop';
+import {uploadCentralBatch} from '../app/drive-central-client';
+const file=new File(['image'],'arte.png',{type:'image/png'}),received=[],hover=[];let blocked=0,prevented=0,stopped=0;
+const event=(types=['Files'],files=[file])=>({dataTransfer:{types,files,dropEffect:''},preventDefault(){prevented++},stopPropagation(){stopped++},currentTarget:{contains:node=>node==='child'},relatedTarget:null});
+const handlers=cardFileDrop({enabled:true,onHover:v=>hover.push(v),onFiles:files=>received.push(...files),onBlocked:()=>blocked++});
+const over=event();handlers.onDragOver(over);assert.equal(over.dataTransfer.dropEffect,'copy');assert.deepEqual(hover,[true]);
+handlers.onDragLeave({...event(),relatedTarget:'child'});assert.deepEqual(hover,[true]);
+handlers.onDrop(event());assert.deepEqual(received,[file]);assert.equal(hover.at(-1),false);assert.equal(blocked,0);assert.equal(prevented,2);assert.equal(stopped,2);
+const before=prevented;handlers.onDragOver(event(['text/plain'],[]));assert.equal(prevented,before,'Moving a card is not interpreted as file upload');
+const denied=cardFileDrop({enabled:false,onHover(){},onFiles(){throw Error('Unauthorized upload')},onBlocked:()=>blocked++});const rejected=event();denied.onDragOver(rejected);assert.equal(rejected.dataTransfer.dropEffect,'none');denied.onDrop(rejected);assert.equal(blocked,1);
+let linked;const result=await uploadCentralBatch(received,{taskId:'closed-card-id',kind:'reference',signal:new AbortController().signal,onAttachment:(file,board)=>linked=board,onProgress(){}},async(url,options)=>{const parsed=new URL(url,'https://board.test');assert.equal(parsed.searchParams.get('task'),'closed-card-id');assert.equal(parsed.searchParams.get('kind'),'reference');assert.equal(parsed.searchParams.get('attach'),'1');assert.equal(options.body,file);return Response.json({name:file.name,url:'/api/drive/central/file/one',drive:{central:true},board:{tasks:[{id:'closed-card-id'}],revision:3}})});
+assert.equal(result.uploaded,1);assert.equal(linked.tasks[0].id,'closed-card-id');
+console.log('PASS: closed-card file drops highlight target, prevent navigation, respect permission/busy gating, ignore card movement and upload as references to the exact card with automatic server linking.');
