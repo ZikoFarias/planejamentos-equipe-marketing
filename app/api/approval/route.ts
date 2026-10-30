@@ -1,3 +1,4 @@
+import {lucioOnly} from '../../reviewer-policy';
 import {isPurchase,approveQuote} from '../../purchases';
 import {getActor} from '../../access';
 import {canSeeTask} from '../../permissions';
@@ -17,7 +18,7 @@ export async function POST(req:Request){
   if(!row||row.revision!==body.revision)return json({error:'O quadro mudou. Recarregue e reabra o cartão antes de votar.'},409);
   const tasks=JSON.parse(row.data) as Task[],task=tasks.find(t=>t.id===body.id);
   if(!task||!canSeeTask(task,actor))return json({error:'Cartão indisponível para sua conta.'},403);
-  if(isPurchase(task)&&actor.role!=='administrador'&&actor.persona!=='lucio')return json({error:'Compras são aprovadas apenas por Lucio.'},403);
+  if(lucioOnly(task,readStatusConfig(row.status_config).labels)&&actor.role!=='administrador'&&actor.persona!=='lucio')return json({error:'Este cartão é aprovado apenas por Lucio.'},403);
   let updated:Task;try{updated=body.movement&&body.decision==='adjust'&&task.status==='aprovado ✅'?{...task,status:'ajustar ⚠️',approval:undefined,...(task.purchase?.requiresArt?{purchase:{...task.purchase,stage:'comprar',quoteApproval:undefined}}:{}),history:[{text:'Moveu o cartão para Ajustar',by:actor.user.displayName,at:new Date().toISOString()},...task.history]}:body.scope==='quote'?approveQuote(task,{...actor,email:actor.user.email,name:actor.user.displayName}):castApprovalVote(task,{...actor,email:actor.user.email,name:actor.user.displayName,reviewer:body.reviewer},body.decision,readStatusConfig(row.status_config))}catch(e:any){return json({error:e.message},400)}
   if(updated===task)return json({task,revision:row.revision});
   const result=await actor.db.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(tasks.map(t=>t.id===task.id?updated:t)),row.revision).run();

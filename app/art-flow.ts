@@ -1,8 +1,10 @@
 import type {Task} from './model';
 import type {Actor} from './permissions';
+import {lucioOnly} from './reviewer-policy';
+import type {LabelConfig} from './labels';
 import {isPurchase} from './purchases';
 export function canAttachArt(task:Task,actor:Actor){return actor.role==='administrador'||!(['lucio','mateus'].includes(actor.persona)&&(task.status.startsWith('em andamento ')||task.status.startsWith('aprovação ')))}
-export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor):Task{
+export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor,labels:LabelConfig={}):Task{
  // Purchases retain their separate budget workflow and Lucio-only approval.
  if(actor.role==='administrador')return {...next,workflowResume:next.status==='stand-by ⛔'?previous?.status:undefined};
  if(next.status==='ajustar ⚠️'&&previous?.status!==next.status&&!['lucio','mateus'].includes(actor.persona))throw Error('Apenas Lúcio e Mateus podem encaminhar para Ajustar.');
@@ -22,7 +24,7 @@ export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor):Task
  }
  if(after==='aprovado ✅')throw Error('Apenas os votos obrigatórios na revisão podem enviar o cartão para Aprovado.');
  if(after==='concluidos e postados'){
-  if(source!=='aprovado ✅'||previous.approval?.votes.lucio?.decision!=='approved'||previous.approval?.votes.mateus?.decision!=='approved')throw Error('Concluir exige aprovação de Lúcio e Mateus na rodada atual.');
+  if(source!=='aprovado ✅'||previous.approval?.votes.lucio?.decision!=='approved'||(!lucioOnly(next,labels)&&previous.approval?.votes.mateus?.decision!=='approved'))throw Error(lucioOnly(next,labels)?'Concluir exige aprovação de Lúcio na rodada atual.':'Concluir exige aprovação de Lúcio e Mateus na rodada atual.');
   return {...next,workflowResume:undefined};
  }
  if(source==='aprovado ✅'||source==='concluidos e postados'){
