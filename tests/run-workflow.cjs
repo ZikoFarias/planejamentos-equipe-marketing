@@ -26,3 +26,6 @@ execFileSync(process.execPath,['tests/personal-notifications.cjs'],{stdio:'inher
 execFileSync(process.execPath,['tests/approved-edit-dialog.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/spelling-recovery.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/comments-api.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['tests/comment-composer.cjs'],{stdio:'inherit'});
