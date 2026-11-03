@@ -31,3 +31,5 @@ assert.equal(mergeScopedTasks([other],[reordered,fresh],farias).length,2);assert
 assert.throws(()=>mergeScopedTasks([other],[{...reordered,title:'ALTERAÇÃO PROIBIDA'},fresh],farias),/apenas o responsável/);
 assert.throws(()=>mergeScopedTasks([other],[{...reordered,assignees:['Farias']},fresh],farias),/apenas o responsável/);
 const presented={...other,assignees:['Luiz','Lucio Alves Xavier','Mateus']};assert.equal(mergeScopedTasks([other],[presented,fresh],farias).length,2);
+
+for(const persona of ['farias','luiz','lucio','mateus']){assert.equal(move(administrative,'concluidos e postados',{role:'editor',persona}).status,'concluidos e postados');assert.equal(move(two,'concluidos e postados',{role:'editor',persona}).status,'concluidos e postados')}

@@ -234,3 +234,5 @@ dialog.approved-edit-dialog,dialog.approved-edit-dialog[open]{position:fixed;ins
 .image-viewer-actions{display:flex;align-items:center;gap:8px;flex:none}.image-viewer-actions .attachment-options-trigger{position:static;display:grid;place-items:center;flex:none;width:36px;height:36px;border:1px solid #ffffff35;background:#172b3b;color:#e5edf5;border-radius:8px}.image-viewer-actions .attachment-options{color:#dce7f1}
 
 .card-meta .due-today,.date-summary-chip .due-today{color:#ffd43b!important;font-weight:600}.card-meta .due-today [role=button]{color:inherit}
+
+.card-meta .date-paused,.date-summary-chip .date-paused{color:#a6adb5!important;font-weight:400}.card-meta .date-paused [role=button]{color:inherit}

@@ -25,7 +25,7 @@ export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor,label
  }
  if(after==='aprovado ✅')throw Error('Apenas os votos obrigatórios na revisão podem enviar o cartão para Aprovado.');
  if(after==='concluidos e postados'){
-  if(source!=='aprovado ✅'||previous.approval?.votes.lucio?.decision!=='approved'||(!lucioOnly(next,labels)&&previous.approval?.votes.mateus?.decision!=='approved'))throw Error(lucioOnly(next,labels)?'Concluir exige aprovação de Lúcio na rodada atual.':'Concluir exige aprovação de Lúcio e Mateus na rodada atual.');
+  if(source!=='aprovado ✅'||(!previous.approval?.administrative&&(previous.approval?.votes.lucio?.decision!=='approved'||(!lucioOnly(next,labels)&&previous.approval?.votes.mateus?.decision!=='approved'))))throw Error(lucioOnly(next,labels)?'Concluir exige aprovação de Lúcio na rodada atual.':'Concluir exige aprovação de Lúcio e Mateus na rodada atual.');
   return {...next,workflowResume:undefined};
  }
  if(source==='aprovado ✅'||source==='concluidos e postados'){

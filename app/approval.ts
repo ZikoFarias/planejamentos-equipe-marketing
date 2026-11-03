@@ -24,11 +24,13 @@ export function protectApproval(previous:Task|undefined,next:Task,admin=false,la
  return next;
 }
 export function castApprovalVote(task:Task,actor:Actor&{email:string,name:string,reviewer?:Reviewer},decision:Decision,config:StatusConfig,now=new Date().toISOString()):Task{
- if(decision==='approved'&&spellingFlagged(task))throw Error('Revise ou descarte o alerta ortográfico antes de aprovar.');
+ if(actor.role!=='administrador'&&decision==='approved'&&spellingFlagged(task))throw Error('Revise ou descarte o alerta ortográfico antes de aprovar.');
  if(actor.role!=='administrador'&&!(actor.role==='editor'&&['lucio','mateus'].includes(actor.persona)))throw Error('Apenas Lucio e Mateus podem votar, cada um pela própria conta.');
  if(!['approved','adjust'].includes(decision))throw Error('Voto inválido.');
+ if(actor.role==='administrador'&&decision==='approved'&&task.status==='aprovado ✅'&&task.approval?.administrative)return task;
  if(!isApproval(task.status))throw Error('Encaminhe o cartão para aprovação antes de votar. Uma nova aprovação inicia uma nova rodada.');
  const active=new Set(statusDefinitions(config).map(s=>s.id));if(!active.has('ajustar ⚠️')||!active.has('aprovado ✅'))throw Error('Os status AJUSTAR e APROVADO precisam estar ativos para a votação.');
+ if(actor.role==='administrador'&&decision==='approved')return {...task,status:'aprovado ✅',approval:{round:task.approval?.round||1,votes:{},administrative:true},history:[{text:'Registrou aprovação administrativa, sem necessidade das outras aprovações.',by:actor.name,at:now},...task.history]};
  const reviewer=(actor.role==='administrador'?actor.reviewer||actor.persona:actor.persona) as Reviewer;if(!['lucio','mateus'].includes(reviewer))throw Error('Apenas Lucio e Mateus podem receber um voto do administrador.');if(lucioOnly(task,config.labels)&&reviewer!=='lucio')throw Error('Este cartão é aprovado apenas por Lucio.');const current=task.approval||{round:1,votes:{}};
  const approval:Approval={round:current.round,votes:{...current.votes,[reviewer]:{decision,by:actor.email,at:now}}};
  const values=lucioOnly(task,config.labels)?[approval.votes.lucio].filter(Boolean):Object.values(approval.votes);
