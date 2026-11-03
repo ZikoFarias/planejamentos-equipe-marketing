@@ -20,8 +20,8 @@ const option={id:'a',place:'Loja',link:'',unitPrice:10,quantity:2},withQuotes={.
 assert.throws(()=>mergeScopedTasks([withQuotes],[{...withQuotes,purchase:{...withQuotes.purchase,selectedQuoteId:'a'}}],farias,now),/selecionar/);
 const chosen=mergeScopedTasks([withQuotes],[{...withQuotes,purchase:{...withQuotes.purchase,selectedQuoteId:'a'}}],lucio,now)[0];assert.equal(chosen.purchase.selectedQuoteId,'a');assert.equal(chosen.purchase.stage,'orçamento');
 const notChosen=approveQuote(withQuotes,lucio,now);assert.equal(notChosen.purchase.stage,'aprovado');assert.equal(notChosen.purchase.selectedQuoteId,undefined);
-const unfinished={...base,status:'a fazer luiz',assignees:['Luiz','Farias','Lucio Alves Xavier'],purchase:{requiresArt:true,stage:'comprar'}};assert.equal(canManageTask(unfinished,farias),true);const parkedBeforeArt=mergeScopedTasks([unfinished],[{...unfinished,status:'stand-by ⛔'}],farias,now)[0];assert.equal(parkedBeforeArt.status,'stand-by ⛔');assert.equal(purchaseReady(parkedBeforeArt),false);
-const mirror={...base,status:'aprovado ✅',approval:{round:1,votes:{lucio:{decision:'approved',by:lucio.email,at:now}}},purchase:{requiresArt:true,stage:'orçamento'}};
+const unfinished={...base,tags:[...base.tags,'MÍDIA EXTERNA'],status:'a fazer luiz',assignees:['Luiz','Farias','Lucio Alves Xavier'],purchase:{requiresArt:true,stage:'comprar'}};assert.equal(canManageTask(unfinished,farias),true);const parkedBeforeArt=mergeScopedTasks([unfinished],[{...unfinished,status:'stand-by ⛔'}],farias,now)[0];assert.equal(parkedBeforeArt.status,'stand-by ⛔');assert.equal(purchaseReady(parkedBeforeArt),false);
+const mirror={...base,tags:[...base.tags,'MÍDIA EXTERNA'],status:'aprovado ✅',approval:{round:1,votes:{lucio:{decision:'approved',by:lucio.email,at:now}}},purchase:{requiresArt:true,stage:'orçamento'}};
 const parked=move(mirror,'stand-by',lucio);assert.equal(parked.status,'stand-by ⛔');assert.ok(inArea(parked,'compras'));
 assert.throws(()=>move(mirror,'stand-by',mateus));
 const fromOriginal=mergeScopedTasks([mirror],[{...mirror,status:'stand-by ⛔'}],lucio,now)[0];assert.equal(fromOriginal.purchase.stage,'stand-by');

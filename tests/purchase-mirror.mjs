@@ -7,7 +7,7 @@ import {emptyStatusConfig} from '../app/status-config.ts';
 const farias={role:'editor',persona:'farias'},lucio={role:'editor',persona:'lucio',email:'lucio@test.local',name:'Lucio'};
 for(const designer of ['luiz','farias']){
  const actor={role:'editor',persona:designer},now='2026-10-30T15:00:00Z';
- let task=mergeScopedTasks([],[{...blank('a fazer '+designer),title:'Comprar banner',tags:['fibroplast','COMPRA']}],actor,now)[0];
+ let task=mergeScopedTasks([],[{...blank('a fazer '+designer),title:'Comprar banner',tags:['fibroplast','COMPRA','MÍDIA EXTERNA']}],actor,now)[0];
  const id=task.id;assert.equal(task.status,'a fazer '+designer);assert.equal(task.purchase.requiresArt,true);
  assert.ok(canManageTask(task,actor));assert.ok(inArea(task,designer));assert.equal(inArea(task,'compras'),false);
  task=mergeScopedTasks([task],[{...task,status:'em andamento '+designer}],actor,now)[0];

@@ -5,7 +5,7 @@ export function externalMediaLabel(task:Pick<Task,'tags'>,config:LabelConfig={})
  return task.tags.find(id=>[id,labelName(id,config)].some(value=>['MIDIA EXTERNA','MIDIA EXTERIOR'].includes(normalize(value))));
 }
 export function purchaseLabel(task:Pick<Task,'tags'>,config:LabelConfig={}){
- return task.tags.find(id=>[id,labelName(id,config)].some(value=>['COMPRA','COMPRAR'].includes(normalize(value))));
+ return task.tags.find(id=>[id,labelName(id,config)].some(value=>['COMPRA','COMPRAR','COMPRAS'].includes(normalize(value))));
 }
 export function highlightedLabel(task:Task,config:LabelConfig={}){
  const media=externalMediaLabel(task,config),purchase=purchaseLabel(task,config);

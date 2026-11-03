@@ -20,7 +20,7 @@ assert.throws(()=>mergeScopedTasks([t],[{...t,purchase:{...t.purchase,quoteAppro
 t=change(t,'pagamento');t=change(t,'aguardando chegada');t=change(t,'concluído');
 const revised=mergeScopedTasks([t],[{...t,purchase:{...t.purchase,quote:{...t.purchase.quote,unitPrice:40}}}],actor)[0];assert.equal(revised.purchase.stage,'concluído');assert(!quoteApproved(revised));
 assert.throws(()=>mergeScopedTasks([t],[{...t,purchase:{...t.purchase,stage:'comprar'}}],lucio),/responsável/);
-let art=normalizePurchase({...blank(),title:'Banner com arte',tags:['fibroplast','COMPRA'],purchase:{requiresArt:true,stage:'comprar'}});
+let art=normalizePurchase({...blank(),title:'Banner com arte',tags:['fibroplast','COMPRA','MÍDIA EXTERNA'],purchase:{requiresArt:true,stage:'comprar'}});
 assert(!purchaseReady(art));assert(inArea(art,'farias'));assert(!inArea(art,'compras'));
 assert.throws(()=>normalizePurchase({...art,purchase:{requiresArt:true,stage:'pagamento'}}));
 art=mergeScopedTasks([art],[{...art,status:'aprovação fibroplast'}],actor)[0];

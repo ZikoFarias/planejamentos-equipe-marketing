@@ -1,3 +1,4 @@
+import {externalMediaLabel} from './external-media-label';
 import type {LabelConfig} from './labels';
 import {guardArtFlow} from './art-flow';
 import {protectSpelling} from './spelling';
@@ -22,10 +23,10 @@ export function ownerOf(status:string):'luiz'|'farias'|''{return ['a fazer luiz'
 export function assignedTo(t:Task,persona:string){return t.assignees.some(n=>n.trim().toLocaleLowerCase('pt-BR')===persona)}
 export function defaultArea(persona:Persona):Area{return persona==='luiz'||persona==='farias'?persona:'aprovacoes'}
 export function areaStatuses(area:Area){return area==='luiz'||area==='farias'?personalColumns.map(([key])=>key):null}
-export function inArea(t:Task,area:Area){if(area==='compras')return purchaseReady(t);if(isPurchase(t)&&purchaseReady(t)&&!t.purchase?.requiresArt)return false;if(area==='geral')return true;if(area==='aprovacoes')return true;return (area==='luiz'?['a fazer luiz','em andamento luiz','ideias']:['a fazer farias','em andamento farias']).includes(t.status)||((t.status.startsWith('aprovação ')||sharedStatuses.includes(t.status)||customStatus(t.status))&&assignedTo(t,area))}
+export function inArea(t:Task,area:Area){if(area==='compras')return purchaseReady(t);if(isPurchase(t)&&!externalMediaLabel(t))return false;if(area==='geral')return true;if(area==='aprovacoes')return true;return (area==='luiz'?['a fazer luiz','em andamento luiz','ideias']:['a fazer farias','em andamento farias']).includes(t.status)||((t.status.startsWith('aprovação ')||sharedStatuses.includes(t.status)||customStatus(t.status))&&assignedTo(t,area))}
 export function canSeeTask(t:Task,actor:Actor){return ['administrador','editor','visualizador'].includes(actor.role)&&(actor.role==='administrador'||!!actor.persona)}
-export function canCreateTask(t:Task,actor:Actor){if(actor.role==='administrador')return true;if(actor.role!=='editor'||!actor.persona)return false;if(isPurchase(t)&&t.purchase?.requiresArt===false)return actor.persona==='farias'&&t.purchase.stage==='comprar';return ['a fazer farias','a fazer luiz'].includes(t.status)}
-export function canManageTask(t:Task,actor:Actor){if(actor.role==='administrador')return true;if(actor.role!=='editor'||!actor.persona)return false;if(isPurchase(t)){if(['farias','lucio'].includes(actor.persona))return true;if(t.purchase?.requiresArt===false||actor.persona==='mateus')return false;}if(['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(t.status))return true;if(['lucio','mateus'].includes(actor.persona))return true;return inArea(t,defaultArea(actor.persona))}
+export function canCreateTask(t:Task,actor:Actor){if(actor.role==='administrador')return true;if(actor.role!=='editor'||!actor.persona)return false;return ['a fazer farias','a fazer luiz'].includes(t.status)}
+export function canManageTask(t:Task,actor:Actor){if(actor.role==='administrador')return true;if(actor.role!=='editor'||!actor.persona)return false;if(isPurchase(t)){if(['farias','lucio'].includes(actor.persona))return true;if(!externalMediaLabel(t)||actor.persona==='mateus')return false;}if(['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(t.status))return true;if(['lucio','mateus'].includes(actor.persona))return true;return inArea(t,defaultArea(actor.persona))}
 export function assignStatusOwner(t:Task,labels:LabelConfig={}):Task{const owner=ownerOf(t.status);return withParticipants(owner&&!assignedTo(t,owner)?{...t,assignees:[...t.assignees,names[owner]]}:t,labels)}
 const sameTaskData=(a:Task,b:Task)=>{const encode=(value:Task)=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);return encode(a)===encode(b)};
 export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=new Date().toISOString(),config:StatusConfig=emptyStatusConfig):Task[]{
@@ -35,6 +36,7 @@ export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=
  guardPurchaseEdit(previous,t,actor);
  const changed=!previous||!sameTaskData(previous,t);const task=changed?stampPosted(previous,guardPurchaseFlow(previous,normalizePurchase(protectApproval(previous,{...assignStatusOwner(configuredTask(assignStatusOwner(normalizeApproval(t),config.labels),config),config.labels),title:t.title.trim().toLocaleUpperCase('pt-BR')},actor.role==='administrador',config.labels),previous,actor.role==='administrador'),actor),now):t;
  if(!previous&&canCreateTask(task,actor)&&actor.role==='editor'&&['a fazer farias','a fazer luiz'].includes(task.status))return guardArtFlow(previous,task,actor,config.labels);
+ if(previous&&isPurchase(task)&&!externalMediaLabel(task)&&canManageTask(previous,actor))return guardArtFlow(previous,task,actor,config.labels);
  if(!canManageTask(task,actor))throw Error('Esta etapa ou tarefa não pertence à sua área.');
  if(!previous&&!isPurchase(task)&&actor.role!=='administrador'&&!['a fazer farias','a fazer luiz'].includes(task.status))throw Error('Crie as artes apenas em A FAZER FARIAS ou A FAZER LUIZ.');
 

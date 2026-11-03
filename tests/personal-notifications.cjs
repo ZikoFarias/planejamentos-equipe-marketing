@@ -15,7 +15,7 @@ const {build}=require('esbuild'),assert=require('node:assert/strict'),fs=require
  assert.deepEqual(kinds(review,{...review,approval:{round:1,votes:{lucio:{decision:'approved'}}}}),['mateus:last-review']);
  assert.deepEqual(kinds(task,{...review,tags:['fibroplast','MÍDIA EXTERNA']}),['lucio:review']);
  const adjusted={...task,status:'ajustar ⚠️'};assert.deepEqual(kinds(review,adjusted),['luiz:adjust']);
- const purchase={...task,tags:['fibroplast','COMPRA'],assignees:['Luiz','Farias','Lucio Alves Xavier'],purchase:{requiresArt:true,stage:'comprar'}};
+ const purchase={...task,tags:['fibroplast','COMPRA','MÍDIA EXTERNA'],assignees:['Luiz','Farias','Lucio Alves Xavier'],purchase:{requiresArt:true,stage:'comprar'}};
  const ready={...purchase,status:'aprovado ✅',approval:{round:1,votes:{lucio:{decision:'approved'}}}};
  assert.ok(kinds(purchase,ready).includes('farias:purchase-arrived'));
  assert.deepEqual(kinds(ready,{...ready,purchase:{...ready.purchase,stage:'orçamento'}}),['lucio:budget']);
