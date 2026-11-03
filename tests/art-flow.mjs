@@ -23,3 +23,11 @@ const editedApproved=mergeScopedTasks([two],[{...two,description:'NOVA ARTE'}],f
 
 for(const persona of ['farias','luiz'])for(const status of ['a fazer farias','a fazer luiz']){const actor={role:'editor',persona},created={...task,id:'new-'+persona+status,status,assignees:[status.endsWith('luiz')?'Luiz':'Farias']};assert(canCreateTask(created,actor));assert.equal(mergeScopedTasks([],[created],actor)[0].status,status);if(!status.endsWith(persona))assert(!canManageTask(created,actor),'Creating in another designer column does not grant ongoing access');const purchase={...created,tags:['fibroplast','COMPRA'],purchase:{requiresArt:true,stage:'comprar'}};assert(canCreateTask(purchase,actor));assert.equal(mergeScopedTasks([],[purchase],actor)[0].status,status)}
 assert(!canCreateTask(task,{role:'visualizador',persona:'farias'}));assert(!canCreateTask({...task,status:'em andamento farias'},farias));
+
+// A full-board save includes read-only tasks exactly as GET presents them.
+const other={spelling:{fingerprint:'[]',state:'clean',message:'OK',issues:[],checkedAt:'2026-11-03T00:00:00Z'},...task,id:'readonly-other',status:'a fazer luiz',assignees:['Luiz']};
+const reordered=Object.fromEntries(Object.entries(other).reverse());const fresh={...task,id:'new-designer',title:'PERFIL WHATSAPP'};
+assert.equal(mergeScopedTasks([other],[reordered,fresh],farias).length,2);assert.deepEqual(mergeScopedTasks([other],[reordered,fresh],farias)[0],other);
+assert.throws(()=>mergeScopedTasks([other],[{...reordered,title:'ALTERAÇÃO PROIBIDA'},fresh],farias),/apenas o responsável/);
+assert.throws(()=>mergeScopedTasks([other],[{...reordered,assignees:['Farias']},fresh],farias),/apenas o responsável/);
+const presented={...other,assignees:['Luiz','Lucio Alves Xavier','Mateus']};assert.equal(mergeScopedTasks([other],[presented,fresh],farias).length,2);
