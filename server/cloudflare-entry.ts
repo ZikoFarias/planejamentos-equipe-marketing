@@ -1,3 +1,4 @@
+import {serveCentralMedia} from './central-media';
 import {processPersonalNotifications} from './personal-notifications';
 import {requestTeamSession} from '../app/request-session';
 import {enqueueSpelling,processSpellingQueue} from './spelling-review';
@@ -13,6 +14,7 @@ export default {async scheduled(_event:ScheduledController,env:Environment,ctx:E
  const boardWrite=request.method==='POST'&&(url.pathname==='/api/board'||(url.pathname==='/api/drive/central/upload'&&url.searchParams.get('attach')==='1'));
  const before=boardWrite?await env.DB!.prepare('SELECT data FROM marketing_board WHERE id=1').first<{data:string}>():null;
  if(url.pathname==='/'&&['GET','HEAD'].includes(request.method)){if(!await requestTeamSession(clean,env))response=Response.redirect(new URL('/login'+url.search,url).href,302);else{url.pathname='/_team/board.html';url.search='';response=await env.ASSETS.fetch(new Request(url,{method:request.method}));response=new Response(response.body,response);response.headers.set('Cache-Control','private, no-store')}}
+ else if(url.pathname==='/api/drive/central/media'&&request.method==='GET')response=await serveCentralMedia(clean,env,await requestTeamSession(clean,env));
  else if(url.pathname==='/api/auth/login'||url.pathname==='/api/auth/challenge')response=await handleTeamLogin(clean,env,url.pathname.endsWith('/challenge'));
  else if(url.pathname==='/login'&&['GET','HEAD'].includes(request.method)){
   url.pathname='/_team/login.html';url.search='';response=await env.ASSETS.fetch(new Request(url,{method:request.method}));
