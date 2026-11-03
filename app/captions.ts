@@ -4,9 +4,9 @@ import {isPurchase} from './purchases';
 import {externalMediaLabel} from './external-media-label';
 import type {LabelConfig} from './labels';
 export type Caption={text:string,status:'todo'|'review'|'adjust',version:number,submittedAt?:string,submittedBy?:string,resumeStatus?:string};
-export const captionColumns=[['caption:todo','#d8a5bc','A fazer'],['caption:review','#e86ca6','Aprovação'],['caption:adjust','#ffc53d','Ajustar legenda']];
+export const captionColumns=[['caption:todo','#d8a5bc','A fazer'],['caption:review','#e86ca6','Aprovação'],['caption:adjust','#ffc53d','Ajustar legenda'],['aprovado ✅','#00ff84','Aprovados'],['stand-by ⛔','#ff0000','Stand-by'],['concluidos e postados','#008844','Concluídos e postados']];
 export function needsCaption(t:Task,labels:LabelConfig={}){return !isPurchase(t)&&!externalMediaLabel(t,labels)&&!!(t.caption||t.status.startsWith('aprovação ')||t.status==='ajustar legenda'||t.approval||t.status==='aprovado ✅'||t.status==='concluidos e postados')}
-export const captionColumn=(t:Task)=>'caption:'+(t.status==='ajustar legenda'?'adjust':t.caption?.status||'todo');
+export const captionColumn=(t:Task)=>['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(t.status)?t.status:'caption:'+(t.status==='ajustar legenda'?'adjust':t.caption?.status||'todo');
 export const captionSent=(t:Task)=>t.caption?.status==='review'&&!!t.caption.submittedAt;
 export const canWriteCaption=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&actor.persona==='laura';
 export const canRequestCaption=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&['lucio','mateus'].includes(actor.persona);

@@ -7,7 +7,7 @@ export type StatusDefinition={id:string,name:string,color:string};
 export type StatusConfig={labels?:LabelConfig,custom:StatusDefinition[],removed:Record<string,string>};
 export const emptyStatusConfig:StatusConfig={custom:[],removed:{}};
 export function readStatusConfig(raw?:string|StatusConfig):StatusConfig{if(!raw)return emptyStatusConfig;const value=typeof raw==='string'?JSON.parse(raw):raw;return {custom:value.custom||[],removed:value.removed||{},...(value.labels?{labels:value.labels}:{})}}
-export function statusDefinitions(config:StatusConfig=emptyStatusConfig){return [...statuses.map(([id,color])=>({id,name:id.toLocaleUpperCase('pt-BR'),color})),...config.custom].filter(s=>!config.removed[s.id])}
+export function statusDefinitions(config:StatusConfig=emptyStatusConfig){const ordered=statuses.filter(([id])=>id!=='ajustar legenda');const caption=statuses.find(([id])=>id==='ajustar legenda');if(caption)ordered.splice(ordered.findIndex(([id])=>id==='ajustar ⚠️')+1,0,caption);return [...ordered.map(([id,color])=>({id,name:id.toLocaleUpperCase('pt-BR'),color})),...config.custom].filter(s=>!config.removed[s.id])}
 export function configuredStatus(id:string,config:StatusConfig=emptyStatusConfig){const seen=new Set<string>();while(config.removed[id]){if(seen.has(id))throw Error('Os destinos dos status formam um ciclo.');seen.add(id);id=config.removed[id]}return id}
 export function configuredTask(task:Task,config:StatusConfig=emptyStatusConfig):Task{return {...task,status:configuredStatus(task.status,config)}}
 export function customStatus(id:string){return id.startsWith('custom:')}
