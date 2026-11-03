@@ -253,3 +253,20 @@ dialog.approved-edit-dialog,dialog.approved-edit-dialog[open]{position:fixed;ins
 .caption-mark{display:inline-flex;align-items:center;color:#f076b6;margin:4px 0;gap:4px}.caption-heading{display:flex;align-items:center;justify-content:space-between}.caption-panel textarea{display:block;width:100%;margin-top:8px;resize:vertical;min-height:120px}.caption-text{white-space:pre-wrap;overflow-wrap:anywhere}.caption-state{font-size:12px;color:var(--muted,#a7bacb)}.caption-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.task-company-heading>.caption-mark{position:absolute;left:100px;top:50%;transform:translateY(-50%)}
 
 .card-approval-votes .caption-mark{color:#f076b6;margin:0}
+
+dialog.settings-dialog,dialog.settings-dialog[open]{position:fixed;inset:0;margin:auto;width:min(560px,calc(100vw - 28px));max-width:560px;height:fit-content;min-height:0;max-height:calc(100dvh - 48px);border:1px solid #496074;border-radius:14px;overflow:hidden}
+.settings-dialog .panel-top{padding:14px 20px;flex:none}
+.settings-dialog .compact-settings{flex:0 1 auto;padding:18px 20px;min-height:0;overflow-y:auto;max-height:calc(100dvh - 120px)}
+.settings-section-heading{display:flex;align-items:center;gap:10px;margin-bottom:18px}.settings-section-heading h2{font-size:19px;margin:0}
+.settings-menu{display:flex;flex-direction:column;gap:8px}.settings-menu>button{display:flex;align-items:center;gap:12px;padding:13px;text-align:left;min-height:46px}.settings-menu>button>span{flex:1}.settings-menu p{margin:0 0 5px}
+.settings-section{display:flex;flex-direction:column;gap:16px}.settings-section>label{align-items:flex-start}.settings-section .settings-check{display:flex;flex-direction:row;align-items:center;gap:8px}
+.settings-scope-heading,.settings-save-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.settings-save-row{flex-wrap:wrap}
+.compact-settings .status-manager-list{max-height:40vh;margin-top:10px}.compact-settings .status-manager-list>div{grid-template-columns:minmax(0,1fr) 48px 48px;gap:6px;padding:7px 2px}
+.compact-settings .managed-color-fields{display:flex;gap:8px;align-items:center;min-width:0}.compact-settings .managed-color-fields>input[type=color]{width:30px;height:30px;flex:none}
+.compact-settings .status-name-input{width:100%;min-width:0;flex:1;font-size:11px;padding:8px;border:1px solid transparent;line-height:1.4}.compact-settings .status-name-input:focus{border-color:#b8d5ff}
+.compact-settings .scoped-status-list>div{grid-template-columns:minmax(0,1fr) 30px}
+.compact-settings .status-create-details>summary{cursor:pointer;font-size:12px;padding:8px 0}.compact-settings .status-create{grid-template-columns:minmax(0,1fr) 42px auto;gap:8px;margin:10px 0}
+.compact-settings .password-editor{margin:0;padding:0;border:0}.compact-settings .password-editor h3{display:none}
+@media(max-width:480px){dialog.settings-dialog,dialog.settings-dialog[open]{max-height:calc(100dvh - 24px)}.settings-dialog .compact-settings{padding:16px;max-height:calc(100dvh - 100px)}.settings-save-row button{flex:1}.compact-settings .status-manager-list>div{grid-template-columns:minmax(0,1fr) 32px 45px}.compact-settings .status-manager-list>div>small{font-size:9px}}
+
+.compact-settings .supplemental-status-list>div{grid-template-columns:minmax(0,1fr)}
