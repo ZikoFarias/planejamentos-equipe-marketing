@@ -3,7 +3,7 @@ const {DatabaseSync}=require('node:sqlite'),{pbkdf2Sync}=require('node:crypto'),
 (async()=>{
  const sqlite=new DatabaseSync(':memory:');sqlite.exec('CREATE TABLE marketing_members(email TEXT PRIMARY KEY,role TEXT,persona TEXT)');
  sqlite.exec('CREATE TABLE marketing_preferences(email TEXT PRIMARY KEY,data TEXT,updated_at INTEGER)');
- for(const file of ['0003_team_access','0004_team_login','0005_team_administrator','0006_login_challenges'])sqlite.exec(fs.readFileSync('drizzle/'+file+'.sql','utf8'));
+ for(const file of ['0003_team_access','0004_team_login','0005_team_administrator','0006_login_challenges','0011_laura_access'])sqlite.exec(fs.readFileSync('drizzle/'+file+'.sql','utf8'));
  const db={prepare(sql){return {bind(...args){const statement=sqlite.prepare(sql);return {first:async()=>statement.get(...args)||null,run:async()=>({meta:{changes:statement.run(...args).changes}})}}}}};
  const salt='a'.repeat(32),password='test-only-password',hash=pbkdf2Sync(password,salt,100000,32,'sha256').toString('hex');
  await build({entryPoints:['app/team-login-handler.ts','app/login-proof.ts','app/team-auth.ts'],bundle:true,platform:'node',format:'esm',outdir:'.sites-runtime/auth-tests',outExtension:{'.js':'.mjs'}});
@@ -16,7 +16,7 @@ const {DatabaseSync}=require('node:sqlite'),{pbkdf2Sync}=require('node:crypto'),
  assert.equal(await deriveLoginKey(password,salt),hash,'Existing PBKDF2 strength and stored secrets remain compatible');
  assert.equal((await handle(req({email:'marketingluke09@gmail.com'},'https://other.test'),env,true)).status,403);
  assert.equal((await handle(req({email:'marketingluke09@gmail.com',password}),env)).status,401,'No expensive raw-password fallback');
- for(const email of ['marketingluke09@gmail.com','marketingluke06@gmail.com','marketingluke02@gmail.com','marketingluke24@gmail.com','ezequiel2303f@gmail.com']){
+ for(const email of ['marketingluke09@gmail.com','marketingluke06@gmail.com','marketingluke02@gmail.com','marketingluke24@gmail.com','ezequiel2303f@gmail.com','lauradeprimoberti07@gmail.com']){
   const body=await credentials(' '+email.toUpperCase()+' ');const response=await handle(req(body),env);assert.equal(response.status,200);const cookie=response.headers.get('set-cookie');assert.match(cookie,/HttpOnly/);assert.match(cookie,/SameSite=Lax/);assert.match(cookie,/Secure/);assert.match(cookie,/Max-Age=43200/);const token=cookie.match(/marketing_session=([a-f0-9]+)/)[1];assert.equal(sqlite.prepare('SELECT count(*) n FROM marketing_sessions WHERE token_hash=?').get(token).n,0);assert.equal((await handle(req(body),env)).status,401,'Replayed proofs are denied');
  }
  assert.equal((await handle(req(await credentials('unknown@test.com')),env)).status,401);

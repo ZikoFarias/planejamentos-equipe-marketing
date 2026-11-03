@@ -1,0 +1,14 @@
+const {buildSync}=require('esbuild'),assert=require('node:assert/strict'),path=require('path'),{pathToFileURL}=require('url');
+(async()=>{const {Window}=await import(pathToFileURL(path.resolve('.sites-runtime/drag-test-tools/node_modules/happy-dom/lib/index.js')));const win=new Window();for(const key of ['window','document','HTMLElement','Element','Event'])globalThis[key]=key==='window'?win:win[key];globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+buildSync({entryPoints:['app/caption-panel.tsx'],bundle:true,platform:'node',format:'cjs',jsx:'automatic',external:['react','react-dom'],outfile:'.sites-runtime/caption-ui.cjs'});
+const React=require('react'),{act}=React,{createRoot}=require('react-dom/client'),{CaptionPanel,CaptionMark}=require(path.resolve('.sites-runtime/caption-ui.cjs'));
+const mount=document.createElement('div');document.body.append(mount);const root=createRoot(mount);let action='',text='Legenda da arte',actor={role:'editor',persona:'laura'},task={caption:{text:'',status:'todo',version:0}};
+const render=()=>root.render(React.createElement(CaptionPanel,{task,actor,text,onText:v=>text=v,onAction:v=>action=v,busy:false}));
+await act(async()=>render());assert(mount.querySelector('textarea'));assert.equal(mount.querySelector('textarea').maxLength,10000);
+await act(async()=>[...mount.querySelectorAll('button')].find(b=>b.textContent.includes('Enviar legenda')).click());assert.equal(action,'submit');
+actor={role:'editor',persona:'lucio'};task={caption:{text:'Legenda da arte',status:'review',version:2,submittedAt:'2026-11-03T12:00:00Z'}};
+await act(async()=>render());assert(!mount.querySelector('textarea'));assert(mount.querySelector('.caption-mark'));assert(mount.textContent.includes('Legenda da arte'));await act(async()=>mount.querySelector('button').click());assert.equal(action,'request_adjust');
+actor={role:'editor',persona:'farias'};await act(async()=>render());assert.equal(mount.querySelectorAll('button').length,0);
+task={caption:{text:'Legenda da arte',status:'adjust',version:3}};await act(async()=>render());assert(!mount.querySelector('.caption-mark'));
+await act(async()=>root.unmount());console.log('PASS: Laura edits and submits, reviewers request adjustment, designers read, pink thumb only after submission.');
+})().catch(e=>{console.error(e);process.exitCode=1});

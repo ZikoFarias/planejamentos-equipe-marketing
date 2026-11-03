@@ -3,7 +3,7 @@ import type {Actor} from './permissions';
 import {lucioOnly} from './reviewer-policy';
 import type {LabelConfig} from './labels';
 import {isPurchase} from './purchases';
-export function canAttachArt(task:Task,actor:Actor){return actor.role==='administrador'||!(['lucio','mateus'].includes(actor.persona)&&(task.status.startsWith('em andamento ')||task.status.startsWith('aprovação ')))}
+export function canAttachArt(task:Task,actor:Actor){return actor.role==='administrador'||actor.persona!=='laura'&&!(['lucio','mateus'].includes(actor.persona)&&(task.status.startsWith('em andamento ')||task.status.startsWith('aprovação ')))}
 export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor,labels:LabelConfig={}):Task{
  // Purchases retain their separate budget workflow and Lucio-only approval.
  if(actor.role==='administrador')return {...next,workflowResume:next.status==='stand-by ⛔'?previous?.status:undefined};

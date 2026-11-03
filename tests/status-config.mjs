@@ -4,7 +4,7 @@ import {canSeeTask,mergeScopedTasks} from '../app/permissions.ts';
 import {weeklyPlan} from '../app/weekly-plan.ts';
 import {blank} from '../app/model.ts';
 const config={custom:[{id:'custom:test',name:'REVISÃO INTERNA',color:'#123456'}],removed:{'a fazer farias':'custom:test','aprovação fibroplast':'custom:test'}};
-assert.equal(statusDefinitions(config).length,14);assert(!statusDefinitions(config).some(s=>s.id==='a fazer farias'));assert(statusColumns('farias',config).some(([id])=>id==='custom:test'));assert.equal(configuredStatus('aprovação fibroplast',config),'custom:test');
+assert.equal(statusDefinitions(config).length,15);assert(!statusDefinitions(config).some(s=>s.id==='a fazer farias'));assert(statusColumns('farias',config).some(([id])=>id==='custom:test'));assert.equal(configuredStatus('aprovação fibroplast',config),'custom:test');
 const task={...blank('custom:test'),title:'Teste',assignees:['Farias'],tags:['fibroplast']};assert(canSeeTask(task,{role:'editor',persona:'farias'}));assert(canSeeTask(task,{role:'editor',persona:'luiz'}));assert(canSeeTask(task,{role:'editor',persona:'mateus'}));
 const original={...task,status:'a fazer farias'};assert.equal(mergeScopedTasks([original],[{...original,status:'aprovação fibroplast'}],{role:'administrador',persona:''},'2026-10-20T12:00:00Z',config)[0].status,'custom:test');
 const plan=weeklyPlan([],'2026-10-20','all',config);assert.equal(plan.length,25);assert(plan.filter(p=>p.task.assignees.includes('Farias')).every(p=>p.task.status==='custom:test'));

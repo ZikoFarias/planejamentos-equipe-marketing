@@ -1,6 +1,7 @@
 export const teamAccounts:Record<string,string>={
  'ezequiel2303f@gmail.com':'farias',
  'marketingluke09@gmail.com':'lucio','marketingluke06@gmail.com':'farias',
+ 'lauradeprimoberti07@gmail.com':'laura',
  'marketingluke02@gmail.com':'luiz','marketingluke24@gmail.com':'mateus',
 };
 export const SESSION_COOKIE='marketing_session';

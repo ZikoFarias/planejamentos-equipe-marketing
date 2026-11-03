@@ -1,5 +1,5 @@
 import type {Task} from './model';
-const managed=new Set(['approval','spelling','history','postedAt']);
+const managed=new Set(['caption','approval','spelling','history','postedAt']);
 const equal=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
 export function rebaseBoardEdit(base:Task[],intended:Task[],latest:Task[]):Task[]{
  const original=new Map(base.map(t=>[t.id,t])),desired=new Map(intended.map(t=>[t.id,t]));

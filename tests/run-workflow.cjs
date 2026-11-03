@@ -40,3 +40,7 @@ execFileSync(process.execPath,['tests/attachment-formats.cjs'],{stdio:'inherit'}
 execFileSync(process.execPath,['tests/central-media-formats.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/background-performance.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/captions.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/caption-ui.cjs'],{stdio:'inherit'});
