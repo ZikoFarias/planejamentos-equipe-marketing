@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {blank} from '../app/model';
-import {mergeScopedTasks} from '../app/permissions';
+import {mergeScopedTasks,canCreateTask,canManageTask} from '../app/permissions';
 import {canAttachArt} from '../app/art-flow';
 import {castApprovalVote} from '../app/approval';
 import {emptyStatusConfig} from '../app/status-config';
@@ -20,3 +20,6 @@ assert.equal(move(task,'aprovação fibroplast',{role:'administrador',persona:'f
 console.log('PASS: strict artwork stages, all four create, designer starts, both votes required, reviewer attachment restriction, negative adjustment loop, no admin bypass and safe standby resume.');
 
 const editedApproved=mergeScopedTasks([two],[{...two,description:'NOVA ARTE'}],farias)[0];assert.equal(editedApproved.status,'ajustar ⚠️');assert.deepEqual(editedApproved.approval.votes,{});
+
+for(const persona of ['farias','luiz'])for(const status of ['a fazer farias','a fazer luiz']){const actor={role:'editor',persona},created={...task,id:'new-'+persona+status,status,assignees:[status.endsWith('luiz')?'Luiz':'Farias']};assert(canCreateTask(created,actor));assert.equal(mergeScopedTasks([],[created],actor)[0].status,status);if(!status.endsWith(persona))assert(!canManageTask(created,actor),'Creating in another designer column does not grant ongoing access');const purchase={...created,tags:['fibroplast','COMPRA'],purchase:{requiresArt:true,stage:'comprar'}};assert(canCreateTask(purchase,actor));assert.equal(mergeScopedTasks([],[purchase],actor)[0].status,status)}
+assert(!canCreateTask(task,{role:'visualizador',persona:'farias'}));assert(!canCreateTask({...task,status:'em andamento farias'},farias));
