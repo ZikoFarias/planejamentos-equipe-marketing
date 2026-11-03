@@ -1,3 +1,5 @@
+import {approvalFor} from '../../workflow';
+import {configuredStatus,readStatusConfig} from '../../status-config';
 import {env} from 'cloudflare:workers';
 import {getActor} from '../../access';
 import {isPurchase} from '../../purchases';
@@ -10,11 +12,11 @@ export async function POST(req:Request){try{
  if(req.headers.get('origin')!==new URL(req.url).origin)return json({error:'Origem inválida.'},403);
  const actor=await getActor();if(!actor)return json({error:'Entre novamente.'},401);
  const body:any=await req.json();if(typeof body.id!=='string'||!['review','dismiss'].includes(body.action))return json({error:'Operação inválida.'},400);
- const row=await env.DB!.prepare('SELECT data FROM marketing_board WHERE id=1').first<{data:string}>();const task=(JSON.parse(row?.data||'[]') as Task[]).find(t=>t.id===body.id);if(!task||!canSeeTask(task,actor))return json({error:'Cartão indisponível.'},403);
+ const row=await env.DB!.prepare('SELECT data,status_config FROM marketing_board WHERE id=1').first<{data:string,status_config:string}>();const task=(JSON.parse(row?.data||'[]') as Task[]).find(t=>t.id===body.id);if(!task||!canSeeTask(task,actor))return json({error:'Cartão indisponível.'},403);
  if(body.action==='dismiss'){
   if(actor.role!=='administrador'&&!(actor.role==='editor'&&(actor.persona==='lucio'||(actor.persona==='mateus'&&!isPurchase(task)))))return json({error:'Somente os revisores podem descartar um alerta.'},403);
   if(task.spelling?.state!=='flagged')return json({error:'Não há alerta para descartar.'},409);
-  const fingerprint=spellingFingerprint(task);await updateSpelling(env,task.id,fingerprint,t=>({...t,spelling:{...t.spelling!,state:'dismissed',message:'Alerta descartado após revisão humana.'},history:[{text:'Descartou o alerta ortográfico após revisão humana.',by:actor.user.displayName,at:new Date().toISOString()},...t.history]}));return snapshot(actor); 
+  const fingerprint=spellingFingerprint(task);await updateSpelling(env,task.id,fingerprint,t=>({...t,status:configuredStatus(approvalFor(t),readStatusConfig(row?.status_config)),approval:{round:(t.approval?.round||0)+1,votes:{}},spelling:{...t.spelling!,state:'dismissed',message:'Alerta descartado após revisão humana.'},history:[{text:'Descartou o alerta ortográfico após revisão humana e enviou para aprovação.',by:actor.user.displayName,at:new Date().toISOString()},...t.history]}));return snapshot(actor);
  }
  if(!canManageTask(task,actor))return json({error:'Sem permissão para analisar este cartão.'},403);
  await reviewArtwork(env,task.id,fetch,true);return snapshot(actor);

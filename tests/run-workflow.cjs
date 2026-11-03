@@ -29,3 +29,7 @@ execFileSync(process.execPath,['tests/spelling-recovery.cjs'],{stdio:'inherit'})
 
 execFileSync(process.execPath,['tests/comments-api.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['tests/comment-composer.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/media-navigation.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/upload-kind-api.cjs'],{stdio:'inherit'});

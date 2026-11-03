@@ -30,7 +30,7 @@ try{
  globalThis.__actor={role:'editor',persona:'farias',db,user:{email:'f@test',displayName:'Farias'}};assert.equal((await POST(req('review','https://evil.test'))).status,403);assert.equal(calls,0);
  reset();conflict=true;let response=await POST(req());assert.equal(response.status,200);let data=await response.json();assert.equal(data.tasks[0].status,'ajustar ⚠️');assert.equal(data.tasks[0].spelling.state,'flagged');assert.equal(data.tasks[0].description,'Edição concorrente preservada');assert(!JSON.stringify(data).includes('private-'));assert.equal((await POST(req('dismiss'))).status,403);
  const before=calls;await POST(req());assert.equal(calls,before,'duplicate request must not spend quota');
- globalThis.__actor.persona='lucio';assert.equal((await POST(req('dismiss'))).status,200);assert.equal(tasks[0].spelling.state,'dismissed');assert.equal(tasks[0].status,'ajustar ⚠️','dismiss never approves');
+ globalThis.__actor.persona='lucio';assert.equal((await POST(req('dismiss'))).status,200);assert.equal(tasks[0].spelling.state,'dismissed');assert.equal(tasks[0].status,'aprovação fibroplast','dismiss returns to company approval without approving');assert.deepEqual(tasks[0].approval.votes,{});
  for(const state of ['429','invalid','unreadable']){reset();mode=state;await POST(req());assert.equal(tasks[0].spelling.state,'pending');assert.equal(tasks[0].status,'a fazer farias');}
  reset();mode='clean';await POST(req());assert.equal(tasks[0].spelling.state,'clean');assert.equal(tasks[0].status,'a fazer farias');
  reset();mode='stale';await POST(req());assert.equal(tasks[0].status,'a fazer farias');assert.notEqual(tasks[0].spelling?.state,'flagged');
