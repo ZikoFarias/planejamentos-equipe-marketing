@@ -33,3 +33,5 @@ execFileSync(process.execPath,['tests/comment-composer.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['tests/media-navigation.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/upload-kind-api.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/calendar-cards.cjs'],{stdio:'inherit'});
