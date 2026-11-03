@@ -7,8 +7,9 @@ const marks:Record<string,{file:string,viewBox:string,name:string}>={
  concreto:{file:'concreto',viewBox:'102 457 1236 199',name:'Luke Concreto'},
  ervateira:{file:'ervateira',viewBox:'42 392 1356 314',name:'Luke Ervateira'},
 };
-export function CompanyLogo({company,className=''}:{company:string,className?:string}){
+export function CompanyLogo({company,className='',padding=0}:{company:string,className?:string,padding?:number}){
  const family=company.startsWith('posto')?'postos':company.startsWith('materiais')?'materiais':company;
  const mark=marks[family];if(!mark)return null;
- return <svg className={'company-logo '+className} viewBox={mark.viewBox} role="img" aria-label={'Logo '+mark.name}><image href={'/brands/'+mark.file+'.png'} width="1440" height="1080"/></svg>
+ const [x,y,width,height]=mark.viewBox.split(' ').map(Number),viewBox=padding?[x-padding,y-padding,width+padding*2,height+padding*2].join(' '):mark.viewBox;
+ return <svg className={'company-logo '+className} viewBox={viewBox} role="img" aria-label={'Logo '+mark.name}><image href={'/brands/'+mark.file+'.png'} width="1440" height="1080"/></svg>
 }
