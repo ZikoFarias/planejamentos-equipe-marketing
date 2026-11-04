@@ -282,7 +282,6 @@ dialog.settings-dialog,dialog.settings-dialog[open]{position:fixed;inset:0;margi
 @media (prefers-color-scheme:light){:root{--apple-canvas:#f2f2f7;--apple-surface:#fff;--apple-raised:#f7f7fa;--apple-field:#ededf2;--apple-text:#1d1d1f;--apple-secondary:#62626a;--apple-line:#00000016;--apple-blue:#0069dc;--apple-selection:#007aff12;--apple-danger:#b8241c;--apple-shadow:0 16px 48px #1821311c}
 }
 .apple-hig,.apple-hig-login{font-family:var(--font-ui);-webkit-font-smoothing:antialiased;font-synthesis:none;color:var(--apple-text);letter-spacing:-.012em;font-size:13px}
-.app.apple-hig{background:var(--apple-canvas);background-image:none}
 .apple-hig button,.apple-hig input,.apple-hig textarea,.apple-hig select,.apple-hig-login button,.apple-hig-login input{letter-spacing:inherit;font-family:inherit}
 .apple-hig button,.apple-hig-login button{min-height:36px;color:var(--apple-text);background:var(--apple-field);transition:background-color .16s var(--apple-ease),border-color .16s var(--apple-ease),color .16s var(--apple-ease);border:1px solid #0000;border-radius:10px;font-weight:500}
 .apple-hig button:hover,.apple-hig-login button:hover{background:color-mix(in srgb,var(--apple-field),var(--apple-text) 8%)}
@@ -297,16 +296,16 @@ dialog.settings-dialog,dialog.settings-dialog[open]{position:fixed;inset:0;margi
 .apple-hig :is(button,input,textarea,select,[tabindex]):focus-visible{outline:2px solid var(--apple-blue);outline-offset:3px}
 .apple-hig-login :is(button,input):focus-visible{outline:2px solid var(--apple-blue);outline-offset:3px}
 .apple-hig .muted,.apple-hig .panel-content small,.apple-hig .panel-content label{color:var(--apple-secondary)}
-.app.apple-hig main>header{background:var(--apple-surface);border:0;border-bottom:1px solid var(--apple-line);-webkit-backdrop-filter:none;grid-template-columns:minmax(190px,1fr) auto minmax(270px,1fr);align-items:center;gap:16px;min-height:68px;padding:10px 20px;display:grid}
+.app.apple-hig main>header{background:#0b2240;border:0;border-bottom:1px solid var(--apple-line);-webkit-backdrop-filter:none;grid-template-columns:minmax(190px,1fr) auto minmax(270px,1fr);align-items:center;gap:16px;min-height:68px;padding:10px 20px;display:grid}
 .app.apple-hig main>header>.header-heading{flex:initial;width:auto;min-width:0;max-width:290px;display:flex}
 .app.apple-hig main>header>.header-controls{flex:initial;justify-content:flex-end;justify-self:end;gap:8px;width:auto;min-width:0;max-width:100%;display:flex}
 .apple-hig .area-switcher{width:100%;min-width:0}
-.apple-hig .area-switcher .color-trigger{min-height:40px;color:var(--apple-text);background:0 0;border:0;border-radius:10px;padding:8px 10px}
+.apple-hig .area-switcher .color-trigger{min-height:40px;color:#f5f5f7;background:0 0;border:0;border-radius:10px;padding:8px 10px}
 .apple-hig .area-switcher .color-trigger>span{min-width:0;overflow:hidden}
 .apple-hig .area-switcher strong{text-overflow:ellipsis;letter-spacing:.015em;font-size:11px;font-weight:600;overflow:hidden}
 .app.apple-hig main>header>.brand-menu{justify-self:center;width:148px;position:relative;inset:auto;transform:none}
-.apple-hig .brand-menu-trigger{background:#001b34;border:0;border-radius:10px;width:148px;min-height:40px;padding:4px 6px}
-.apple-hig .brand-menu-trigger:hover{background:#062846}
+.apple-hig .brand-menu-trigger{background:transparent;border:0;border-radius:10px;width:148px;min-height:40px;padding:4px 6px}
+.apple-hig .brand-menu-trigger:hover{background:transparent}
 .apple-hig .brand-menu .luke-logo{border-radius:0;width:134px;height:32px}
 .app.apple-hig main>header .header-search{background:var(--apple-field);width:clamp(100px,12vw,190px);min-width:0;max-width:190px;height:38px;color:var(--apple-secondary);border:0;border-radius:10px;flex:0 190px;margin:0;display:flex}
 .apple-hig .header-search input{min-height:0;color:var(--apple-text);border:0;padding:7px 4px;font-size:12px;background:0 0!important}
