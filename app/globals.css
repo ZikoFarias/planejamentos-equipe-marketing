@@ -276,3 +276,176 @@ dialog.settings-dialog,dialog.settings-dialog[open]{position:fixed;inset:0;margi
 .activity-sections{display:flex;flex-direction:column;flex:1;min-height:0;width:100%}.activity-section-tabs{display:flex;gap:6px;flex:none;padding-bottom:12px;margin-bottom:10px;border-bottom:1px solid #ffffff19}.activity-section-tabs>button{display:flex;align-items:center;gap:7px;flex:1;min-width:0;justify-content:center;font-size:12px;padding:10px 8px;background:transparent;border:1px solid transparent;color:#a9becd}.activity-section-tabs>button[aria-selected=true]{background:#ffffff0d;border-color:#ffffff26;color:#e6eff6}.activity-section-tabs small{margin:0;font-size:10px;padding:2px 5px;background:#ffffff0c;border-radius:4px}.activity-section-panel{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}.activity-section-panel>.activity-feed{min-height:0;flex:1;overflow-y:auto}.activity-section-panel>.activity-composer{flex:none}
 
 .comment-mention-editor{position:relative;width:100%}.comment-mention-editor textarea{width:100%}.comment-mention-options{position:absolute;bottom:calc(100% + 6px);left:0;right:0;z-index:20;max-height:min(240px,35dvh);overflow:auto;border:1px solid #496074;border-radius:9px;padding:5px;background:#162c3c;box-shadow:0 8px 24px #0005}.comment-mention-options>button{width:100%;display:flex;align-items:center;gap:9px;border:0;background:transparent;text-align:left;padding:8px;color:#dce7f1}.comment-mention-options>button[aria-selected=true],.comment-mention-options>button:hover{background:#ffffff12}.comment-mention-options>button>span:last-child{display:flex;flex-direction:column;gap:3px}.comment-mention-options strong{font-size:12px}.comment-mention-options small{font-size:11px;color:#abc6d9;margin:0}
+
+/* Apple HIG theme from the approved board preview. */
+:root{--font-ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;--apple-canvas:#111113;--apple-surface:#1c1c1e;--apple-raised:#27272a;--apple-field:#303034;--apple-text:#f5f5f7;--apple-secondary:#b7b7bf;--apple-line:#ffffff18;--apple-blue:#0a84ff;--apple-selection:#0a84ff24;--apple-danger:#ff6961;--apple-shadow:0 16px 48px #0005;--apple-ease:cubic-bezier(.2,.7,.2,1)}
+@media (prefers-color-scheme:light){:root{--apple-canvas:#f2f2f7;--apple-surface:#fff;--apple-raised:#f7f7fa;--apple-field:#ededf2;--apple-text:#1d1d1f;--apple-secondary:#62626a;--apple-line:#00000016;--apple-blue:#0069dc;--apple-selection:#007aff12;--apple-danger:#b8241c;--apple-shadow:0 16px 48px #1821311c}
+}
+.apple-hig,.apple-hig-login{font-family:var(--font-ui);-webkit-font-smoothing:antialiased;font-synthesis:none;color:var(--apple-text);letter-spacing:-.012em;font-size:13px}
+.app.apple-hig{background:var(--apple-canvas);background-image:none}
+.apple-hig button,.apple-hig input,.apple-hig textarea,.apple-hig select,.apple-hig-login button,.apple-hig-login input{letter-spacing:inherit;font-family:inherit}
+.apple-hig button,.apple-hig-login button{min-height:36px;color:var(--apple-text);background:var(--apple-field);transition:background-color .16s var(--apple-ease),border-color .16s var(--apple-ease),color .16s var(--apple-ease);border:1px solid #0000;border-radius:10px;font-weight:500}
+.apple-hig button:hover,.apple-hig-login button:hover{background:color-mix(in srgb,var(--apple-field),var(--apple-text) 8%)}
+.apple-hig button:disabled,.apple-hig-login button:disabled{opacity:.38}
+.apple-hig button:not(.card-open):not(.collapse):not(.drag-handle):active,.apple-hig-login button:active{transform:scale(.98)}
+.apple-hig .primary,.apple-hig-login .primary{background:var(--apple-blue);color:#fff;border:0;border-radius:999px;font-weight:600}
+.apple-hig .primary:hover,.apple-hig-login .primary:hover{background:color-mix(in srgb,var(--apple-blue),#fff 9%)}
+.apple-hig .danger{color:var(--apple-danger)}
+.apple-hig input:not([type=checkbox]):not([type=color]),.apple-hig select,.apple-hig textarea,.apple-hig-login input{background:var(--apple-field);color:var(--apple-text);border:1px solid #0000;border-radius:10px;min-height:38px;padding:10px 12px;line-height:1.45}
+.apple-hig input::placeholder,.apple-hig textarea::placeholder,.apple-hig-login input::placeholder{color:var(--apple-secondary);opacity:.8}
+.apple-hig input[type=checkbox]{accent-color:var(--apple-blue)}
+.apple-hig :is(button,input,textarea,select,[tabindex]):focus-visible{outline:2px solid var(--apple-blue);outline-offset:3px}
+.apple-hig-login :is(button,input):focus-visible{outline:2px solid var(--apple-blue);outline-offset:3px}
+.apple-hig .muted,.apple-hig .panel-content small,.apple-hig .panel-content label{color:var(--apple-secondary)}
+.app.apple-hig main>header{background:var(--apple-surface);border:0;border-bottom:1px solid var(--apple-line);-webkit-backdrop-filter:none;grid-template-columns:minmax(190px,1fr) auto minmax(270px,1fr);align-items:center;gap:16px;min-height:68px;padding:10px 20px;display:grid}
+.app.apple-hig main>header>.header-heading{flex:initial;width:auto;min-width:0;max-width:290px;display:flex}
+.app.apple-hig main>header>.header-controls{flex:initial;justify-content:flex-end;justify-self:end;gap:8px;width:auto;min-width:0;max-width:100%;display:flex}
+.apple-hig .area-switcher{width:100%;min-width:0}
+.apple-hig .area-switcher .color-trigger{min-height:40px;color:var(--apple-text);background:0 0;border:0;border-radius:10px;padding:8px 10px}
+.apple-hig .area-switcher .color-trigger>span{min-width:0;overflow:hidden}
+.apple-hig .area-switcher strong{text-overflow:ellipsis;letter-spacing:.015em;font-size:11px;font-weight:600;overflow:hidden}
+.app.apple-hig main>header>.brand-menu{justify-self:center;width:148px;position:relative;inset:auto;transform:none}
+.apple-hig .brand-menu-trigger{background:#001b34;border:0;border-radius:10px;width:148px;min-height:40px;padding:4px 6px}
+.apple-hig .brand-menu-trigger:hover{background:#062846}
+.apple-hig .brand-menu .luke-logo{border-radius:0;width:134px;height:32px}
+.app.apple-hig main>header .header-search{background:var(--apple-field);width:clamp(100px,12vw,190px);min-width:0;max-width:190px;height:38px;color:var(--apple-secondary);border:0;border-radius:10px;flex:0 190px;margin:0;display:flex}
+.apple-hig .header-search input{min-height:0;color:var(--apple-text);border:0;padding:7px 4px;font-size:12px;background:0 0!important}
+.apple-hig .header-icon{border-radius:11px;width:38px;height:38px;min-height:38px;padding:8px}
+.apple-hig .calendar-trigger{color:var(--apple-secondary);background:0 0}
+.apple-hig .calendar-trigger[aria-pressed=true]{background:var(--apple-selection);color:var(--apple-blue);border-color:#0000}
+.apple-hig .account-avatar{border:1px solid var(--apple-line);width:34px;height:34px}
+.apple-hig .kanban{background:0 0;gap:12px;padding:16px 16px 18px}
+.apple-hig .column{background:var(--apple-raised);width:224px;min-width:224px;color:var(--apple-text);border:1px solid var(--apple-line);border-top:3px solid var(--status);box-shadow:none;border-radius:15px}
+.apple-hig .column-head{background:var(--status);min-height:42px;color:var(--status-ink);border-radius:11px 11px 0 0;padding:8px 8px 7px}
+.apple-hig .column-head .collapse,.apple-hig .column-head .icon{color:var(--status-ink);background:0 0;border:0}
+.apple-hig .column-head .collapse{gap:6px;min-height:30px;padding:0;font-size:10px}
+.apple-hig .column-head .icon{width:28px;min-height:28px;padding:5px}
+.apple-hig .column-head .count{font-variant-numeric:tabular-nums;background:#00000014;border-radius:5px;font-size:10px}
+.apple-hig .column.collapsed{width:42px;min-width:42px}
+.apple-hig .column.collapsed .column-head{border-radius:11px;padding:12px 8px}
+.apple-hig .column.collapsed .collapse{min-height:156px}
+.apple-hig .column-body{padding:8px}
+.apple-hig .column .add-card{color:var(--apple-secondary);background:0 0;border:0;justify-content:flex-start;width:100%;padding:8px 4px;font-size:11px}
+.apple-hig .column .add-card:hover{color:var(--apple-text)}
+.apple-hig .column .empty-column{color:var(--apple-secondary);border:1px dashed var(--apple-line);background:0 0;border-radius:10px;min-height:50px}
+.apple-hig .column .empty-column p{color:inherit;font-size:11px}
+.apple-hig .task{background:var(--apple-surface);border:1px solid var(--apple-line);color:var(--apple-text);border-radius:12px;margin-bottom:8px;box-shadow:0 2px 4px #0000000b}
+.apple-hig .task:hover{border-color:color-mix(in srgb,var(--apple-text),transparent 65%);box-shadow:0 3px 9px #00000014}
+.apple-hig .task.external-media{border:2px solid var(--external-media-color)}
+.apple-hig .card-open{white-space:normal;text-align:left;min-height:0;color:var(--apple-text);background:0 0;border:0;border-radius:11px;padding:12px 12px 10px;font-weight:400}
+.apple-hig .card-open:hover{background:0 0}
+.apple-hig .card-cover{border-radius:11px 11px 0 0;margin:-12px -12px 10px}
+.apple-hig .selection-mode .card-open,.apple-hig .task.external-media .card-open{padding-top:32px}
+.apple-hig .selection-mode .card-cover,.apple-hig .task.external-media .card-cover{margin-top:-32px}
+.apple-hig .task h3{color:var(--apple-text);letter-spacing:-.01em;margin:8px 0 14px;font-size:12px;font-weight:500;line-height:1.5}
+.apple-hig .card-meta,.apple-hig .card-foot{color:var(--apple-secondary);font-size:11px}
+.apple-hig .card-foot{border-color:var(--apple-line);margin-top:12px;padding-top:10px}
+.apple-hig .tag,.apple-hig .company-tag{border-radius:5px;font-size:9px;font-weight:600}
+.apple-hig .card-quote{background:var(--apple-raised);color:var(--apple-text);border:0;border-radius:8px;padding:8px}
+.apple-hig .selection-bar{background:var(--apple-surface);border-color:var(--apple-line);color:var(--apple-text)}
+.apple-hig .selection-bar strong{color:var(--apple-text)}
+.apple-hig dialog{background:var(--apple-surface);color:var(--apple-text);border:1px solid var(--apple-line);box-shadow:var(--apple-shadow);-webkit-backdrop-filter:none}
+.apple-hig dialog::backdrop{-webkit-backdrop-filter:none;background:#0007}
+.apple-hig dialog[open]{animation:apple-sheet-in .2s var(--apple-ease) both}
+@keyframes apple-sheet-in{0%{opacity:0;transform:translateY(8px)scale(.99)}
+to{opacity:1;transform:none}
+}
+.apple-hig .panel-top{background:var(--apple-surface);border-bottom:1px solid var(--apple-line);color:var(--apple-secondary);padding:16px 24px}
+.apple-hig .panel-top>.icon{background:var(--apple-field);border-radius:50%;width:32px;height:32px;min-height:32px;padding:7px}
+.apple-hig .panel-top .company-logo{max-height:36px}
+.apple-hig .task-dialog{border-radius:20px}
+.apple-hig .task-detail-main{background:var(--apple-surface)}
+.apple-hig .task-activity{background:var(--apple-raised);border-left:1px solid var(--apple-line);padding:20px}
+.apple-hig .detail-section{border-color:var(--apple-line)}
+.apple-hig .task-title{letter-spacing:-.035em;font-size:23px;font-weight:600;background:0 0!important;padding:4px 0!important}
+.apple-hig h2,.apple-hig h3{color:var(--apple-text);letter-spacing:-.025em}
+.apple-hig .task-shortcuts{gap:8px}
+.apple-hig .task-shortcuts button{background:var(--apple-field);border:0;min-height:34px;font-size:11px}
+.apple-hig .detail-summary-chip,.apple-hig .status-pill,.apple-hig .priority-pill{background:var(--apple-field);color:var(--apple-text);border-color:#0000;border-radius:8px}
+.apple-hig .activity-section-tabs{background:var(--apple-field);border:0;border-radius:10px;gap:3px;margin-bottom:16px;padding:3px}
+.apple-hig .activity-section-tabs>button{color:var(--apple-secondary);background:0 0;border:0;border-radius:8px;min-height:34px;padding:8px}
+.apple-hig .activity-section-tabs>button[aria-selected=true]{background:var(--apple-surface);color:var(--apple-text);box-shadow:0 1px 4px #0002}
+.apple-hig .activity-section-tabs small{color:inherit;background:0 0}
+.apple-hig .activity-entry{background:var(--apple-surface);color:var(--apple-text);border:0;border-radius:12px;padding:14px}
+.apple-hig .activity-entry.activity:not(.media-event){border-bottom:1px solid var(--apple-line);color:var(--apple-secondary);background:0 0;border-radius:0;padding:10px 2px}
+.apple-hig .activity-entry header{color:var(--apple-text);border:0;background:0 0!important}
+.apple-hig .activity-entry time{color:var(--apple-secondary);font-variant-numeric:tabular-nums}
+.apple-hig .activity-entry p{font-size:13px;line-height:1.55}
+.apple-hig .activity-composer{border-top:1px solid var(--apple-line);padding-top:12px}
+.apple-hig .attachment-grid .attachment-tile{background:var(--apple-raised);border-radius:10px!important}
+.apple-hig .attachment-caption{color:var(--apple-text)}
+.apple-hig .comment-composer-actions button{min-height:36px;font-size:11px}
+.apple-hig .settings-menu>button{background:var(--apple-raised);border:0;border-radius:12px;min-height:48px}
+.apple-hig .settings-section-heading h2{font-size:21px;font-weight:600}
+.apple-hig .status-manager-list{background:var(--apple-raised);border-color:var(--apple-line);border-radius:12px}
+.apple-hig .status-manager-list>div{border-color:var(--apple-line)}
+.apple-hig .team-profile-card{background:var(--apple-raised);border:1px solid var(--apple-line);border-radius:16px}
+.apple-hig .team-profile-info :is(h3,p,small,span){color:var(--apple-text)}
+.apple-hig .team-profile-portrait{background:var(--apple-field);border-radius:15px 15px 0 0}
+.apple-hig .weekly-calendar{padding:20px 16px}
+.apple-hig .week-grid{border-color:var(--apple-line);background:var(--apple-surface);border-radius:14px}
+.apple-hig .week-grid .day-head{background:var(--apple-raised);border-color:var(--apple-line);color:var(--apple-text)}
+.apple-hig .week-grid :is(.day-cell,.company-cell){background:color-mix(in srgb,var(--apple-surface),transparent 7%);border-color:var(--apple-line)}
+.apple-hig .week-grid .is-today{background:var(--apple-selection)}
+.apple-hig .week-toolbar h2,.apple-hig .week-toolbar strong{color:var(--apple-text)}
+.apple-hig .week-toolbar small{color:var(--apple-secondary)}
+.apple-hig .calendar-card{background:var(--apple-raised);color:var(--apple-text);border-radius:10px}
+.apple-hig .calendar-card.calendar-due-today{color:#fff;background:#705900}
+.apple-hig .calendar-card.calendar-overdue{color:#fff;background:#792b2b}
+.apple-hig .calendar-card.calendar-completed{color:#fff;background:#195535}
+.apple-hig .calendar-card.calendar-paused{color:#fff;background:#454549}
+.apple-hig .calendar-card.calendar-highlight{border-color:var(--external-media-color)}
+.apple-hig footer{background:var(--apple-surface);color:var(--apple-secondary);border-top:1px solid var(--apple-line)}
+.color-menu,.dropdown-menu,.task-options-menu,.header-create-options,.account-dropdown,.profile-hovercard,.attachment-options,.comment-mention-options,.instagram-menu,.card-editor{background:var(--apple-surface);color:var(--apple-text);border:1px solid var(--apple-line);-webkit-backdrop-filter:none;border-radius:14px;box-shadow:0 10px 32px #0003}
+.apple-hig .color-menu button,.apple-hig .dropdown-menu button,.apple-hig .task-options-menu button,.apple-hig .header-create-options button{color:var(--apple-text);background:0 0;border:0;border-radius:8px;min-height:36px}
+.apple-hig .color-menu button:hover,.apple-hig .dropdown-menu button:hover,.apple-hig .task-options-menu button:hover,.apple-hig .header-create-options button:hover{background:var(--apple-field)}
+.apple-hig .area-menu-full button[aria-selected=true]{color:var(--apple-blue);background:var(--apple-selection)!important}
+.apple-hig .card-editor-overlay{-webkit-backdrop-filter:none;backdrop-filter:none;background:#0006}
+.apple-hig .card-editor{background:var(--apple-surface)}
+.profile-hovercard :is(strong,.profile-hovercard-line){color:var(--apple-text)}
+.profile-hovercard small,.profile-hovercard-line svg{color:var(--apple-secondary)}
+.attachment-options,.attachment-options :is(button,a,small){color:var(--apple-text)}
+.apple-hig .saved,.apple-hig .upload-banner,.apple-hig .sync-warning,.apple-hig .personal-notification-bubble{background:var(--apple-surface);color:var(--apple-text);border:1px solid var(--apple-line);box-shadow:var(--apple-shadow);border-radius:14px}
+.apple-hig .error-notification{background:var(--apple-surface);color:var(--apple-text);border:1px solid color-mix(in srgb,var(--apple-danger),transparent 50%);box-shadow:var(--apple-shadow);border-radius:14px}
+.apple-hig .error-notification strong{color:var(--apple-danger)}
+.apple-hig-login.login-screen{background:var(--apple-canvas);color:var(--apple-text);padding:32px 20px}
+.apple-hig-login .login-panel{background:var(--apple-surface);border:1px solid var(--apple-line);border-radius:24px;max-width:430px;padding:36px;box-shadow:0 16px 50px #00000012}
+.apple-hig-login .login-panel>.company-logo{background:#001b34;border-radius:10px;width:170px;height:58px;padding:8px}
+.apple-hig-login .login-intro h1{color:var(--apple-text);letter-spacing:-.045em;margin-top:28px;font-size:30px;font-weight:600;line-height:1.1}
+.apple-hig-login .login-intro p,.apple-hig-login .login-note,.apple-hig-login .login-footer,.apple-hig-login form label{color:var(--apple-secondary);font-size:12px}
+.apple-hig-login .login-password{background:var(--apple-field);border:0;border-radius:12px}
+.apple-hig-login .login-password input{background:0 0;width:100%;min-width:0;min-height:46px}
+.apple-hig-login input{border-radius:12px;min-height:46px;font-size:14px}
+.apple-hig-login .login-submit{border-radius:999px;min-height:46px;margin-top:12px}
+.apple-hig-login .login-admin{color:var(--apple-blue)}
+@media (max-width:1050px){.app.apple-hig main>header{grid-template-columns:minmax(160px,1fr) auto;gap:10px;padding:10px 16px}
+.app.apple-hig main>header>.brand-menu{grid-area:1/2;width:132px}
+.apple-hig .brand-menu-trigger{width:132px}
+.apple-hig .brand-menu .luke-logo{width:118px}
+.app.apple-hig main>header>.header-controls{grid-column:1/-1;justify-content:flex-end;justify-self:stretch;max-width:none}
+.app.apple-hig main>header .header-search{flex:1;width:auto;max-width:none}
+}
+@media (max-width:600px){.app.apple-hig main>header{gap:8px;min-height:0;padding:10px 12px}
+.app.apple-hig main>header>.header-heading{max-width:calc(100vw - 170px)}
+.apple-hig .area-switcher .color-trigger{padding:6px 2px}
+.apple-hig .area-switcher strong{font-size:10px}
+.app.apple-hig main>header>.header-controls{gap:8px}
+.apple-hig .header-icon{width:40px;height:40px}
+.apple-hig .kanban{gap:10px;padding:12px}
+.apple-hig .column{width:224px;min-width:224px;max-height:100%}
+.apple-hig .column.collapsed{width:42px;min-width:42px}
+.apple-hig .task-activity{border-left:0;border-top:1px solid var(--apple-line);padding:16px}
+.apple-hig .task-dialog{border-radius:16px}
+.apple-hig .panel-top{padding:14px 16px}
+.apple-hig .task-title{font-size:21px}
+.apple-hig .calendar-small{min-width:0}
+.apple-hig-login .login-panel{padding:28px 24px}
+.apple-hig-login .login-intro h1{font-size:28px}
+}
+@media (pointer:coarse){.apple-hig button:not(.card-open):not(.collapse),.apple-hig .header-icon,.apple-hig .column-head .icon,.apple-hig-login button{min-height:44px}
+.apple-hig .column-head .icon{min-width:32px}
+.apple-hig input:not([type=checkbox]):not([type=color]),.apple-hig select,.apple-hig .activity-section-tabs>button{min-height:44px}
+}
+@media (prefers-reduced-motion:reduce){.apple-hig *,.apple-hig :before,.apple-hig :after,.apple-hig-login *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+.apple-hig button:active,.apple-hig-login button:active{transform:none}
+}
