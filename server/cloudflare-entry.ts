@@ -1,3 +1,4 @@
+import {processDriveCleanup} from './drive-cleanup';
 import {handleCancelAdjustment} from './adjustment-handler';
 import {handleCaption} from './caption-handler';
 import {serveCentralMedia} from './central-media';
@@ -9,7 +10,7 @@ import type {Task} from '../app/model';
 import {handleTeamLogin} from '../app/team-login-handler';
 type Environment=Cloudflare.Env&{ASSETS:Fetcher};
 // Keep authentication independent of the server-rendering runtime on Workers Free.
-export default {async scheduled(_event:ScheduledController,env:Environment,ctx:ExecutionContext){ctx.waitUntil(Promise.allSettled([processSpellingQueue(env),processPersonalNotifications(env.DB!)]))},async fetch(request:Request,env:Environment,ctx:ExecutionContext){
+export default {async scheduled(_event:ScheduledController,env:Environment,ctx:ExecutionContext){ctx.waitUntil(Promise.allSettled([processSpellingQueue(env),processPersonalNotifications(env.DB!),processDriveCleanup(env)]))},async fetch(request:Request,env:Environment,ctx:ExecutionContext){
  const url=new URL(request.url),headers=new Headers(request.headers);
  for(const key of [...headers.keys()])if(key.startsWith('oai-authenticated-'))headers.delete(key);
  const clean=new Request(request,{headers});let response:Response;
@@ -26,6 +27,7 @@ export default {async scheduled(_event:ScheduledController,env:Environment,ctx:E
   // @ts-ignore Generated server bundle is present in the deployment staging directory.
   const {default:app}=await import('./index.js');response=await app.fetch(clean,env,ctx);
  }
+ if(boardWrite&&response.ok)ctx.waitUntil(processDriveCleanup(env).catch(()=>{}));
  if(boardWrite&&response.ok){try{const value:any=await response.clone().json(),body=value.board||value;const old=JSON.parse(before?.data||'[]') as Task[];const changed=(body.tasks||[]).filter((task:Task)=>finalImages(task).length&&spellingFingerprint(task)!==(old.find(t=>t.id===task.id)?spellingFingerprint(old.find(t=>t.id===task.id)!):'[]'));if(changed.length)ctx.waitUntil(enqueueSpelling(env,changed.map((task:Task)=>task.id)).catch(()=>{}));}catch{}}
  const out=new Response(response.body,response);out.headers.set('X-Robots-Tag','noindex, nofollow');out.headers.set('X-Application-Environment','production');
  if(url.pathname==='/_team/login.html')out.headers.set('Cache-Control','no-store');
