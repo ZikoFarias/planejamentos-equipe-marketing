@@ -10,3 +10,5 @@ const original={...task,status:'a fazer farias'};assert.equal(mergeScopedTasks([
 const plan=weeklyPlan([],'2026-10-20','all',config);assert.equal(plan.length,25);assert(plan.filter(p=>p.task.assignees.includes('Farias')).every(p=>p.task.status==='custom:test'));
 const chained={...config,removed:{...config.removed,'custom:test':'ideias'}};assert.equal(configuredStatus('a fazer farias',chained),'ideias');assert(autoPhase('aprovação postos'));assert(autoPhase('em andamento luiz'));assert(!autoPhase('a fazer luiz'));
 const definitions=statusDefinitions();assert.equal(definitions.findIndex(s=>s.id==='ajustar legenda'),definitions.findIndex(s=>s.id==='ajustar ⚠️')+1);assert.equal(statusColumns('laura').length,6);console.log('PASS: status dinâmicos, destinos em cadeia, visibilidade por responsável, aprovação redirecionada, lote semanal usa substituto e fases automáticas.');
+
+for(const area of ['farias','luiz'])assert(!statusColumns(area).some(([id])=>id==='ajustar legenda'));assert(statusColumns('aprovacoes').some(([id])=>id==='ajustar legenda'));assert(statusColumns('laura').some(([id])=>id==='caption:adjust'));

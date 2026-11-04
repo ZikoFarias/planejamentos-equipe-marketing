@@ -8,7 +8,7 @@ const farias={role:'editor',persona:'farias'},lucio={role:'editor',persona:'luci
 const task={...blank(),title:'ARTE TESTE',tags:['fibroplast'],assignees:['Farias']};
 const move=(t,status,actor=farias)=>mergeScopedTasks([t],[{...t,status}],actor)[0];
 for(const persona of ['farias','luiz','lucio','mateus'])for(const status of ['a fazer farias','a fazer luiz'])assert.equal(mergeScopedTasks([],[{...task,status}],{role:'editor',persona})[0].status,status);
-assert.throws(()=>move(task,'aprovação fibroplast'),/etapa/);assert.throws(()=>move(task,'aprovado ✅'),/votos/);assert.throws(()=>move(task,'concluidos e postados'),/aprovação/);assert.throws(()=>move(task,'em andamento farias',lucio),/iniciar/);
+assert.equal(move(task,'aprovação fibroplast').status,'aprovação fibroplast');assert.throws(()=>move(task,'aprovado ✅'),/votos/);assert.throws(()=>move(task,'concluidos e postados'),/aprovação/);assert.throws(()=>move(task,'em andamento farias',lucio),/iniciar/);
 const progress=move(task,'em andamento farias');assert.throws(()=>move(progress,'aprovado ✅'),/votos/);const review=move(progress,'aprovação fibroplast');
 for(const actor of [lucio,mateus]){assert(!canAttachArt(progress,actor));assert(!canAttachArt(review,actor));assert(canAttachArt(task,actor));assert.throws(()=>mergeScopedTasks([review],[{...review,attachments:[{name:'arte.png',url:'https://example.com/a.png',artworkKind:'final'}]}],actor),/revisam/)}
 const one=castApprovalVote(review,lucio,'approved',emptyStatusConfig);assert.equal(one.status,review.status);assert.throws(()=>move(one,'aprovado ✅'),/votos/);
@@ -33,3 +33,16 @@ assert.throws(()=>mergeScopedTasks([other],[{...reordered,assignees:['Farias']},
 const presented={...other,assignees:['Luiz','Lucio Alves Xavier','Mateus']};assert.equal(mergeScopedTasks([other],[presented,fresh],farias).length,2);
 
 for(const persona of ['farias','luiz','lucio','mateus']){assert.equal(move(administrative,'concluidos e postados',{role:'editor',persona}).status,'concluidos e postados');assert.equal(move(two,'concluidos e postados',{role:'editor',persona}).status,'concluidos e postados')}
+
+for(const persona of ['farias','luiz']){
+ const actor={role:'editor',persona},company=persona==='farias'?'fibroplast':'posto-ps',approval=persona==='farias'?'aprovação fibroplast':'aprovação postos';
+ const own={...task,id:'direct-'+persona,status:'a fazer '+persona,tags:[company],assignees:[persona==='farias'?'Farias':'Luiz']};
+ const direct=move(own,approval,actor);assert.equal(direct.status,approval);assert.equal(direct.approval.round,1);assert.equal(direct.caption.status,'todo');
+ for(const source of [own,direct,move(own,'em andamento '+persona,actor)]){
+  const adjusted=move(source,'ajustar ⚠️',actor);assert.equal(adjusted.status,'ajustar ⚠️');assert.deepEqual(adjusted.approval.votes,{});
+ }
+ const voted={...direct,approval:{round:1,votes:{lucio:{decision:'approved',by:'lucio@test',at:'2026-11-04T12:00:00Z'}}}};
+ const returned=move(voted,'ajustar ⚠️',actor);assert.deepEqual(returned.approval.votes,{});assert.equal(returned.approval.round,2);assert.equal(move(returned,approval,actor).status,approval);
+ assert.throws(()=>move(direct,'aprovado ✅',actor),/votos/);
+ assert.throws(()=>castApprovalVote(direct,{...actor,email:persona+'@test',name:persona},'approved',emptyStatusConfig),/Apenas/);
+}

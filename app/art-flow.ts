@@ -8,13 +8,14 @@ export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor,label
  // Purchases retain their separate budget workflow and Lucio-only approval.
  if(actor.role==='administrador')return {...next,workflowResume:next.status==='stand-by ⛔'?previous?.status:undefined};
  if(previous?.status==='aprovado ✅'&&next.status==='ajustar ⚠️')return {...next,workflowResume:undefined};
- if(next.status==='ajustar ⚠️'&&previous?.status!==next.status&&!['lucio','mateus'].includes(actor.persona))throw Error('Apenas Lúcio e Mateus podem encaminhar para Ajustar.');
+ if(next.status==='ajustar ⚠️'&&previous?.status!==next.status&&!['lucio','mateus','farias','luiz'].includes(actor.persona))throw Error('Lúcio, Mateus, Farias e Luiz podem encaminhar para Ajustar.');
  if(isPurchase(next))return next;
  const before=previous?.status,after=next.status;
- if(after==='ajustar ⚠️'&&before!==after&&!['lucio','mateus'].includes(actor.persona))throw Error('Apenas Lúcio e Mateus podem encaminhar para Ajustar.');
+ if(after==='ajustar ⚠️'&&before!==after&&!['lucio','mateus','farias','luiz'].includes(actor.persona))throw Error('Lúcio, Mateus, Farias e Luiz podem encaminhar para Ajustar.');
  if(previous&&!canAttachArt(previous,actor)&&JSON.stringify(previous.attachments)!==JSON.stringify(next.attachments))throw Error('Lúcio e Mateus apenas revisam nesta etapa; não podem inserir ou alterar artes.');
  if(!previous){if(!['a fazer farias','a fazer luiz'].includes(after))throw Error('Crie o cartão em A Fazer Farias ou A Fazer Luiz.');return {...next,workflowResume:undefined};}
  if(before===after){const {workflowResume:ignored,...rest}=next;return previous.workflowResume?{...rest,workflowResume:previous.workflowResume}:rest;}
+ if(after==='ajustar ⚠️'&&['farias','luiz'].includes(actor.persona))return {...next,workflowResume:undefined};
  if(after==='stand-by ⛔')return {...next,workflowResume:before};
  let source=before;
  if(before==='stand-by ⛔'){
@@ -36,7 +37,7 @@ export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor,label
   if(!['farias','luiz'].includes(actor.persona))throw Error('Farias ou Luiz devem iniciar a execução da arte.');
   return {...next,workflowResume:undefined};
  }
- if(source?.startsWith('em andamento ')&&after.startsWith('aprovação ')){
+ if((source?.startsWith('a fazer ')||source?.startsWith('em andamento '))&&after.startsWith('aprovação ')){
   if(!['farias','luiz'].includes(actor.persona))throw Error('Farias ou Luiz devem encaminhar a arte executada para revisão.');
   return {...next,workflowResume:undefined};
  }
@@ -46,5 +47,5 @@ export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor,label
   return {...next,workflowResume:undefined};
  }
  if(source?.startsWith('aprovação ')&&after.startsWith('aprovação '))return {...next,workflowResume:undefined};
- throw Error('Nenhuma etapa pode ser pulada: A Fazer → Em Andamento → Aprovação → Aprovado → Concluído. Stand-by é a única exceção.');
+ throw Error('Siga as etapas: A Fazer → Em Andamento ou Aprovação → Aprovado → Concluído. Para correções, envie para Ajustar.');
 }
