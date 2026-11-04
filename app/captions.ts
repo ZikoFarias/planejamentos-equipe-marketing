@@ -1,3 +1,4 @@
+import {approvalFor} from './workflow';
 import type {Task} from './model';
 import type {Actor} from './permissions';
 import {isPurchase} from './purchases';
@@ -12,6 +13,17 @@ export const canWriteCaption=(actor:Actor)=>actor.role==='administrador'||actor.
 export const canRequestCaption=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&['lucio','mateus'].includes(actor.persona);
 export function changeCaption(t:Task,actor:Actor&{email:string},action:string,text:unknown,version:unknown,labels:LabelConfig={},now=new Date().toISOString()):Task{
  if(!needsCaption(t,labels))throw Error('Esta arte ainda não está na fila de legendas.');
+ if(action.startsWith('move_')){
+  if(actor.role!=='administrador')throw Error('Apenas o administrador pode mover livremente nesta área.');
+  const stages:Record<string,Caption['status']>={move_todo:'todo',move_review:'review',move_adjust:'adjust'},stage=stages[action];
+  if(!stage||typeof text!=='string'||text.length>10000)throw Error('Movimento inválido.');
+  if(version!==(t.caption?.version||0))throw Error('A legenda mudou. Reabra o cartão antes de mover.');
+  const caption:Caption={text,status:stage,version:(t.caption?.version||0)+1};
+  if(stage==='adjust'){caption.resumeStatus=t.status==='ajustar legenda'?t.caption?.resumeStatus:t.status;return {...t,status:'ajustar legenda',caption}}
+  if(stage==='review'){caption.submittedAt=now;caption.submittedBy=actor.email}
+  if(['ajustar legenda','aprovado ✅','stand-by ⛔','concluidos e postados'].includes(t.status))return {...t,status:approvalFor(t),workflowResume:undefined,caption,approval:{round:(t.approval?.round||0)+1,votes:{}}};
+  return {...t,caption};
+ }
  if(action==='request_adjust'){
   if(!canRequestCaption(actor))throw Error('Apenas Lúcio, Mateus ou o administrador podem solicitar ajuste de legenda.');
   const caption:Caption={text:t.caption?.text||'',status:'adjust',version:(t.caption?.version||0)+1,resumeStatus:t.status==='ajustar legenda'?t.caption?.resumeStatus:t.status};

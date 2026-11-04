@@ -26,5 +26,19 @@ const adjusted=changeCaption(approved,{...lucio,email:lucio.user.email},'request
 const returned=changeCaption(adjusted,{...laura,email:laura.user.email},'submit','Corrigida',adjusted.caption.version);
 assert.equal(returned.status,'aprovado ✅');assert.deepEqual(returned.approval,approved.approval);
 const edited=changeCaption(current,{...laura,email:laura.user.email},'save','Mudou',current.caption.version);assert(!captionSent(edited));
-const reset=captionAfterArt({...current,status:'ajustar ⚠️'},{...current,status:'aprovação fibroplast'});assert.equal(reset.caption.status,'todo');assert.equal(reset.caption.text,current.caption.text);assert(!captionSent(reset));assert.equal(reset.caption.version,current.caption.version+1);assert.equal(captionAfterArt(current,current),current);assert.equal(captionColumns.length,6);for(const status of ['aprovado ✅','stand-by ⛔','concluidos e postados'])assert.equal(captionColumn({...current,status}),status);console.log('PASS: Laura receives social review cards, captions save/submit/pink indicator, reviewer-only adjustment, original stage/votes preserved, stale edits denied, authentication/origin and art permissions protected.');
+const reset=captionAfterArt({...current,status:'ajustar ⚠️'},{...current,status:'aprovação fibroplast'});assert.equal(reset.caption.status,'todo');assert.equal(reset.caption.text,current.caption.text);assert(!captionSent(reset));assert.equal(reset.caption.version,current.caption.version+1);assert.equal(captionAfterArt(current,current),current);assert.equal(captionColumns.length,6);for(const status of ['aprovado ✅','stand-by ⛔','concluidos e postados'])assert.equal(captionColumn({...current,status}),status);
+const admin={role:'administrador',persona:'farias',user:{email:'ezequiel2303f@gmail.com'}};
+for(const status of ['aprovação fibroplast','ajustar legenda','aprovado ✅','stand-by ⛔','concluidos e postados']){
+ const base={...current,status,caption:{text:'',status:status==='ajustar legenda'?'adjust':'todo',version:20},approval:{round:5,votes:{},administrative:true}};
+ sql.prepare('UPDATE marketing_board SET data=?,revision=revision+1').run(JSON.stringify([base]));
+ for(const action of ['move_todo','move_review','move_adjust']){
+  const saved=JSON.parse(sql.prepare('SELECT data FROM marketing_board').get().data)[0];
+  const moved=await call(admin,{id:base.id,action,text:'',version:saved.caption.version});assert.equal(moved.status,200);const result=await moved.json();assert.equal(captionColumn(result.task),action==='move_todo'?'caption:todo':action==='move_review'?'caption:review':'caption:adjust');assert.equal(result.task.caption.text,'');assert.deepEqual(result.task.attachments,base.attachments);
+ }
+}
+const saved=JSON.parse(sql.prepare('SELECT data FROM marketing_board').get().data)[0];
+assert.equal((await call(laura,{id:saved.id,action:'move_review',text:'',version:saved.caption.version})).status,403);
+assert.equal((await call(lucio,{id:saved.id,action:'move_todo',text:'',version:saved.caption.version})).status,403);
+console.log('PASS: administrator moves across every Laura stage without required caption, while editors cannot bypass their workflow.');
+console.log('PASS: Laura receives social review cards, captions save/submit/pink indicator, reviewer-only adjustment, original stage/votes preserved, stale edits denied, authentication/origin and art permissions protected.');
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -46,3 +46,9 @@ for(const persona of ['farias','luiz']){
  assert.throws(()=>move(direct,'aprovado ✅',actor),/votos/);
  assert.throws(()=>castApprovalVote(direct,{...actor,email:persona+'@test',name:persona},'approved',emptyStatusConfig),/Apenas/);
 }
+
+const adminActor={role:'administrador',persona:'farias'};
+for(const source of ['a fazer farias','a fazer luiz','em andamento farias','em andamento luiz','aprovação fibroplast','ajustar ⚠️','aprovado ✅','stand-by ⛔','concluidos e postados']){
+ const base={...task,status:source,approval:{round:1,votes:{},administrative:true}};
+ for(const target of ['a fazer farias','a fazer luiz','em andamento farias','em andamento luiz','aprovação fibroplast','ajustar ⚠️','aprovado ✅','stand-by ⛔','concluidos e postados'])assert.equal(move(base,target,adminActor).status,target,'ADM movement '+source+' -> '+target);
+}
