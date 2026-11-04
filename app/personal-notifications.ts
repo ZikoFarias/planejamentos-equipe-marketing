@@ -1,3 +1,4 @@
+import {isWeeklyDraft} from './weekly-drafts';
 import type {Task} from './model';
 import {isPurchase,purchaseReady} from './purchases';
 import {lucioOnly} from './reviewer-policy';
@@ -12,6 +13,8 @@ const asTask=(task:NotificationTask)=>task as Task;
 const review=(task:NotificationTask)=>task.status==='aprovação'||task.status.startsWith('aprovação ');
 const assigned=(task:NotificationTask,person:'luiz'|'farias')=>task.assignees.some(name=>normalized(name)===person)||task.status.endsWith(' '+person)||(person==='farias'&&isPurchase(asTask(task)));
 export function personalEvents(old:NotificationTask|null,next:NotificationTask,labels:LabelConfig={}):PersonalEvent[]{
+ if(isWeeklyDraft(next))return [];
+ if(old&&isWeeklyDraft(old))old=null;
  const events:PersonalEvent[]=[];
  const add=(recipient:NotificationPersona,kind:string,title:string,message:string)=>events.push({recipient,kind,title,message,taskId:next.id});
  const ready=purchaseReady(asTask(next)),wasReady=!!old&&purchaseReady(asTask(old));
@@ -33,6 +36,7 @@ export function personalEvents(old:NotificationTask|null,next:NotificationTask,l
 }
 export function dailySummary(person:NotificationPersona,tasks:NotificationTask[],day:string,labels:LabelConfig={}):PersonalEvent{
  const pending=tasks.filter(task=>{
+  if(isWeeklyDraft(task))return false;
   if(person==='lucio')return review(task)&&task.approval?.votes.lucio?.decision!=='approved'||purchaseReady(asTask(task))&&task.purchase?.stage==='orçamento';
   if(person==='mateus')return review(task)&&!lucioOnly(asTask(task),labels)&&task.approval?.votes.mateus?.decision!=='approved';
   if(person==='farias'&&purchaseReady(asTask(task)))return !['stand-by','concluído'].includes(task.purchase?.stage||'comprar');
