@@ -1,12 +1,19 @@
 'use client';
-import {useEffect,useRef} from 'react';
+import {useEffect,useId,useRef,useState,type ReactNode} from 'react';
 import type {Task} from './model';
 import {ProfileAvatar,profileName} from './profile-avatar';
 import {AttachmentPreview} from './attachment-preview';
-export function TaskActivity({task}:{task:Task}){
- const feed=useRef<HTMLDivElement>(null);useEffect(()=>{feed.current?.scrollTo({top:feed.current.scrollHeight})},[task.id,task.history.length,task.comments.length]);
+type ActivityMode='comments'|'activities';
+export function TaskActivityPanel({task,children}:{task:Task,children?:ReactNode}){
+ const [mode,setMode]=useState<ActivityMode>('comments'),id=useId();
+ useEffect(()=>setMode('comments'),[task.id]);
+ return <div className="activity-sections"><div className="activity-section-tabs" role="tablist" aria-label="Comentários e atividades do cartão">{([{value:'comments',label:'Comentários',count:task.comments.length},{value:'activities',label:'Atividades',count:task.history.length}] as const).map(tab=><button key={tab.value} id={id+'-'+tab.value} type="button" role="tab" aria-label={tab.label} aria-selected={mode===tab.value} aria-expanded={mode===tab.value} aria-controls={id+'-panel'} onClick={()=>setMode(tab.value)}>{tab.label}<small>{tab.count}</small></button>)}</div><section className="activity-section-panel" id={id+'-panel'} role="tabpanel" aria-labelledby={id+'-'+mode}><TaskActivity task={task} mode={mode}/>{mode==='comments'&&children}</section></div>;
+}
+export function TaskActivity({task,mode='comments'}:{task:Task,mode?:ActivityMode}){
+ const feed=useRef<HTMLDivElement>(null),count=mode==='comments'?task.comments.length:task.history.length;
+ useEffect(()=>{feed.current?.scrollTo({top:0})},[task.id,mode,count]);
  const commented=new Set(task.comments.flatMap(c=>(c.attachments||[]).map(a=>a.url)));
- const legacyFiles=task.attachments.filter(a=>!commented.has(a.url)&&!task.history.some(h=>h.attachments?.some(item=>item.url===a.url)));
- const events=[...task.comments.map(c=>({...c,kind:'comment'})),...task.history.filter(h=>!h.attachments?.length||!h.attachments.every(a=>commented.has(a.url))).map(h=>({...h,kind:'activity'}))].sort((a,b)=>Date.parse(a.at)-Date.parse(b.at));
- return <div ref={feed} className="activity-feed" aria-label="Linha do tempo do cartão">{events.length?events.map((event,i)=><article className={'activity-entry '+event.kind+(event.attachments?.length?' media-event':'')} key={event.at+'-'+i}><header><ProfileAvatar name={event.by}/><strong>{profileName(event.by)}</strong><time dateTime={event.at}>{new Date(event.at).toLocaleString('pt-BR')}</time></header><p>{event.text}</p>{event.attachments?.filter(a=>task.attachments.some(current=>current.url===a.url)).map(a=><div className="activity-file" key={a.url}><AttachmentPreview attachment={a}/><a href={a.url} target="_blank" rel="noreferrer">{a.name}</a></div>)}</article>):<p className="muted">As atividades aparecerão aqui ao salvar o cartão.</p>}{legacyFiles.map(a=><article className="activity-entry media-event" key={'legacy-'+a.url}><p>Arquivo anterior · autoria não registrada</p><div className="activity-file"><AttachmentPreview attachment={a}/><a href={a.url} target="_blank" rel="noreferrer">{a.name}</a></div></article>)}</div>
+ const legacyFiles=mode==='activities'?task.attachments.filter(a=>!commented.has(a.url)&&!task.history.some(h=>h.attachments?.some(item=>item.url===a.url))):[];
+ const events=(mode==='comments'?task.comments.map(c=>({...c,kind:'comment'})):task.history.map(h=>({...h,kind:'activity'}))).sort((a,b)=>Date.parse(b.at)-Date.parse(a.at));
+ return <div ref={feed} className="activity-feed" aria-label={mode==='comments'?'Comentários do cartão':'Atividades do cartão'}>{!events.length&&!legacyFiles.length&&<p className="muted">{mode==='comments'?'Nenhum comentário ainda.':'Nenhuma atividade registrada.'}</p>}{events.map((event,i)=><article className={'activity-entry '+event.kind+(event.attachments?.length?' media-event':'')} key={event.at+'-'+i}><header><ProfileAvatar name={event.by}/><strong>{profileName(event.by)}</strong><time dateTime={event.at}>{new Date(event.at).toLocaleString('pt-BR')}</time></header><p>{event.text}</p>{event.attachments?.filter(a=>task.attachments.some(current=>current.url===a.url)).map(a=><div className="activity-file" key={a.url}><AttachmentPreview attachment={a}/><a href={a.url} target="_blank" rel="noreferrer">{a.name}</a></div>)}</article>)}{legacyFiles.map(a=><article className="activity-entry media-event" key={'legacy-'+a.url}><p>Arquivo anterior · autoria não registrada</p><div className="activity-file"><AttachmentPreview attachment={a}/><a href={a.url} target="_blank" rel="noreferrer">{a.name}</a></div></article>)}</div>
 }
