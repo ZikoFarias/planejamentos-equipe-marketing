@@ -1,0 +1,7 @@
+import {teamAccounts} from './team-auth';
+import type {Profiles} from './profiles';
+const defaults:Record<string,string>={farias:'Farias',luiz:'Luiz',lucio:'Lúcio',mateus:'Mateus',laura:'Laura',adm:'Administrador'};
+export const normalizeMention=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+export function mentionPeople(profiles:Profiles={}){return Object.entries(teamAccounts).map(([email,persona])=>{const handle=email==='ezequiel2303f@gmail.com'?'adm':persona;return {email,handle,name:profiles[email]?.name||defaults[handle],admin:handle==='adm'}})}
+export function mentionedEmails(text:string,profiles:Profiles={}){const people=mentionPeople(profiles),result=new Set<string>();for(const match of text.matchAll(/(?<![\p{L}\p{N}_.%+-])@([\p{L}\p{N}_-]+)/gu)){const handle=normalizeMention(match[1]);const direct=people.find(person=>normalizeMention(person.handle)===handle||person.admin&&['admin','administrador'].includes(handle)),aliases=people.filter(person=>!person.admin&&normalizeMention(person.name).replace(/\s+/g,'_')===handle),person=direct||(aliases.length===1?aliases[0]:undefined);if(person)result.add(person.email)}return [...result]}
+export function currentMention(text:string,cursor:number){const match=text.slice(0,cursor).match(/(?:^|[\s(])@([\p{L}\p{N}_-]*)$/u);return match?{start:cursor-match[1].length-1,end:cursor,query:normalizeMention(match[1])}:null}

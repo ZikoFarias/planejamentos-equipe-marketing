@@ -47,3 +47,7 @@ execFileSync(process.execPath,['tests/caption-ui.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/scoped-settings-api.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['tests/settings-menu.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/comment-mentions-api.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/comment-mentions-ui.cjs'],{stdio:'inherit'});
