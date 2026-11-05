@@ -765,3 +765,32 @@ html.luke-entering .login-reveal-stage{display:block}
  .apple-hig .task,.apple-hig .calendar-card{transition:none!important}
  .apple-hig .task:hover,.apple-hig .calendar-card:hover{transform:none}
 }
+
+/* Frosted surface for the open task, with denser tint behind the chat. */
+.app.apple-hig dialog.task-dialog {
+ background:linear-gradient(140deg,#294460b3,#0b182cba 58%,#13283cce);
+ color:#f0f5ff;
+ -webkit-backdrop-filter:blur(24px) saturate(130%);
+ backdrop-filter:blur(24px) saturate(130%);
+ border-color:#a6caed62;
+ box-shadow:inset 0 1px #ffffff23,0 24px 80px #0008;
+ --apple-text:#f0f5ff;
+ --apple-secondary:#bdcce0;
+ --apple-surface:#14243a;
+ --apple-raised:#1a2c42;
+ --apple-field:#253950;
+}
+.app.apple-hig dialog.task-dialog.label-accent{border-color:var(--card-accent)}
+.app.apple-hig dialog.task-dialog::backdrop {
+ background:#020a175e;
+ -webkit-backdrop-filter:none;
+ backdrop-filter:none;
+}
+.app.apple-hig .task-dialog > .panel-top{background:#13243c5e;border-bottom-color:#d3e6ff29}
+.app.apple-hig .task-dialog .task-detail-main{background:transparent}
+.app.apple-hig .task-dialog .task-activity{background:#0b192a49;border-color:#d3e6ff26}
+.app.apple-hig .task-dialog .activity-section-panel{background:#101d2ac2}
+.app.apple-hig .task-dialog .conversation-feed{background-color:#0d161c90}
+@media(prefers-reduced-transparency:reduce){
+ .app.apple-hig dialog.task-dialog{background:#14243a;backdrop-filter:none;-webkit-backdrop-filter:none}
+}
