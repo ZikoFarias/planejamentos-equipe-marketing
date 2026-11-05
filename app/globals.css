@@ -654,7 +654,6 @@ to{opacity:1;transform:none}
  height:auto;
  transform:translate(-50.48824%,-49.73119%);
  transform-origin:50.48824% 49.73119%;
- will-change:transform;
 }
 .login-reveal-label{
  position:absolute;

@@ -1,7 +1,7 @@
 const transitionKey='marketing-login-entrance';
 export const transitionShell=`<div class="login-reveal-stage" role="status" aria-label="Carregando o planejamento" hidden>
 <svg class="login-reveal-veil" width="100%" height="100%" aria-hidden="true"><defs><mask id="luke-reveal-mask"><rect width="100%" height="100%" fill="white"/><circle class="login-reveal-aperture" cx="50%" cy="50%" r="0" fill="black"/></mask></defs><rect width="100%" height="100%" fill="#070e20" mask="url(#luke-reveal-mask)"/></svg>
-<img class="login-reveal-logo" src="/brands/group-transparent.svg" alt=""/>
+<svg class="login-reveal-logo" viewBox="42.8551025390625 583.4224243164062 309.8479919433594 52.0419921875" aria-hidden="true"><use href="/brands/group-transparent.svg#luke-mark"/></svg>
 <span class="login-reveal-label">Preparando seu planejamento…</span></div>`;
 
 export async function navigateWithLogo(destination:string){
@@ -16,7 +16,7 @@ export async function navigateWithLogo(destination:string){
  const stage=template.content.firstElementChild as HTMLElement;
  stage.hidden=false;
  document.body.appendChild(stage);
- const logo=stage.querySelector<HTMLImageElement>('.login-reveal-logo')!;
+ const logo=stage.querySelector<SVGSVGElement>('.login-reveal-logo')!;
  const width=Math.min(360,window.innerWidth-64);
  if(rect){
   const movement=logo.animate([
@@ -55,7 +55,7 @@ export function installBoardEntrance(){
   window.removeEventListener('marketing-board-ready',reveal);
   if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){cleanup();return}
   const aperture=stage.querySelector<SVGCircleElement>('.login-reveal-aperture')!;
-  const logo=stage.querySelector<HTMLElement>('.login-reveal-logo')!;
+  const logo=stage.querySelector<SVGSVGElement>('.login-reveal-logo')!;
   const radius=Math.hypot(window.innerWidth,window.innerHeight)/2+40;
   const width=logo.getBoundingClientRect().width;
   const initialRadius=0.01474594111610652*width;
@@ -67,7 +67,8 @@ export function installBoardEntrance(){
    const eased=progress*progress*progress;
    const current=initialRadius+(radius-initialRadius)*eased;
    aperture.setAttribute('r',String(current));
-   logo.style.transform='translate(-50.48824%,-49.73119%) scale('+current/initialRadius+')';
+   // Resize the SVG viewport so Chromium repaints the paths at the current size.
+   logo.style.width=width*current/initialRadius+'px';
    if(progress<1)requestAnimationFrame(frame);else cleanup();
   };
   requestAnimationFrame(frame);
