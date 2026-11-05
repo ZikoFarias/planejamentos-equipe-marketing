@@ -1,6 +1,6 @@
 const transitionKey='marketing-login-entrance';
 export const transitionShell=`<div class="login-reveal-stage" role="status" aria-label="Carregando o planejamento" hidden>
-<svg class="login-reveal-veil" width="100%" height="100%" aria-hidden="true"><defs><mask id="luke-reveal-mask"><rect width="100%" height="100%" fill="white"/><circle class="login-reveal-aperture" cx="50%" cy="50%" r="0" fill="black"/></mask></defs><rect width="100%" height="100%" fill="#070e20" mask="url(#luke-reveal-mask)"/></svg>
+<svg class="login-reveal-veil" width="100%" height="100%" aria-hidden="true"><defs><mask id="luke-reveal-mask"><rect width="100%" height="100%" fill="white"/><circle class="login-reveal-aperture" cx="50%" cy="50%" r="0" fill="black"/></mask></defs><g mask="url(#luke-reveal-mask)"><rect width="100%" height="100%" fill="#070e20"/><image href="/login-aurora.svg" width="100%" height="100%" preserveAspectRatio="xMidYMid slice"/></g></svg>
 <svg class="login-reveal-logo" viewBox="42.8551025390625 583.4224243164062 309.8479919433594 52.0419921875" aria-hidden="true"><use href="/brands/group-transparent.svg#luke-mark"/></svg>
 <span class="login-reveal-label">Preparando seu planejamento…</span></div>`;
 
@@ -22,8 +22,8 @@ export async function navigateWithLogo(destination:string){
   const movement=logo.animate([
    {left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',transform:'none'},
    {left:'50%',top:'50%',width:width+'px',transform:'translate(-50.48824%,-49.73119%)'}
-  ],{duration:420,easing:'cubic-bezier(.22,.75,.25,1)',fill:'forwards'});
-  stage.querySelector('.login-reveal-veil')!.animate([{opacity:0},{opacity:1}],{duration:320,fill:'forwards'});
+  ],{duration:300,easing:'cubic-bezier(.22,.75,.25,1)',fill:'forwards'});
+  stage.querySelector('.login-reveal-veil')!.animate([{opacity:0},{opacity:1}],{duration:240,fill:'forwards'});
   await movement.finished.catch(()=>{});
  }
  try{sessionStorage.setItem(transitionKey,String(Date.now()))}catch{}
@@ -62,9 +62,19 @@ export function installBoardEntrance(){
   const label=stage.querySelector<HTMLElement>('.login-reveal-label')!;
   label.style.opacity='0';
   const started=performance.now();
+  const shakeDuration=150;
+  const zoomDuration=620;
   const frame=(now:number)=>{
-   const progress=Math.min(1,(now-started)/1050);
-   const eased=progress*progress*progress;
+   const elapsed=now-started;
+   if(elapsed<shakeDuration){
+    const shake=Math.sin(elapsed/150*Math.PI*6)*5*(1-elapsed/shakeDuration);
+    logo.style.left="calc(50% + "+shake+"px)";
+    requestAnimationFrame(frame);
+    return;
+   }
+   logo.style.left="50%";
+   const progress=Math.min(1,(elapsed-shakeDuration)/zoomDuration);
+   const eased=progress*progress;
    const current=initialRadius+(radius-initialRadius)*eased;
    aperture.setAttribute('r',String(current));
    // Resize the SVG viewport so Chromium repaints the paths at the current size.
