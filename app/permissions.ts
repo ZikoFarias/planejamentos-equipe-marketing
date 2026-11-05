@@ -5,7 +5,7 @@ import type {LabelConfig} from './labels';
 import {guardArtFlow} from './art-flow';
 import {protectSpelling} from './spelling';
 import {withParticipants} from './participants';
-import {isPurchase,purchaseReady,normalizePurchase,guardPurchaseEdit,guardPurchaseFlow} from './purchases';
+import {isPurchase,purchaseHasArt,purchaseReady,normalizePurchase,guardPurchaseEdit,guardPurchaseFlow} from './purchases';
 import {protectApproval} from './approval';
 import {StatusConfig,emptyStatusConfig,configuredTask,customStatus} from './status-config';
 import {stampPosted} from './task-order';
@@ -26,10 +26,10 @@ export function assignedTo(t:Task,persona:string){return t.assignees.some(n=>n.t
 export function defaultArea(persona:Persona):Area{return persona==='laura'?'laura':persona==='luiz'||persona==='farias'?persona:'aprovacoes'}
 export function areaStatuses(area:Area){return area==='luiz'||area==='farias'?personalColumns.map(([key])=>key):null}
 export function inArea(t:Task,area:Area){if(isWeeklyDraft(t))return area==='geral'||area==='aprovacoes';return belongsToArea(t,area)}
-function belongsToArea(t:Task,area:Area){if(area==='laura')return needsCaption(t);if(area==='compras')return purchaseReady(t);if(isPurchase(t)&&!externalMediaLabel(t))return false;if(area==='geral')return true;if(area==='aprovacoes')return true;return (area==='luiz'?['a fazer luiz','em andamento luiz','ideias']:['a fazer farias','em andamento farias']).includes(t.status)||((t.status.startsWith('aprovação ')||sharedStatuses.includes(t.status)||customStatus(t.status))&&assignedTo(t,area))}
+function belongsToArea(t:Task,area:Area){if(area==='laura')return needsCaption(t);if(area==='compras')return purchaseReady(t);if(isPurchase(t)&&!purchaseHasArt(t))return false;if(area==='geral')return true;if(area==='aprovacoes')return true;return (area==='luiz'?['a fazer luiz','em andamento luiz','ideias']:['a fazer farias','em andamento farias']).includes(t.status)||((t.status.startsWith('aprovação ')||sharedStatuses.includes(t.status)||customStatus(t.status))&&assignedTo(t,area))}
 export function canSeeTask(t:Task,actor:Actor){return ['administrador','editor','visualizador'].includes(actor.role)&&(actor.role==='administrador'||!!actor.persona)}
 export function canCreateTask(t:Task,actor:Actor){if(actor.role==='administrador')return true;if(actor.role!=='editor'||!actor.persona||actor.persona==='laura')return false;return ['a fazer farias','a fazer luiz'].includes(t.status)}
-export function canManageTask(t:Task,actor:Actor){if(actor.role==='administrador')return true;if(actor.role!=='editor'||!actor.persona||actor.persona==='laura')return false;if(isPurchase(t)){if(['farias','lucio'].includes(actor.persona))return true;if(!externalMediaLabel(t)||actor.persona==='mateus')return false;}if(['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(t.status))return true;if(['lucio','mateus'].includes(actor.persona))return true;return belongsToArea(t,defaultArea(actor.persona))}
+export function canManageTask(t:Task,actor:Actor){if(actor.role==='administrador')return true;if(actor.role!=='editor'||!actor.persona||actor.persona==='laura')return false;if(isPurchase(t)){if(['farias','lucio'].includes(actor.persona))return true;if(!purchaseHasArt(t)||actor.persona==='mateus')return false;}if(['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(t.status))return true;if(['lucio','mateus'].includes(actor.persona))return true;return belongsToArea(t,defaultArea(actor.persona))}
 export function assignStatusOwner(t:Task,labels:LabelConfig={}):Task{const owner=ownerOf(t.status);return withParticipants(owner&&!assignedTo(t,owner)?{...t,assignees:[...t.assignees,names[owner]]}:t,labels)}
 const sameTaskData=(a:Task,b:Task)=>{const encode=(value:Task)=>JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);return encode(a)===encode(b)};
 export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=new Date().toISOString(),config:StatusConfig=emptyStatusConfig):Task[]{

@@ -13,10 +13,16 @@ for(const designer of ['luiz','farias']){
  task=mergeScopedTasks([task],[{...task,status:'em andamento '+designer}],actor,now)[0];
  task=mergeScopedTasks([task],[{...task,status:'aprovação fibroplast'}],actor,now)[0];
  assert.equal(purchaseReady(task),false);
- task=castApprovalVote(task,lucio,'approved',emptyStatusConfig,now);
+ const parkedBefore=mergeScopedTasks([task],[{...task,status:'stand-by ⛔'}],farias,now)[0];
+ assert(parkedBefore.tags.includes('MÍDIA EXTERNA'));assert(!purchaseReady(parkedBefore));
+ task=castApprovalVote(task,{...actor,email:designer+'@test.local',name:designer},'approved',emptyStatusConfig,now);
+ assert(!task.tags.includes('MÍDIA EXTERNA'));assert(task.tags.includes('COMPRA'));
+ assert.equal(task.purchase.stage,'comprar');
+ const adjust=mergeScopedTasks([task],[{...task,status:'ajustar ⚠️'}],actor,now)[0];
+ assert(adjust.tags.includes('MÍDIA EXTERNA'));assert(!purchaseReady(adjust));
  assert.equal(task.status,'aprovado ✅');assert.ok(inArea(task,designer));assert.ok(inArea(task,'aprovacoes'));assert.ok(inArea(task,'compras'));
  const change=(stage)=>{const next=mergeScopedTasks([task],[{...task,purchase:{...task.purchase,stage}}],farias,now);assert.equal(next.length,1);assert.equal(next[0].id,id);task=next[0];};
- change('stand-by');assert.equal(task.status,'stand-by ⛔');assert.ok(inArea(task,'compras'));assert.ok(inArea(task,designer));
+ change('stand-by');assert.equal(task.status,'stand-by ⛔');assert(!task.tags.includes('MÍDIA EXTERNA'));assert.ok(inArea(task,'compras'));assert.ok(inArea(task,designer));
  change('comprar');assert.equal(task.status,'aprovado ✅');change('em andamento');
  assert.throws(()=>change('concluído'),/ordem/);
  task=mergeScopedTasks([task],[{...task,purchase:{...task.purchase,quotes:[{id:'quote',place:'Loja',link:'',quantity:2,unitPrice:10}],stage:'orçamento'}}],farias,now)[0];
@@ -25,4 +31,4 @@ for(const designer of ['luiz','farias']){
  const edited=mergeScopedTasks([task],[{...task,description:'Alterar arte'}],farias,now)[0];
  assert.equal(edited.status,'aprovação fibroplast');assert.equal(purchaseReady(edited),false);assert.equal(edited.purchase.stage,'comprar');
 }
-console.log('PASS: both designers keep original cards; purchase mirror appears only after Lucio approval; one ID stays synchronized; standby/completion update original; quote approval still required; artwork changes reset approval and hide mirror.');
+console.log('PASS: both designers keep original cards; purchase mirror appears only after artwork approval; one ID stays synchronized; standby/completion update original; quote approval still required; artwork changes reset approval and hide mirror.');

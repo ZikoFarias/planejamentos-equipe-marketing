@@ -9,6 +9,7 @@ export function approvalHeaderMembers(task:Task,labels:LabelConfig={}){
   const event=task.history.find(item=>/aprova[çc][aã]o administrativa/i.test(item.text));
   return [{name:event?.by||'Administrador',profile:'ezequiel2303f@gmail.com',approved:true,admin:true,label:'Arte aprovada pelo administrador, sem necessidade das outras aprovações.'}];
  }
+ if(task.approval?.designer){const {by,name}=task.approval.designer;return [{name,profile:by,approved:true,admin:false,label:name+' · Arte aprovada para Compras'}]}
  return (lucioOnly(task,labels)?['lucio']:['lucio','mateus']).map(person=>{const name=person==='lucio'?'Lucio Alves Xavier':'Mateus',vote=task.approval?.votes[person as 'lucio'|'mateus'];return {name,profile:name,approved:vote?.decision==='approved',admin:false,label:profileName(name)+' · '+(vote?.decision==='approved'?'Aprovado':vote?.decision==='adjust'?'Solicitou ajustes':'Aguardando aprovação')}});
 }
 export function ApprovalHeader({task,labels}:{task:Task,labels?:LabelConfig}){
