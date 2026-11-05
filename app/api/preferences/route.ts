@@ -25,7 +25,7 @@ export async function POST(req:Request){try{
   await actor.db.prepare('UPDATE marketing_board SET revision=revision+1 WHERE id=1').run();
  }
  if(section==='statuses')nextPersonal=sharedAppearance(personal.value,nextShared);
- else if(section==='background')nextPersonal=sharedAppearance({...personal.value,background:value.background,backgroundColor:value.backgroundColor||''},nextShared);
+ else if(section==='background')nextPersonal=sharedAppearance({...personal.value,background:value.background,backgroundColor:value.backgroundColor||'',headerColor:value.headerColor??personal.value.headerColor},nextShared);
  else{const {section:ignored,scope:ignoredScope,...clean}=value as any;nextPersonal=sharedAppearance(clean,nextShared);if(actor.role!=='administrador'){delete nextPersonal.names;delete nextPersonal.areas;if(nextShared.names)nextPersonal.names=nextShared.names;if(nextShared.areas)nextPersonal.areas=nextShared.areas;}}
  await actor.db.prepare('INSERT INTO marketing_preferences(email,data,updated_at) VALUES(?,?,?) ON CONFLICT(email) DO UPDATE SET data=excluded.data,updated_at=excluded.updated_at').bind(actor.user.email.toLowerCase(),JSON.stringify(nextPersonal),Date.now()).run();
  return json(nextPersonal);
