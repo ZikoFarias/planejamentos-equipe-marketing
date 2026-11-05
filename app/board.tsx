@@ -76,7 +76,6 @@ import {seasonalTask} from './seasonal-dates';
 import {WeeklyCalendar} from './weekly-calendar';
 import {Appearance,columnAppearance,columnKey,type AppearanceSection,defaultAppearance,ink,labelStyle as baseLabelStyle} from './appearance';
 import {Celebration,celebrationStatus} from './celebration';
-import {horizontalWheel} from './board-input';
 import {companies,compareLabels,companyById,isLegacyCompany,companyId,companyOf,setCompany,personalColumns,columnFor,resolveStatus,normalizeApproval,taggedCompanies} from './workflow';
 import {canCreateTask,canManageTask,Area,Persona,personas,names,personId,defaultArea,areaStatuses,inArea,assignStatusOwner,ownerOf} from './permissions';
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
@@ -210,7 +209,7 @@ export default function Board(){
  function changeArea(next:Area){setSelectMode(false);setSelected([]);setCalendar(false);setArea(next);setQ('');setPerson('');setTag('');setPriority('');setDue('')}
  const areas:{id:Area,label:string}[]=[{id:'aprovacoes',label:'Lançamentos e aprovações'},{id:'luiz',label:'Luiz'},{id:'farias',label:'Farias'},{id:'laura',label:'Laura · Legendas'},{id:'compras',label:'Compras'}];
  const labelOptions=[...new Set(['COMPRA',...companies.map(c=>c.id),...labelCatalog.filter(label=>!isLegacyCompany(label)).map(label=>companyId(label)||label),...(draft?.tags||[]).map(label=>companyId(label)||label)])].sort(compareLabels);
- useEffect(()=>{const board=boardRef.current;if(!board)return;const unbindPan=bindBoardPan(board);const onWheel=(e:WheelEvent)=>{horizontalWheel(e,board)};board.addEventListener('wheel',onWheel,{passive:false});return ()=>{unbindPan();board.removeEventListener('wheel',onWheel)}},[]);
+ useEffect(()=>{const board=boardRef.current;if(!board)return;return bindBoardPan(board)},[]);
  async function openNotifiedTask(id:string,kind:string){
  if(saving||writeLock.current){setNotice('Aguarde a gravação atual para abrir outro cartão.');return false}
  if(draft&&writable&&(JSON.stringify(draft)!==initialDraft.current||comment.trim()))if(!await save(true))return false;
