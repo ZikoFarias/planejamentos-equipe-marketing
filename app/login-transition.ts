@@ -21,7 +21,7 @@ export async function navigateWithLogo(destination:string){
  if(rect){
   const movement=logo.animate([
    {left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',transform:'none'},
-   {left:'50%',top:'50%',width:width+'px',transform:'translate(-50.7%,-50.4%)'}
+   {left:'50%',top:'50%',width:width+'px',transform:'translate(-50.48824%,-49.73119%)'}
   ],{duration:420,easing:'cubic-bezier(.22,.75,.25,1)',fill:'forwards'});
   stage.querySelector('.login-reveal-veil')!.animate([{opacity:0},{opacity:1}],{duration:320,fill:'forwards'});
   await movement.finished.catch(()=>{});
@@ -58,7 +58,7 @@ export function installBoardEntrance(){
   const logo=stage.querySelector<HTMLElement>('.login-reveal-logo')!;
   const radius=Math.hypot(window.innerWidth,window.innerHeight)/2+40;
   const width=logo.getBoundingClientRect().width;
-  const initialRadius=19*width/1300;
+  const initialRadius=0.01474594111610652*width;
   const label=stage.querySelector<HTMLElement>('.login-reveal-label')!;
   label.style.opacity='0';
   const started=performance.now();
@@ -67,7 +67,7 @@ export function installBoardEntrance(){
    const eased=progress*progress*progress;
    const current=initialRadius+(radius-initialRadius)*eased;
    aperture.setAttribute('r',String(current));
-   logo.style.transform='translate(-50.7%,-50.4%) scale('+current/initialRadius+')';
+   logo.style.transform='translate(-50.48824%,-49.73119%) scale('+current/initialRadius+')';
    if(progress<1)requestAnimationFrame(frame);else cleanup();
   };
   requestAnimationFrame(frame);

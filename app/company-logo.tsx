@@ -1,15 +1,47 @@
-// Render the original PNGs through a viewBox, keeping the supplied marks intact.
-const marks:Record<string,{file:string,viewBox:string,name:string}>={
- fibroplast:{file:'fibroplast',viewBox:'55 457 1330 180',name:'Fibroplast'},
- postos:{file:'postos',viewBox:'51 413 1338 275',name:'Brasil Postos'},
- materiais:{file:'materiais',viewBox:'63 419 1314 267',name:'Materiais de Construção'},
- 'luke group':{file:'group',viewBox:'37 357 1367 368',name:'Luke Group'},
- concreto:{file:'concreto',viewBox:'102 457 1236 199',name:'Luke Concreto'},
- ervateira:{file:'ervateira',viewBox:'42 392 1356 314',name:'Luke Ervateira'},
+// Original vector paths extracted from the supplied company-logo PDF.
+const marks:Record<string,{file:string,name:string,width:number,height:number}>={
+  "fibroplast": {
+    "file": "fibroplast",
+    "name": "Fibroplast",
+    "width": 524.6321014404298,
+    "height": 72.09900131225587
+  },
+  "postos": {
+    "file": "postos",
+    "name": "Brasil Postos",
+    "width": 352.33180847167966,
+    "height": 73.40500488281248
+  },
+  "materiais": {
+    "file": "materiais",
+    "name": "Materiais de Construção",
+    "width": 415.2220062255859,
+    "height": 84.95999755859373
+  },
+  "luke group": {
+    "file": "group",
+    "name": "Luke Group",
+    "width": 329.402197265625,
+    "height": 89.46896972656259
+  },
+  "concreto": {
+    "file": "concreto",
+    "name": "Luke Concreto",
+    "width": 391.8515228271484,
+    "height": 64.15698852539066
+  },
+  "ervateira": {
+    "file": "ervateira",
+    "name": "Luke Ervateira",
+    "width": 391.87677612304685,
+    "height": 91.49799194335935
+  }
 };
 export function CompanyLogo({company,className='',padding=0}:{company:string,className?:string,padding?:number}){
  const family=company.startsWith('posto')?'postos':company.startsWith('materiais')?'materiais':company;
- const mark=marks[family];if(!mark)return null;
- const [x,y,width,height]=mark.viewBox.split(' ').map(Number),viewBox=padding?[x-padding,y-padding,width+padding*2,height+padding*2].join(' '):mark.viewBox;
- return <svg className={'company-logo '+className} viewBox={viewBox} role="img" aria-label={'Logo '+mark.name}><image href={'/brands/'+mark.file+'.png'} width="1440" height="1080"/></svg>
+ const mark=marks[family];
+ if(!mark)return null;
+ const inset=padding*mark.width/1440;
+ const viewBox=[-inset,-inset,mark.width+inset*2,mark.height+inset*2].join(' ');
+ return <svg className={'company-logo '+className} viewBox={viewBox} role="img" aria-label={'Logo '+mark.name}><image href={'/brands/'+mark.file+'.svg'} width={mark.width} height={mark.height}/></svg>;
 }
