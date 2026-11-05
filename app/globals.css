@@ -706,3 +706,62 @@ html.luke-entering .login-reveal-stage{display:block}
 .managed-color-fields > .color-panel:not([open]) > summary code{display:none}
 .managed-color-fields:has(.color-panel[open]){flex-wrap:wrap}
 .managed-color-fields > .color-panel[open]{flex:1 0 100%}
+
+/* Menus retain their final layout while their visible surface transitions. */
+.motion-menu,
+:is(.account-menu,.task-options) > :is(.account-panel,.task-options-menu),
+.seasonal-day-popup {
+ opacity:0;
+ translate:0 -5px;
+ scale:1 .975;
+ transform-origin:top center;
+ visibility:hidden;
+ pointer-events:none;
+ transition:opacity 180ms ease,translate 220ms ease,scale 220ms ease,visibility 220ms;
+}
+.motion-menu[data-open="true"],
+:is(.account-menu,.task-options)[open] > :is(.account-panel,.task-options-menu),
+.seasonal-day-popup:popover-open {
+ opacity:1;
+ translate:0 0;
+ scale:1;
+ visibility:visible;
+ pointer-events:auto;
+}
+:is(.account-menu,.task-options,.color-panel)::details-content {
+ transition:content-visibility 220ms allow-discrete;
+}
+.seasonal-day-popup {
+ transition:opacity 180ms ease,translate 220ms ease,scale 220ms ease,visibility 220ms,display 220ms allow-discrete,overlay 220ms allow-discrete;
+}
+@starting-style {
+ .seasonal-day-popup:popover-open{opacity:0;translate:0 -5px;scale:1 .975}
+}
+@supports selector(details::details-content) {
+ .color-panel::details-content {
+  display:grid;
+  grid-template-rows:0fr;
+  opacity:0;
+  overflow:clip;
+  transition:grid-template-rows 220ms ease,opacity 180ms ease,content-visibility 220ms allow-discrete;
+ }
+ .color-panel[open]::details-content{grid-template-rows:1fr;opacity:1}
+ .color-panel > fieldset{min-block-size:0;overflow:clip}
+}
+.apple-hig .task:not(.dragging,.card-drag-preview),
+.apple-hig .calendar-card {
+ transition:transform 200ms cubic-bezier(.2,.7,.3,1),box-shadow 200ms ease,opacity 180ms ease;
+}
+@media (hover:hover) and (pointer:fine) {
+ .apple-hig .task:not(.dragging,.card-drag-preview,.file-receiving):hover,
+ .apple-hig .calendar-card:hover {
+  transform:translateY(-2px);
+  box-shadow:0 7px 16px #0005;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .motion-menu,.account-panel,.task-options-menu,.seasonal-day-popup,
+ :is(.account-menu,.task-options,.color-panel)::details-content,
+ .apple-hig .task,.apple-hig .calendar-card{transition:none!important}
+ .apple-hig .task:hover,.apple-hig .calendar-card:hover{transform:none}
+}
