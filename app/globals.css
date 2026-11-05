@@ -687,3 +687,22 @@ html.luke-entering .login-reveal-stage{display:block}
 @media(prefers-reduced-transparency:reduce){
  .apple-hig .column:not(.collapsed){background:var(--apple-raised);backdrop-filter:none}
 }
+
+.color-panel{min-width:0;color:inherit}
+.color-panel > summary{display:flex;align-items:center;gap:8px;cursor:pointer;list-style:none;padding:8px;border:1px solid #889bad59;border-radius:9px}
+.color-panel > summary::-webkit-details-marker{display:none}
+.color-panel > summary code{margin-left:auto;font-size:11px}
+.color-panel-sample{width:20px;height:20px;flex:none;border:1px solid #889bad80;border-radius:5px}
+.color-panel > fieldset{display:grid;gap:10px;margin:6px 0 0;padding:12px;min-width:0;border:1px solid #889bad59;border-radius:10px}
+.color-panel .color-panel-area,.color-panel .color-panel-area:hover{position:relative;width:100%;height:116px;border:0;touch-action:none;cursor:crosshair;background:linear-gradient(transparent,#000),linear-gradient(90deg,#fff,var(--picker-hue))}
+.color-panel-area > span{position:absolute;width:13px;height:13px;transform:translate(-50%,-50%);border:2px solid white;border-radius:50%;box-shadow:0 0 0 1px #0009;pointer-events:none}
+.color-panel input[type=range]{appearance:auto;width:100%;height:20px;min-height:0;padding:0;accent-color:#579dff}
+.color-panel input.color-panel-hue{background:linear-gradient(90deg,red,yellow,lime,cyan,blue,magenta,red)}
+.color-panel-swatches{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px}
+.color-panel .color-panel-swatches button{min-width:0;min-height:24px;padding:0;border:1px solid #fff4;border-radius:6px}
+.color-panel-swatches button[aria-pressed=true]{outline:2px solid currentColor;outline-offset:1px}
+.managed-color-fields > .color-panel:not([open]) > summary{padding:4px}
+.managed-color-fields > .color-panel:not([open]) > summary span:nth-child(2),
+.managed-color-fields > .color-panel:not([open]) > summary code{display:none}
+.managed-color-fields:has(.color-panel[open]){flex-wrap:wrap}
+.managed-color-fields > .color-panel[open]{flex:1 0 100%}
