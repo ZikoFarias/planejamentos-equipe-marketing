@@ -448,3 +448,120 @@ to{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.apple-hig *,.apple-hig :before,.apple-hig :after,.apple-hig-login *{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
 .apple-hig button:active,.apple-hig-login button:active{transform:none}
 }
+
+/* Conversation preview based on the supplied chat reference. */
+.apple-hig .task-activity .activity-section-panel{
+ background:#101a20;
+ border-radius:12px;
+ overflow:hidden;
+}
+.apple-hig .conversation-feed{
+ padding:18px 12px 18px 48px;
+ background-color:#0d161c;
+ background-image:radial-gradient(circle at 1px 1px,#24404c66 1px,transparent 1.5px);
+ background-size:22px 22px;
+}
+.apple-hig .conversation-feed .activity-entry.comment{
+ position:relative;
+ width:fit-content;
+ max-width:100%;
+ min-width:120px;
+ margin:0 0 14px;
+ padding:10px 12px 26px;
+ background:#242b2f;
+ color:#edf2f5;
+ border:0;
+ border-radius:0 12px 12px 12px;
+ box-shadow:0 1px 2px #0003;
+ overflow:visible;
+}
+.apple-hig .conversation-feed .activity-entry.comment::before{
+ content:"";
+ position:absolute;
+ left:-7px;
+ top:0;
+ border-top:9px solid #242b2f;
+ border-left:8px solid transparent;
+}
+.apple-hig .conversation-feed .activity-entry.comment header{
+ display:flex;
+ min-height:18px;
+ margin:0 0 6px;
+ padding:0;
+}
+.apple-hig .conversation-feed .activity-entry.comment header>.profile-avatar{
+ position:absolute;
+ left:-39px;
+ top:0;
+ width:27px;
+ height:27px;
+}
+.apple-hig .conversation-feed .activity-entry.comment header strong{
+ font-size:12px;
+ line-height:18px;
+ font-weight:600;
+}
+.apple-hig .conversation-feed .activity-entry.comment time{
+ position:absolute;
+ bottom:7px;
+ right:10px;
+ color:#aab5bc;
+ font-size:10px;
+ line-height:12px;
+}
+.apple-hig .conversation-feed .activity-entry.comment p{
+ font-size:13px;
+ line-height:1.5;
+ margin:0;
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
+}
+.apple-hig .conversation-feed .activity-file{
+ margin:6px 0 0;
+ border:0;
+ background:transparent;
+ padding:0;
+ max-width:270px;
+}
+.apple-hig .conversation-feed .activity-file img{
+ display:block;
+ width:auto;
+ max-width:100%;
+ max-height:280px;
+ object-fit:contain;
+ border-radius:7px;
+}
+.apple-hig .conversation-feed .activity-file a{
+ color:#62b9ff;
+ font-size:11px;
+ overflow-wrap:anywhere;
+ display:block;
+ margin-top:5px;
+}
+.apple-hig .task-activity .activity-composer{
+ border:0;
+ margin:0;
+ padding:10px;
+ background:#172229;
+}
+.apple-hig .task-activity .comment-composer textarea{
+ background:#263238;
+ border:0;
+ border-radius:16px;
+ min-height:58px;
+ padding:13px 15px;
+ font-size:13px;
+ color:#f0f4f6;
+}
+.apple-hig .task-activity .comment-composer-actions{
+ margin-top:8px;
+ align-items:center;
+}
+.apple-hig .task-activity .comment-composer-actions button{
+ border-radius:18px;
+ min-height:34px;
+}
+.apple-hig .task-activity .comment-composer-actions .primary{
+ background:#0b846d;
+ color:#fff;
+}
