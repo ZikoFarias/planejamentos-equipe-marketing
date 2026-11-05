@@ -1,3 +1,4 @@
+import {navigateWithLogo} from './login-transition';
 import {loginDestination} from './task-link';
 import {submitTeamLogin} from './login-client';
 const form=document.querySelector<HTMLFormElement>('.login-panel form')!;
@@ -8,7 +9,7 @@ toggle.addEventListener('click',()=>{const show=password.type==='password';passw
 form.addEventListener('submit',async event=>{
  event.preventDefault();if(submit.disabled)return;
  error.hidden=true;submit.disabled=email.disabled=password.disabled=toggle.disabled=true;
- try{await submitTeamLogin(email.value,password.value);password.value='';window.location.assign(loginDestination(window.location.search))}
+ try{await submitTeamLogin(email.value,password.value);password.value='';await navigateWithLogo(loginDestination(window.location.search))}
  catch(e){error.textContent=e instanceof Error&&e.name!=='AbortError'?e.message:'Não foi possível entrar. Confira a conexão e tente novamente.';error.hidden=false;submit.disabled=email.disabled=password.disabled=toggle.disabled=false}
 });
 

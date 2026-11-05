@@ -13,7 +13,7 @@ await fs.cp('dist/client',path.join(root,'client'),{recursive:true});
 await build({entryPoints:['server/cloudflare-entry.ts'],bundle:true,platform:'browser',format:'esm',target:'es2022',external:['./index.js','node:*'],outfile:path.join(root,'server/preview.js')});
 const markupModule=path.resolve('.sites-runtime/static-login-markup.cjs');
 await build({entryPoints:['app/login/login-form.tsx'],bundle:true,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],outfile:markupModule});
-const LoginForm=createRequire(import.meta.url)(markupModule).default;
+const {default:LoginForm,transitionShell}=createRequire(import.meta.url)(markupModule);
 const directory=path.join(root,'client/_team');await fs.mkdir(directory,{recursive:true});
 const client=await build({entryPoints:['app/login-static.ts'],bundle:true,platform:'browser',format:'esm',minify:true,write:false});
 const {createHash}=await import('node:crypto');const script='login-'+createHash('sha256').update(client.outputFiles[0].contents).digest('hex').slice(0,12)+'.js';
@@ -25,7 +25,7 @@ await fs.writeFile(path.join(directory,'login.html'),'<!doctype html><html lang=
 const boardClient=await build({entryPoints:['app/board-static.tsx'],bundle:true,platform:'browser',format:'esm',jsx:'automatic',minify:true,define:{'process.env.NODE_ENV':'"production"'},write:false});
 const boardScript='board-'+createHash('sha256').update(boardClient.outputFiles[0].contents).digest('hex').slice(0,12)+'.js';
 await fs.writeFile(path.join(directory,boardScript),boardClient.outputFiles[0].contents);
-await fs.writeFile(path.join(directory,'board.html'),'<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><link rel="icon" type="image/png" href="/favicon-luke-group.png"><link rel="apple-touch-icon" href="/favicon-luke-group.png"><title>Planejamento de Marketing</title>'+links+'</head><body><div id="marketing-root"><p class="loading" role="status">Carregando seu planejamento…</p></div><noscript>Ative o JavaScript para abrir o quadro.</noscript><script type="module" src="/_team/'+boardScript+'"></script></body></html>');
+await fs.writeFile(path.join(directory,'board.html'),'<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><link rel="icon" type="image/png" href="/favicon-luke-group.png"><link rel="apple-touch-icon" href="/favicon-luke-group.png"><title>Planejamento de Marketing</title><script>try{const entered=Number(sessionStorage.getItem("marketing-login-entrance"));if(entered&&Date.now()-entered<30000)document.documentElement.classList.add("luke-entering")}catch{}</script>'+links+'</head><body>'+transitionShell+'<div id="marketing-root"><p class="loading" role="status">Carregando seu planejamento…</p></div><noscript>Ative o JavaScript para abrir o quadro.</noscript><script type="module" src="/_team/'+boardScript+'"></script></body></html>');
 config.assets={...config.assets,binding:'ASSETS'};
 config.triggers={...config.triggers,crons:['* * * * *']};
 await fs.writeFile(configPath,JSON.stringify(config,null,2)+'\n');
