@@ -24,6 +24,7 @@ export function syncPurchaseArt(task:Task,previous?:Task):Task{
  const tags=media?task.tags:[...task.tags,purchase.mediaLabel];
  return {...next,tags,purchase:{...purchase,stage:'comprar',resumeStage:undefined,quoteApproval:undefined}};
 }
+export const isQuoteReview=(task:Task)=>purchaseReady(task)&&task.purchase?.stage==='orçamento';
 export const quotesFor=(t:Task):QuoteOption[]=>t.purchase?.quotes??(t.purchase?.quote?[{...t.purchase.quote,id:'legacy',link:''}]:[]);
 export const selectedQuote=(t:Task)=>quotesFor(t).find(q=>q.id===(t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':undefined)));
 export const quoteSnapshot=(t:Task)=>JSON.stringify({quotes:quotesFor(t),selected:t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':''),title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags});

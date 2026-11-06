@@ -3,7 +3,8 @@ import {blank} from '../app/model.ts';
 import {normalizePurchase,purchaseReady,approveQuote} from '../app/purchases.ts';
 import {assignStatusOwner,inArea,canManageTask,mergeScopedTasks} from '../app/permissions.ts';
 import {castApprovalVote} from '../app/approval.ts';
-import {emptyStatusConfig} from '../app/status-config.ts';
+import {columnFor} from '../app/workflow.ts';
+import {emptyStatusConfig,statusColumns} from '../app/status-config.ts';
 const farias={role:'editor',persona:'farias'},lucio={role:'editor',persona:'lucio',email:'lucio@test.local',name:'Lucio'};
 for(const designer of ['luiz','farias']){
  const actor={role:'editor',persona:designer},now='2026-10-30T15:00:00Z';
@@ -26,6 +27,11 @@ for(const designer of ['luiz','farias']){
  change('comprar');assert.equal(task.status,'aprovado ✅');change('em andamento');
  assert.throws(()=>change('concluído'),/ordem/);
  task=mergeScopedTasks([task],[{...task,purchase:{...task.purchase,quotes:[{id:'quote',place:'Loja',link:'',quantity:2,unitPrice:10}],stage:'orçamento'}}],farias,now)[0];
+ assert.equal(columnFor(task,'aprovacoes'),'orçamento');assert.equal(columnFor(task,'compras'),'orçamento');assert.equal(columnFor(task,designer),'aprovado ✅');
+ const columns=statusColumns('aprovacoes');const quoteIndex=columns.findIndex(([id])=>id==='orçamento');assert(quoteIndex>columns.findIndex(([id])=>id==='aprovação luke group'));assert(quoteIndex<columns.findIndex(([id])=>id==='ajustar ⚠️'));assert(!statusColumns(designer).some(([id])=>id==='orçamento'));
+ const direct={...task,purchase:{...task.purchase,requiresArt:false,mediaLabel:undefined}};
+ assert(inArea(direct,'aprovacoes'));assert(inArea(direct,'geral'));assert(inArea(direct,'compras'));assert(!inArea(direct,'luiz'));assert(!inArea(direct,'farias'));assert.throws(()=>approveQuote(direct,{...lucio,persona:'farias'}),/Apenas Lucio/);
+ const confirmed=approveQuote(direct,lucio,now);assert(!inArea(confirmed,'aprovacoes'));assert(inArea(confirmed,'compras'));
  task=mergeScopedTasks([task],[{...task,purchase:{...task.purchase,selectedQuoteId:'quote'}}],lucio,now)[0];task=approveQuote(task,lucio,now);change('pagamento');change('aguardando chegada');change('concluído');
  assert.equal(task.status,'concluidos e postados');assert.equal(task.postedAt,now);assert.ok(inArea(task,'compras'));assert.ok(inArea(task,designer));assert.ok(inArea(task,'aprovacoes'));
  const edited=mergeScopedTasks([task],[{...task,description:'Alterar arte'}],farias,now)[0];
