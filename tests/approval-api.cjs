@@ -49,5 +49,29 @@ const compile=()=>build({entryPoints:['app/api/approval/route.ts'],bundle:true,p
  globalThis.__approvalActor=actor('lucio');row.data=JSON.stringify([{...task,status:'aprovado ✅'}]);
  const moved=await POST(request('adjust',row.revision,{movement:true}));assert.equal(moved.status,200);assert.equal((await moved.json()).task.status,'ajustar ⚠️');
  globalThis.__approvalActor=actor('farias');assert.equal((await POST(request('adjust',row.revision,{movement:true}))).status,403);
+
+ const votes={lucio:{decision:'approved',by:'lucio@example.test',at:'2026-11-06'},mateus:{decision:'approved',by:'mateus@example.test',at:'2026-11-06'}};
+ const approved={...task,status:'aprovado ✅',approval:{round:2,votes}};
+ row={data:JSON.stringify([approved]),revision:0,status_config:'{}'};writes=0;
+ for(const persona of ['lucio','mateus','farias','luiz','laura']){
+  globalThis.__approvalActor=actor(persona);
+  assert.equal((await POST(request(undefined,0,{action:'remove',reviewer:'lucio'}))).status,403);
+ }
+ assert.equal(writes,0);globalThis.__approvalActor={...actor('farias'),role:'administrador'};
+ const removed=await POST(request(undefined,0,{action:'remove',reviewer:'lucio'}));assert.equal(removed.status,200);
+ const revoked=(await removed.json()).task;assert.equal(revoked.status,'aprovação fibroplast');assert.equal(revoked.approval.votes.lucio,undefined);assert.deepEqual(revoked.approval.votes.mateus,votes.mateus);assert.match(revoked.history[0].text,/removeu a aprovação de Lúcio/);
+ assert.equal((await POST(request(undefined,0,{action:'remove',reviewer:'mateus'}))).status,409);
+ assert.equal((await POST(request(undefined,row.revision,{action:'remove',reviewer:'lucio'}))).status,400);assert.equal(writes,1);
+ globalThis.__approvalActor=actor('lucio');assert.equal((await POST(request())).status,200);assert.equal(JSON.parse(row.data)[0].status,'aprovado ✅');
+ globalThis.__approvalActor={...actor('farias'),role:'administrador'};
+ for(const kind of ['administrative','designer']){
+  const approval={round:1,votes:{},...(kind==='administrative'?{administrative:true}:{designer:{by:'farias@example.test',name:'Farias',at:'2026-11-06'}})};
+  row={data:JSON.stringify([{...approved,tags:['fibroplast','COMPRA'],approval,purchase:{requiresArt:true,mediaLabel:'MÍDIA EXTERNA',stage:'pagamento'}}]),revision:0,status_config:'{}'};
+  const response=await POST(request(undefined,0,{action:'remove',reviewer:kind}));assert.equal(response.status,200);
+  const value=(await response.json()).task;assert.equal(value.status,'aprovação fibroplast');assert.equal(value.approval[kind],undefined);assert(value.tags.includes('MÍDIA EXTERNA'));assert.equal(value.purchase.stage,'comprar');assert.equal(value.purchase.quoteApproval,undefined);
+ }
+ row={data:JSON.stringify([approved]),revision:0,status_config:'{}'};
+ const removals=await Promise.all(['lucio','mateus'].map(reviewer=>POST(request(undefined,0,{action:'remove',reviewer}))));
+ assert.deepEqual(removals.map(response=>response.status).sort(),[200,409]);assert.equal(Object.keys(JSON.parse(row.data)[0].approval.votes).length,1);
  console.log('PASS: approval HTTP authentication, origin and role checks, reviewer spoofing ignored, idempotent writes, stale revisions, concurrent vote CAS, retry preserves first vote and immediate negative routing.');
 })().catch(error=>{console.error(error);process.exitCode=1});

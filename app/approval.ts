@@ -44,3 +44,25 @@ export function castApprovalVote(task:Task,actor:Actor&{email:string,name:string
  if(current.votes[reviewer]?.decision===decision&&status===task.status)return task;
  return syncPurchaseArt({...task,status,approval,history:[{text:`${actor.name}${actor.role==='administrador'?' por '+reviewer:''} votou ${decision==='approved'?'aprovado':'ajustar'} · rodada ${approval.round}`,by:actor.name,at:now},...task.history]},task);
 }
+
+export type ApprovalRemoval=Reviewer|'administrative'|'designer';
+export function removeApproval(task:Task,reviewer:ApprovalRemoval,actor:Actor&{name:string},config:StatusConfig,now=new Date().toISOString()):Task{
+ if(actor.role!=='administrador')throw Error('Apenas o administrador pode remover aprovações.');
+ const current=task.approval;
+ if(!current)throw Error('Esta aprovação já foi removida. Recarregue o cartão.');
+ const approval={...current,votes:{...current.votes}};
+ let name:string;
+ if(reviewer==='administrative'){
+  if(!current.administrative)throw Error('Este cartão não tem aprovação administrativa.');
+  delete approval.administrative;name='administrador';
+ }else if(reviewer==='designer'){
+  if(!current.designer)throw Error('Este cartão não tem aprovação do designer.');
+  name=current.designer.name;delete approval.designer;
+ }else{
+  if(current.votes[reviewer]?.decision!=='approved')throw Error('Esta pessoa não tem uma aprovação para remover.');
+  delete approval.votes[reviewer];name=reviewer==='lucio'?'Lúcio':'Mateus';
+ }
+ const status=approvalFor(task);
+ if(!statusDefinitions(config).some(s=>s.id===status))throw Error('Ative a coluna de aprovação desta empresa antes de remover o voto.');
+ return syncPurchaseArt({...task,status,approval,history:[{text:actor.name+' removeu a aprovação de '+name,by:actor.name,at:now},...task.history]},task);
+}

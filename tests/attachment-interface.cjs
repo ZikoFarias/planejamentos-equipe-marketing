@@ -11,6 +11,14 @@ for(let i=0;i<2;i++){await act(async()=>mount.querySelectorAll('.attachment-opti
 assert.equal(task.attachments.filter(a=>a.artworkKind==='final').length,2);assert.equal(mount.querySelectorAll('.attachment-final-label').length,2);
 const admin={...task,approval:{administrative:true,round:1,votes:{}},history:[{by:'Farias',text:'Registrou aprovação administrativa',at:new Date().toISOString()}]};assert.equal(approvalHeaderMembers(admin)[0].name,'Farias');assert.equal(approvalHeaderMembers(admin)[0].profile,'ezequiel2303f@gmail.com');assert.equal(approvalHeaderMembers(admin)[0].approved,true);
 await act(async()=>root.render(React.createElement(ApprovalHeader,{task:admin})));assert.equal(mount.querySelectorAll('.approval-check').length,1);assert.match(mount.textContent,/ADM/);assert.match(mount.querySelector('.approval-avatar').getAttribute('aria-label'),/sem necessidade/);
+
+let removedApproval='';await act(async()=>root.render(React.createElement(ApprovalHeader,{task:admin,canRemove:true,onRemove:reviewer=>{removedApproval=reviewer}})));
+const menu=mount.querySelector('.approval-member-actions');assert(menu);assert(!menu.open);
+await act(async()=>menu.querySelector('summary').click());assert(menu.open);await act(async()=>menu.querySelector('button').click());assert.equal(removedApproval,'administrative');assert(!menu.open);
+await act(async()=>root.render(React.createElement(ApprovalHeader,{task:admin,canRemove:true,busy:true,onRemove(){}})));assert(mount.querySelector('.approval-removal-menu button').disabled);
+await act(async()=>root.render(React.createElement(ApprovalHeader,{task:admin,canRemove:false,onRemove(){}})));assert.equal(mount.querySelector('.approval-member-actions'),null);
+await act(async()=>root.render(React.createElement(ApprovalHeader,{task:{...task,approval:{round:1,votes:{lucio:{decision:'approved',by:'lucio@test',at:''}}}},canRemove:true,onRemove:reviewer=>{removedApproval=reviewer}})));
+assert.equal(mount.querySelectorAll('.approval-member-actions').length,1);await act(async()=>mount.querySelector('.approval-removal-menu button').click());assert.equal(removedApproval,'lucio');
 const pending={...task,tags:['COMPRA']};assert.equal(approvalHeaderMembers(pending).length,1);
 const file=new File(['image'],'paste.png',{type:'image/png'});assert.deepEqual(clipboardFiles({files:[file],items:[]}),[file]);assert.deepEqual(clipboardFiles({files:[],items:[{kind:'file',getAsFile:()=>file}]}),[file]);assert.deepEqual(clipboardFiles({files:[],items:[{kind:'string',getAsFile:()=>null}]}),[]);
 await act(async()=>root.unmount());console.log('PASS: no tabs, image menus, multiple final artworks, administrative verification and pasted-media extraction.');
