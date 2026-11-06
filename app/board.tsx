@@ -128,11 +128,12 @@ export default function Board(){
   async function refresh(){
    if(stopped||running||document.visibilityState==='hidden'||!navigator.onLine||blocked())return;
    running=true;const before=syncState.current;controller=new AbortController();const timeout=setTimeout(()=>controller?.abort(),15000);
-   try{const response=await fetch('/api/board',{cache:'no-store',signal:controller.signal});if(stopped||blocked()||syncState.current!==before)return;
+   try{const response=await fetch('/api/board?'+new URLSearchParams({revision:String(before.revision),role:before.role,persona:before.persona}),{cache:'no-store',signal:controller.signal});if(stopped||blocked()||syncState.current!==before)return;
     if(response.status===401||response.status===403){setTasks([]);setRole('');setDraft(null);setSyncWarning('Seu acesso expirou ou foi alterado. Entre novamente.');return;}
     if(!response.ok)throw Error('sync');const value:any=await apiResponse(response);if(stopped||blocked()||syncState.current!==before)return;
+    if(value.unchanged===true&&value.revision===before.revision){setSyncWarning('');return}
     if(!Array.isArray(value.tasks)||!Number.isSafeInteger(value.revision))throw Error('sync');
-    if(!canApplyBoardUpdate(before.revision,value.revision,syncState.current===before,blocked()))return;setSyncWarning('');setRole(value.role);setPersona(value.persona||'');setMembers(value.members||[]);
+    if(!canApplyBoardUpdate(before.revision,value.revision,syncState.current===before,blocked()))return;setSyncWarning('');setRole(value.role);setPersona(value.persona||'');setMembers(current=>JSON.stringify(current)===JSON.stringify(value.members||[])?current:value.members||[]);
     if(value.revision!==before.revision||value.role!==before.role||value.persona!==before.persona){setTasks(value.tasks);setRevision(value.revision);setStatusConfig(readStatusConfig(value.statusConfig));setUserEmail(value.email||'');setProfiles(value.profiles||{});setTeamProfiles(value.profiles||{});setUser(value.user);void loadAppearance();setLabelCatalog(value.labels||[]);if(before.draft){undoDraft.current=[];redoDraft.current=[];const latest=value.tasks.find((t:Task)=>t.id===before.draft!.id);if(latest){const next={...latest,title:latest.title.toLocaleUpperCase('pt-BR')};initialDraft.current=JSON.stringify(next);lastDraft.current=structuredClone(next);setDraft(next)}else{setDraft(null);setNotice('Este cartão foi removido por outra pessoa.')}}}
    }catch{if(!stopped)setSyncWarning('Reconectando às atualizações automáticas…');}finally{clearTimeout(timeout);running=false;controller=null;}
   }

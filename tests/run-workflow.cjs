@@ -57,3 +57,5 @@ execFileSync(process.execPath,['tests/cancel-adjustment.cjs'],{stdio:'inherit'})
 execFileSync(process.execPath,['tests/drive-cleanup.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/login-transition.cjs'],{stdio:'inherit'});
+
+execFileSync(process.execPath,['tests/board-polling.cjs'],{stdio:'inherit'});
