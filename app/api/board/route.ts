@@ -38,5 +38,22 @@ export async function POST(req:Request){try{const body:any=await req.json();if(r
  const previousTasks=(JSON.parse(row.data) as Task[]).map(task=>configuredTask(task));
  let merged:Task[];try{merged=mergeScopedTasks(previousTasks,body.tasks,c,new Date().toISOString(),config)}catch(e:any){return json({error:e.message},403)}
  merged=merged.map(t=>{const previous=previousTasks.find(old=>old.id===t.id);return JSON.stringify(previous)===JSON.stringify(t)?t:recordActivity(previous,t,names[c.persona]||c.user.displayName)});
- const result=await c.db.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(merged),body.revision).run();if(!result.meta.changes)return json({error:'Outra pessoa alterou o quadro. Recarregue antes de salvar novamente.'},409);return json({revision:body.revision+1,tasks:merged.filter(t=>canSeeTask(t,c))});
+ const update=c.db.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(merged),body.revision);
+ const notices:D1PreparedStatement[]=[];
+ if(c.persona==='farias'||c.persona==='luiz'){
+  for(const task of merged){
+   const previous=previousById.get(task.id);
+   if(!previous||previous.status===task.status||task.status!=='ajustar ⚠️')continue;
+   notices.push(c.db.prepare(`INSERT OR IGNORE INTO marketing_notifications(event_key,email,kind,task_id,title,message,targets,created_at)
+    SELECT ? || lower(email),lower(email),'designer-adjust',?,?,?,'[]',?
+    FROM marketing_members
+    WHERE persona IN ('lucio','mateus') AND role IN ('administrador','editor','visualizador')
+      AND EXISTS (SELECT 1 FROM marketing_board WHERE id=1 AND revision=?)`).bind(
+     `designer-adjust:${body.revision+1}:${task.id}:`,task.id,'Arte enviada para Ajustar',
+     `${names[c.persona]} enviou ${task.title} para Ajustar.`,new Date().toISOString(),body.revision));
+  }
+ }
+ const result=notices.length?(await c.db.batch([...notices,update])).at(-1):await update.run();
+ if(!result?.meta.changes)return json({error:'Outra pessoa alterou o quadro. Recarregue antes de salvar novamente.'},409);
+ return json({revision:body.revision+1,tasks:merged.filter(t=>canSeeTask(t,c))});
  }catch{return json({error:'Falha ao salvar. Os dados anteriores foram preservados.'},500)}}

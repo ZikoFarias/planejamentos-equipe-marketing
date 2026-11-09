@@ -285,6 +285,11 @@ dialog.settings-dialog,dialog.settings-dialog[open]{position:fixed;inset:0;margi
 /* Mobile home: a focused, touch-first view that complements the desktop board. */
 .mobile-dashboard{display:none}
 .mobile-calendar-nav{display:none}
+.app dialog.mobile-stock-panel{position:fixed;inset:0;margin:auto;width:min(1100px,calc(100% - 32px));height:calc(100dvh - 32px);max-height:none;padding:0;overflow:hidden}
+.app dialog.mobile-stock-panel[open]{display:flex;flex-direction:column}
+.mobile-stock-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px}
+.mobile-stock-panel iframe{display:block;flex:1;min-height:0;width:100%;border:0;background:white}
+.app main>footer a{color:inherit}
 @media(max-width:700px){
  .mobile-dashboard .mobile-week-progress{display:grid;grid-template-columns:minmax(0,1fr) 64px;align-items:center;background:#173451;box-shadow:none}
  .mobile-week-progress h2{margin:0 0 4px;font-size:17px}
