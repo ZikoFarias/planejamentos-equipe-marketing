@@ -133,6 +133,8 @@ function MobileDashboard({tasks,area,user,profile,dateReference,open,onCreate,on
  ];
  const otherTotal=weekTasks.length-weeklyStages.reduce((sum,stage)=>sum+stage.total,0);
  const weeklyProgress=otherTotal>0?[...weeklyStages,{label:'Outros status',color:'#a5a8bc',total:otherTotal}]:weeklyStages;
+ const weeklyTotal=weekTasks.length;
+ const approvedPercent=weeklyTotal?Math.round(100*weeklyStages[2].total/weeklyTotal):0;
  return <section ref={dashboard} className="mobile-dashboard" aria-label="Resumo do planejamento para celular">
   <div className="mobile-welcome"><div><small>{greeting}</small><h1>Olá, {user||'equipe'} <span aria-hidden="true">👋</span></h1><p>Veja o que precisa avançar hoje.</p></div><button className="mobile-avatar" type="button" aria-label="Abrir perfil" onClick={()=>profileDialog.current?.showModal()}>{avatar}</button></div>
   <dialog ref={profileDialog} className="mobile-profile" aria-label="Meu perfil">
@@ -148,10 +150,24 @@ function MobileDashboard({tasks,area,user,profile,dateReference,open,onCreate,on
    </button>)}
   </div>
   <section className="mobile-goal mobile-week-progress" aria-label="Progresso semanal">
-   <h2>Progresso semanal</h2>
-   <small>Entregas desta semana · segunda a domingo</small>
-   {weekTasks.length>0?<div className="weekly-progress-track" aria-hidden="true">{weeklyProgress.filter(stage=>stage.total>0).map(stage=><div key={stage.label} style={{flex:stage.total,background:stage.color}}/>)}</div>:<p>Nenhuma entrega prevista para esta semana.</p>}
-   <ul>{weeklyProgress.map(stage=><li key={stage.label}><i aria-hidden="true" style={{background:stage.color}}/>{stage.label} <b>{stage.total}</b></li>)}</ul>
+   <div>
+    <h2>Progresso semanal</h2>
+    <small>Entregas desta semana · segunda a domingo</small>
+    {weeklyTotal===0&&<p>Nenhuma entrega prevista para esta semana.</p>}
+    <ul>{weeklyProgress.map(stage=><li key={stage.label}><i aria-hidden="true" style={{background:stage.color}}/>{stage.label} <b>{stage.total}</b></li>)}</ul>
+   </div>
+   <div className="weekly-progress-ring" role="img" aria-label={weeklyTotal?`${approvedPercent}% das entregas aprovadas`:'Nenhuma entrega nesta semana'}>
+    <svg viewBox="0 0 64 64" aria-hidden="true">
+     <circle cx="32" cy="32" r="27" fill="none" stroke="#ffffff30" strokeWidth="5"/>
+     {weeklyTotal>0&&weeklyProgress.map((stage,index)=>{
+      if(!stage.total)return null;
+      const share=100*stage.total/weeklyTotal;
+      const offset=100*weeklyProgress.slice(0,index).reduce((sum,previous)=>sum+previous.total,0)/weeklyTotal;
+      return <circle key={stage.label} cx="32" cy="32" r="27" pathLength="100" fill="none" stroke={stage.color} strokeWidth="5" strokeDasharray={`${share} ${100-share}`} strokeDashoffset={-offset} transform="rotate(-90 32 32)"/>;
+     })}
+    </svg>
+    <b aria-hidden="true">{weeklyTotal?`${approvedPercent}%`:'—'}</b>
+   </div>
   </section>
   <div className="mobile-section-heading"><h2>{activeFilter?activeFilter.label:'Minhas tarefas'}</h2>{filter&&filter!==filters[0].label&&<button type="button" onClick={()=>setFilter(null)}>Voltar para A fazer</button>}</div>
   <div className="mobile-tasks">{cards.length?cards.map(task=>{const preview=coverFor(task)||task.attachments.find(file=>file.type?.startsWith('image/'));return <button className="mobile-task" key={task.id} onClick={()=>open(task)}>{preview?<span className="mobile-task-preview"><AttachmentPreview attachment={preview} compact/></span>:<span className={'mobile-task-check '+(isApproved(task)?'done':'')}><Check size={14}/></span>}<span className="mobile-task-copy"><strong>{task.title}</strong><small>{task.due?fmt(task.due):'Sem prazo'}</small>{companyTag(task)}</span><span className={'mobile-task-status '+(filters[3].matches(task)?'adjust':'')}>{filters.find(item=>item.matches(task))?.label||task.status}</span><MoreVertical size={16}/></button>}):<div className="mobile-empty">{activeFilter?'Nenhum cartão neste filtro.':'Nenhum cartão disponível nesta área.'}</div>}</div>

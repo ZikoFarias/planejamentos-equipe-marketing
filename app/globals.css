@@ -286,9 +286,12 @@ dialog.settings-dialog,dialog.settings-dialog[open]{position:fixed;inset:0;margi
 .mobile-dashboard{display:none}
 .mobile-calendar-nav{display:none}
 @media(max-width:700px){
- .mobile-dashboard .mobile-week-progress{display:block;background:#173451;box-shadow:none}
+ .mobile-dashboard .mobile-week-progress{display:grid;grid-template-columns:minmax(0,1fr) 64px;align-items:center;background:#173451;box-shadow:none}
  .mobile-week-progress h2{margin:0 0 4px;font-size:17px}
- .weekly-progress-track{display:flex;overflow:hidden;height:9px;border-radius:6px;gap:2px;margin-top:12px}
+ .weekly-progress-ring{display:grid;place-items:center;width:64px;height:64px}
+ .weekly-progress-ring svg,.weekly-progress-ring>b{grid-area:1/1}
+ .weekly-progress-ring svg{width:100%;height:100%}
+ .weekly-progress-ring>b{font-size:12px}
  .mobile-week-progress ul{display:flex;flex-wrap:wrap;gap:6px 12px;list-style:none;margin:10px 0 0;padding:0}
  .mobile-week-progress li{display:flex;align-items:center;gap:5px;font-size:11px}
  .mobile-week-progress li i{width:8px;height:8px;border-radius:50%}
