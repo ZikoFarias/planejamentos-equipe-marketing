@@ -113,12 +113,26 @@ function MobileDashboard({tasks,area,user,profile,dateReference,open,onCreate,on
   {label:'Aprovados',icon:Check,tone:'green',matches:(task:Task)=>task.status==='aprovado ✅'},
   {label:'Ajustar',icon:TriangleAlert,tone:'amber',matches:(task:Task)=>['ajustar ⚠️','ajustar legenda'].includes(task.status)},
  ];
- const activeFilter=filters.find(item=>item.label===filter);
+ const activeFilter=filters.find(item=>item.label===filter)??filters[0];
  const matchingCards=tasks.filter(task=>task.title&&(!activeFilter||activeFilter.matches(task)))
   .sort((a,b)=>(a.due||'9999').localeCompare(b.due||'9999'));
  const cards=matchingCards;
  const avatar=profile?.photo?<img src={profile.photo+'?thumbnail=1'} alt=""/>:<span>{initials}</span>;
  const count=(predicate:(task:Task)=>boolean)=>tasks.filter(predicate).length;
+ const weekStart=new Date(dateReference+'T00:00:00Z');
+ weekStart.setUTCDate(weekStart.getUTCDate()-(weekStart.getUTCDay()+6)%7);
+ const weekEnd=new Date(weekStart);
+ weekEnd.setUTCDate(weekEnd.getUTCDate()+7);
+ const startKey=weekStart.toISOString().slice(0,10);
+ const endKey=weekEnd.toISOString().slice(0,10);
+ const weekTasks=tasks.filter(task=>task.due>=startKey&&task.due<endKey);
+ const weeklyStages=[
+  {label:'A fazer',color:'#fff',total:weekTasks.filter(isTodo).length},
+  {label:'Aprovação',color:'#ffd54f',total:weekTasks.filter(isApproval).length},
+  {label:'Aprovado',color:'#68d89a',total:weekTasks.filter(isApproved).length},
+ ];
+ const otherTotal=weekTasks.length-weeklyStages.reduce((sum,stage)=>sum+stage.total,0);
+ const weeklyProgress=otherTotal>0?[...weeklyStages,{label:'Outros status',color:'#a5a8bc',total:otherTotal}]:weeklyStages;
  return <section ref={dashboard} className="mobile-dashboard" aria-label="Resumo do planejamento para celular">
   <div className="mobile-welcome"><div><small>{greeting}</small><h1>Olá, {user||'equipe'} <span aria-hidden="true">👋</span></h1><p>Veja o que precisa avançar hoje.</p></div><button className="mobile-avatar" type="button" aria-label="Abrir perfil" onClick={()=>profileDialog.current?.showModal()}>{avatar}</button></div>
   <dialog ref={profileDialog} className="mobile-profile" aria-label="Meu perfil">
@@ -129,12 +143,17 @@ function MobileDashboard({tasks,area,user,profile,dateReference,open,onCreate,on
    {profile?.loginEmail&&<p>{profile.loginEmail}</p>}
   </dialog>
   <div className="mobile-metrics" aria-label="Filtrar tarefas por status">
-   {filters.map(item=><button type="button" key={item.label} aria-pressed={filter===item.label} onClick={()=>setFilter(current=>current===item.label?null:item.label)}>
+   {filters.map(item=><button type="button" key={item.label} aria-pressed={activeFilter.label===item.label} onClick={()=>setFilter(current=>current===item.label?null:item.label)}>
     <span className={`metric-icon ${item.tone}`} aria-hidden="true"><item.icon size={15}/></span><strong>{count(item.matches)}</strong><small>{item.label}</small>
    </button>)}
   </div>
-  <div className="mobile-goal"><div><small>Visão de hoje</small><strong>{tasks.filter(task=>task.due===dateReference).length ? `${tasks.filter(task=>task.due===dateReference).length} entrega(s) para hoje` : 'Tudo em dia por enquanto'}</strong><span>Continue avançando no planejamento.</span></div><div className="goal-ring" aria-hidden="true">{Math.min(100,Math.round((count(isApproved)/Math.max(1,tasks.length))*100))}%</div></div>
-  <div className="mobile-section-heading"><h2>{activeFilter?activeFilter.label:'Minhas tarefas'}</h2>{activeFilter&&<button type="button" onClick={()=>setFilter(null)}>Limpar filtro</button>}</div>
+  <section className="mobile-goal mobile-week-progress" aria-label="Progresso semanal">
+   <h2>Progresso semanal</h2>
+   <small>Entregas desta semana · segunda a domingo</small>
+   {weekTasks.length>0?<div className="weekly-progress-track" aria-hidden="true">{weeklyProgress.filter(stage=>stage.total>0).map(stage=><div key={stage.label} style={{flex:stage.total,background:stage.color}}/>)}</div>:<p>Nenhuma entrega prevista para esta semana.</p>}
+   <ul>{weeklyProgress.map(stage=><li key={stage.label}><i aria-hidden="true" style={{background:stage.color}}/>{stage.label} <b>{stage.total}</b></li>)}</ul>
+  </section>
+  <div className="mobile-section-heading"><h2>{activeFilter?activeFilter.label:'Minhas tarefas'}</h2>{filter&&filter!==filters[0].label&&<button type="button" onClick={()=>setFilter(null)}>Voltar para A fazer</button>}</div>
   <div className="mobile-tasks">{cards.length?cards.map(task=>{const preview=coverFor(task)||task.attachments.find(file=>file.type?.startsWith('image/'));return <button className="mobile-task" key={task.id} onClick={()=>open(task)}>{preview?<span className="mobile-task-preview"><AttachmentPreview attachment={preview} compact/></span>:<span className={'mobile-task-check '+(isApproved(task)?'done':'')}><Check size={14}/></span>}<span className="mobile-task-copy"><strong>{task.title}</strong><small>{task.due?fmt(task.due):'Sem prazo'}</small>{companyTag(task)}</span><span className={'mobile-task-status '+(filters[3].matches(task)?'adjust':'')}>{filters.find(item=>item.matches(task))?.label||task.status}</span><MoreVertical size={16}/></button>}):<div className="mobile-empty">{activeFilter?'Nenhum cartão neste filtro.':'Nenhum cartão disponível nesta área.'}</div>}</div>
   <nav className="mobile-bottom-nav" aria-label="Navegação principal"><button className="active" type="button" onClick={()=>{setFilter(null);dashboard.current?.scrollIntoView({block:'start'});dashboard.current?.scrollTo(0,0)}}><Home size={19}/><span>Início</span></button><button type="button" onClick={onCalendar}><CalendarDays size={19}/><span>Calendário</span></button><button className="mobile-bottom-add" type="button" onClick={onCreate}><Plus size={21}/></button><MobileStock/><button type="button" onClick={onProfile}><UserCircle size={19}/><span>Perfil</span></button></nav>
  </section>
