@@ -30,7 +30,7 @@ art=castApprovalVote(art,lucio,'approved',emptyStatusConfig);assert(purchaseRead
 const edited=mergeScopedTasks([art],[{...art,description:'Arte alterada'}],actor)[0];assert(!purchaseReady(edited));assert.equal(edited.status,'ajustar ⚠️');
 const attachment={name:'banner.png',url:'https://example.com/banner.png',artworkKind:'final'};
 const logged=recordActivity(t,{...t,attachments:[attachment]},'Farias','2026-10-27T12:00:00Z');assert.equal(logged.history[0].by,'Farias');assert.equal(logged.history[0].attachments[0].url,attachment.url);
-assert.throws(()=>mergeScopedTasks([],[{...blank('em andamento farias'),title:'Inválida',tags:['fibroplast']}],actor),/Crie as artes/);
+assert.throws(()=>mergeScopedTasks([],[{...blank('aprovação fibroplast'),title:'Inválida',tags:['fibroplast']}],actor),/Crie as artes|não pertence à sua área/);
 assert(validLabel('Nome','#ff0000'));assert(!validLabel('', '#zz0000'));const labels={fibroplast:{name:'Empresa',color:'#ff0000'}};assert.equal(labelName('fibroplast',labels),'Empresa');assert.equal(labelStyle('fibroplast',labels).background,'#ff0000');
 console.log('PASS: compra direta, arte só Lucio, orçamento protegido, alteração invalida aprovação, Farias conduz compra, etiquetas preservam IDs.');
 

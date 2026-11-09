@@ -8,8 +8,13 @@ export type StatusConfig={labels?:LabelConfig,custom:StatusDefinition[],removed:
 export const emptyStatusConfig:StatusConfig={custom:[],removed:{}};
 export function readStatusConfig(raw?:string|StatusConfig):StatusConfig{if(!raw)return emptyStatusConfig;const value=typeof raw==='string'?JSON.parse(raw):raw;return {custom:value.custom||[],removed:value.removed||{},...(value.labels?{labels:value.labels}:{})}}
 export function statusDefinitions(config:StatusConfig=emptyStatusConfig){const ordered=statuses.filter(([id])=>id!=='ajustar legenda');const caption=statuses.find(([id])=>id==='ajustar legenda');if(caption)ordered.splice(ordered.findIndex(([id])=>id==='ajustar ⚠️')+1,0,caption);return [...ordered.map(([id,color])=>({id,name:id.toLocaleUpperCase('pt-BR'),color})),...config.custom].filter(s=>!config.removed[s.id])}
-export function configuredStatus(id:string,config:StatusConfig=emptyStatusConfig){const seen=new Set<string>();while(config.removed[id]){if(seen.has(id))throw Error('Os destinos dos status formam um ciclo.');seen.add(id);id=config.removed[id]}return id}
-export function configuredTask(task:Task,config:StatusConfig=emptyStatusConfig):Task{return {...task,status:configuredStatus(task.status,config)}}
+function activeArtStatus(id:string){
+ if(id==='em andamento farias')return 'a fazer farias';
+ if(id==='em andamento luiz')return 'a fazer luiz';
+ return id;
+}
+export function configuredStatus(id:string,config:StatusConfig=emptyStatusConfig){id=activeArtStatus(id);const seen=new Set<string>();while(config.removed[id]){if(seen.has(id))throw Error('Os destinos dos status formam um ciclo.');seen.add(id);id=activeArtStatus(config.removed[id])}return id}
+export function configuredTask(task:Task,config:StatusConfig=emptyStatusConfig):Task{return {...task,status:configuredStatus(task.status,config),...(task.workflowResume?{workflowResume:activeArtStatus(task.workflowResume)}:{})}}
 export function customStatus(id:string){return id.startsWith('custom:')}
 export function statusColumns(area:string,config:StatusConfig=emptyStatusConfig):string[][]{const definitions=statusDefinitions(config);if(area==='laura')return captionColumns;if(area==='compras')return purchaseColumns;if(area!=='luiz'&&area!=='farias'){
  const columns=definitions.map(s=>[s.id,s.color,s.name]);
@@ -17,5 +22,5 @@ export function statusColumns(area:string,config:StatusConfig=emptyStatusConfig)
  const afterReview=columns.findLastIndex(([id])=>id.startsWith('aprovação '));
  columns.splice(afterReview+1,0,quote);
  return columns;
- }const active=new Set(definitions.map(s=>s.id));return [...personalColumns.filter(([id])=>id==='a fazer'?active.has('a fazer '+area)||(area==='luiz'&&active.has('ideias')):id==='em andamento'?active.has('em andamento '+area):id==='aprovação'?definitions.some(s=>s.id.startsWith('aprovação ')):active.has(id)),...definitions.filter(s=>customStatus(s.id)).map(s=>[s.id,s.color,s.name])]}
-export function autoPhase(id:string){return id.startsWith('em andamento ')||id.startsWith('aprovação ')}
+ }const active=new Set(definitions.map(s=>s.id));return [...personalColumns.filter(([id])=>id==='a fazer'?active.has('a fazer '+area)||(area==='luiz'&&active.has('ideias')):id==='aprovação'?definitions.some(s=>s.id.startsWith('aprovação ')):active.has(id)),...definitions.filter(s=>customStatus(s.id)).map(s=>[s.id,s.color,s.name])]}
+export function autoPhase(id:string){return id.startsWith('aprovação ')}

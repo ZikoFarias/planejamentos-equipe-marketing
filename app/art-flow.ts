@@ -33,19 +33,15 @@ export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor,label
   if(after==='ajustar ⚠️')return {...next,workflowResume:undefined};
   throw Error('Para revisar uma arte aprovada, envie primeiro para Ajustar.');
  }
- if(source?.startsWith('a fazer ')&&after===source.replace('a fazer ','em andamento ')){
-  if(!['farias','luiz'].includes(actor.persona))throw Error('Farias ou Luiz devem iniciar a execução da arte.');
-  return {...next,workflowResume:undefined};
- }
- if((source?.startsWith('a fazer ')||source?.startsWith('em andamento '))&&after.startsWith('aprovação ')){
+ if(source?.startsWith('a fazer ')&&after.startsWith('aprovação ')){
   if(!['farias','luiz'].includes(actor.persona))throw Error('Farias ou Luiz devem encaminhar a arte executada para revisão.');
   return {...next,workflowResume:undefined};
  }
  if(source?.startsWith('aprovação ')&&after==='ajustar ⚠️')return {...next,workflowResume:undefined};
- if(source==='ajustar ⚠️'&&(after.startsWith('em andamento ')||after.startsWith('aprovação '))){
+ if(source==='ajustar ⚠️'&&after.startsWith('aprovação ')){
   if(!['farias','luiz'].includes(actor.persona))throw Error('Farias ou Luiz devem iniciar os ajustes.');
   return {...next,workflowResume:undefined};
  }
  if(source?.startsWith('aprovação ')&&after.startsWith('aprovação '))return {...next,workflowResume:undefined};
- throw Error('Siga as etapas: A Fazer → Em Andamento ou Aprovação → Aprovado → Concluído. Para correções, envie para Ajustar.');
+ throw Error('Siga as etapas: A Fazer → Aprovação → Aprovado → Concluído. Para correções, envie para Ajustar.');
 }

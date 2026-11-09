@@ -1,14 +1,18 @@
 import assert from 'node:assert/strict';
-import {statusDefinitions,statusColumns,configuredStatus,autoPhase} from '../app/status-config.ts';
+import {statusDefinitions,statusColumns,configuredStatus,configuredTask,autoPhase} from '../app/status-config.ts';
 import {canSeeTask,mergeScopedTasks} from '../app/permissions.ts';
 import {weeklyPlan} from '../app/weekly-plan.ts';
 import {blank} from '../app/model.ts';
 const config={custom:[{id:'custom:test',name:'REVISÃO INTERNA',color:'#123456'}],removed:{'a fazer farias':'custom:test','aprovação fibroplast':'custom:test'}};
-assert.equal(statusDefinitions(config).length,15);assert(!statusDefinitions(config).some(s=>s.id==='a fazer farias'));assert(statusColumns('farias',config).some(([id])=>id==='custom:test'));assert.equal(configuredStatus('aprovação fibroplast',config),'custom:test');
+assert.equal(statusDefinitions(config).length,13);assert(!statusDefinitions(config).some(s=>s.id==='a fazer farias'));assert(statusColumns('farias',config).some(([id])=>id==='custom:test'));assert.equal(configuredStatus('aprovação fibroplast',config),'custom:test');
 const task={...blank('custom:test'),title:'Teste',assignees:['Farias'],tags:['fibroplast']};assert(canSeeTask(task,{role:'editor',persona:'farias'}));assert(canSeeTask(task,{role:'editor',persona:'luiz'}));assert(canSeeTask(task,{role:'editor',persona:'mateus'}));
 const original={...task,status:'a fazer farias'};assert.equal(mergeScopedTasks([original],[{...original,status:'aprovação fibroplast'}],{role:'administrador',persona:''},'2026-10-20T12:00:00Z',config)[0].status,'custom:test');
 const plan=weeklyPlan([],'2026-10-20','all',config);assert.equal(plan.length,25);assert(plan.filter(p=>p.task.assignees.includes('Farias')).every(p=>p.task.status==='custom:test'));
-const chained={...config,removed:{...config.removed,'custom:test':'ideias'}};assert.equal(configuredStatus('a fazer farias',chained),'ideias');assert(autoPhase('aprovação postos'));assert(autoPhase('em andamento luiz'));assert(!autoPhase('a fazer luiz'));
+const chained={...config,removed:{...config.removed,'custom:test':'ideias'}};assert.equal(configuredStatus('a fazer farias',chained),'ideias');assert(autoPhase('aprovação postos'));assert(!autoPhase('em andamento luiz'));
+assert.equal(configuredStatus('em andamento farias'),'a fazer farias');
+assert.equal(configuredTask({...blank('stand-by ⛔'),workflowResume:'em andamento luiz'}).workflowResume,'a fazer luiz');
+for(const area of ['aprovacoes','farias','luiz'])assert(!statusColumns(area).some(([id])=>id.startsWith('em andamento')));
+assert(statusColumns('compras').some(([id])=>id==='em andamento'));assert(!autoPhase('a fazer luiz'));
 const definitions=statusDefinitions();assert.equal(definitions.findIndex(s=>s.id==='ajustar legenda'),definitions.findIndex(s=>s.id==='ajustar ⚠️')+1);assert.equal(statusColumns('laura').length,6);console.log('PASS: status dinâmicos, destinos em cadeia, visibilidade por responsável, aprovação redirecionada, lote semanal usa substituto e fases automáticas.');
 
 for(const area of ['farias','luiz'])assert(!statusColumns(area).some(([id])=>id==='ajustar legenda'));assert(statusColumns('aprovacoes').some(([id])=>id==='ajustar legenda'));assert(statusColumns('laura').some(([id])=>id==='caption:adjust'));
