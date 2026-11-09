@@ -285,6 +285,11 @@ dialog.settings-dialog,dialog.settings-dialog[open]{position:fixed;inset:0;margi
 /* Mobile home: a focused, touch-first view that complements the desktop board. */
 .mobile-dashboard{display:none}
 .mobile-calendar-nav{display:none}
+.mobile-profile-actions{display:none}
+@media(max-width:700px){
+ .app .mobile-profile-actions{display:flex;flex-shrink:0;padding:10px 16px 14px;border-top:1px solid #ffffff22}
+ .app .mobile-profile-actions button{width:100%;min-height:44px}
+}
 .mobile-activity-toggle{display:none}
 @media(max-width:700px){
  .mobile-task:has(.mobile-task-preview){grid-template-columns:44px minmax(0,1fr) auto 16px}
