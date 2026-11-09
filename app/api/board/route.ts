@@ -1,3 +1,4 @@
+import {quoteFiles} from '../../purchases';
 import {withParticipants} from '../../participants';
 import {recordActivity} from '../../activity';
 import {names} from '../../permissions';
@@ -23,6 +24,17 @@ export async function POST(req:Request){try{const body:any=await req.json();if(r
  const row=await c.db.prepare('SELECT * FROM marketing_board WHERE id=1').first<any>();if(!row||row.revision!==body.revision)return json({error:'Outra pessoa alterou o quadro. Sua edição foi preservada no painel. Recarregue o quadro antes de salvar novamente.'},409);const config=readStatusConfig(row.status_config),known=new Set([...statusDefinitions(config).map(s=>s.id),...Object.keys(config.removed)]);
  const ids=new Set();for(const t of body.tasks){if(!t||typeof t.id!=='string'||ids.has(t.id)||typeof t.title!=='string'||!t.title.trim()||t.title.length>500||!known.has(t.status)||!priorities.includes(t.priority)||!['assignees','tags','subtasks','checklist','comments','attachments','history'].every(k=>Array.isArray(t[k]))||t.assignees.some((n:unknown)=>typeof n!=='string')||t.attachments.some((a:any)=>!validAttachmentMetadata(a)||!(/^https?:\/\//.test(a.url)||/^\/api\/files\/[a-f0-9-]{36}$/.test(a.url))))return json({error:'Tarefa inválida. Revise os campos.'},400);if(t.coverUrl&&!t.attachments.some((a:any)=>a.url===t.coverUrl&&previewKind(a)==='image'))return json({error:'Escolha uma imagem anexada para a capa.'},400);ids.add(t.id)}
  if(c.role!=='administrador'){const current=JSON.parse(row.data) as Task[];const urls=[...new Set((body.tasks as Task[]).flatMap(t=>t.attachments.map(a=>a.url)).filter(u=>u.startsWith('/api/files/')))];for(const url of urls){const linked=current.filter(t=>t.attachments.some(a=>a.url===url));const owner=await c.db.prepare('SELECT email FROM marketing_uploads WHERE id=?').bind(url.split('/').at(-1)).first<{email:string}>();if(linked.length?!linked.some(t=>canSeeTask(t,c)):owner?.email!==c.user.email.toLowerCase())return json({error:'Você não pode vincular um arquivo de outra área.'},403);}}
+ const previousById=new Map((JSON.parse(row.data) as Task[]).map(task=>[task.id,task]));
+ const existingQuoteFiles=new Set([...previousById.values()].filter(task=>canSeeTask(task,c)).flatMap(quoteFiles).map(file=>file.drive?.fileId));
+ for(const task of body.tasks as Task[]){
+  if(task.purchase?.quotes!==undefined&&(!Array.isArray(task.purchase.quotes)||task.purchase.quotes.some(q=>!q||q.attachments!==undefined&&!Array.isArray(q.attachments))))return json({error:'Anexos de orçamento inválidos.'},400);
+  for(const file of quoteFiles(task)){
+   if(!validAttachmentMetadata(file)||!file.drive?.central)return json({error:'Anexo de orçamento inválido.'},400);
+   if(existingQuoteFiles.has(file.drive.fileId))continue;
+   const upload=await c.db.prepare('SELECT task_id FROM marketing_central_uploads WHERE file_id=?').bind(file.drive.fileId).first<{task_id:string}>();
+   if(upload?.task_id!==task.id)return json({error:'Este anexo pertence a outro cartão.'},403);
+  }
+ }
  let merged:Task[];try{merged=mergeScopedTasks(JSON.parse(row.data),body.tasks,c,new Date().toISOString(),config)}catch(e:any){return json({error:e.message},403)}
  const previousTasks=JSON.parse(row.data) as Task[];merged=merged.map(t=>{const previous=previousTasks.find(old=>old.id===t.id);return JSON.stringify(previous)===JSON.stringify(t)?t:recordActivity(previous,t,names[c.persona]||c.user.displayName)});
  const result=await c.db.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(merged),body.revision).run();if(!result.meta.changes)return json({error:'Outra pessoa alterou o quadro. Recarregue antes de salvar novamente.'},409);return json({revision:body.revision+1,tasks:merged.filter(t=>canSeeTask(t,c))});

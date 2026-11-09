@@ -1,3 +1,5 @@
+import {validAttachmentMetadata} from './attachment-validation';
+import {previewKind} from './media';
 import {externalMediaLabel} from './external-media-label';
 import type {Actor} from './permissions';
 import type {Task,QuoteOption} from './model';
@@ -28,7 +30,11 @@ export const isQuoteReview=(task:Task)=>purchaseReady(task)&&task.purchase?.stag
 export const quotesFor=(t:Task):QuoteOption[]=>t.purchase?.quotes??(t.purchase?.quote?[{...t.purchase.quote,id:'legacy',link:''}]:[]);
 export const selectedQuote=(t:Task)=>quotesFor(t).find(q=>q.id===(t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':undefined)));
 export const quoteSnapshot=(t:Task)=>JSON.stringify({quotes:quotesFor(t),selected:t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':''),title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags});
-export const quoteValid=(t:Task)=>{const q=selectedQuote(t);return !!q&&!!(q.place.trim()||/^https?:\/\//.test(q.link))&&Number.isFinite(q.unitPrice)&&q.unitPrice>0&&Number.isFinite(q.quantity)&&q.quantity>0};
+export const quoteTotal=(q:QuoteOption)=>q.total??q.unitPrice*q.quantity;
+export const quoteFiles=(task:Task)=>quotesFor(task).flatMap(quote=>quote.attachments||[]);
+export const canEditQuotes=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&actor.persona==='farias';
+export const MAX_QUOTE_FILES=10;
+export const quoteValid=(t:Task)=>{const q=selectedQuote(t);return !!q&&!!(q.place.trim()||/^https?:\/\//.test(q.link)||q.attachments?.length)&&quoteTotal(q)>0};
 export const quoteApproved=(t:Task)=>quoteValid(t)&&(t.purchase?.quoteApproval?.snapshot===quoteSnapshot(t)||(!t.purchase?.quotes&&t.purchase?.quoteApproval?.snapshot===JSON.stringify({quote:t.purchase?.quote||null,title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags})));
 export const money=(amount:number)=>amount.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 export function normalizePurchase(t:Task,previous?:Task,admin=false):Task{
@@ -36,6 +42,10 @@ export function normalizePurchase(t:Task,previous?:Task,admin=false):Task{
  if(t.purchase&&(typeof t.purchase.requiresArt!=='boolean'||!purchaseColumns.some(([id])=>id===t.purchase!.stage)))throw Error('Etapa de compra inválida.');
  if(t.purchase?.quote){const q=t.purchase.quote;if(typeof q.place!=='string'||q.place.length>300||!Number.isFinite(q.unitPrice)||q.unitPrice<0||q.unitPrice>1e9||!Number.isFinite(q.quantity)||q.quantity<0||q.quantity>1e9)throw Error('Informe local, valor e quantidade válidos.');}
  if(t.purchase?.quotes!==undefined){const rows=t.purchase.quotes;if(!Array.isArray(rows)||rows.length>30||new Set(rows.map(q=>q?.id)).size!==rows.length||rows.some(q=>!q||typeof q.id!=='string'||!q.id||q.id.length>100||typeof q.place!=='string'||q.place.length>300||typeof q.link!=='string'||q.link.length>2000||(q.link&&!/^https?:\/\//.test(q.link))||!Number.isFinite(q.unitPrice)||q.unitPrice<0||q.unitPrice>1e9||!Number.isFinite(q.quantity)||q.quantity<0||q.quantity>1e9))throw Error('Revise os orçamentos: use links http/https, valores e quantidades válidos (até 30 opções).');
+ for(const q of rows){
+  if(q.total!==undefined&&(!Number.isFinite(q.total)||q.total<0||q.total>1e9))throw Error('Informe um valor total válido para o orçamento.');
+  if(q.attachments!==undefined&&(!Array.isArray(q.attachments)||q.attachments.length>MAX_QUOTE_FILES||q.attachments.some(a=>!validAttachmentMetadata(a)||!a.drive?.central||a.url!==a.drive.url||typeof a.name!=='string'||!['image','pdf'].includes(previewKind(a)))))throw Error('Anexe apenas imagens e PDFs válidos ao orçamento.');
+ }
  if(t.purchase.selectedQuoteId&&!rows.some(q=>q.id===t.purchase!.selectedQuoteId))throw Error('Selecione um dos orçamentos cadastrados.');}
  if(JSON.stringify(previous?.purchase?.quoteApproval)!==JSON.stringify(t.purchase?.quoteApproval))throw Error('A aprovação do orçamento deve ser registrada por Lucio.');
  const next=syncPurchaseArt({...t,purchase:{...(t.purchase||{stage:'comprar'}),requiresArt:!!externalMediaLabel(t)||!!previous&&purchaseHasArt(previous),mediaLabel:previous?.purchase?.mediaLabel},assignees:[...t.assignees.filter(n=>n.toLowerCase()!=='farias'),'Farias']},previous) as Task & {purchase:NonNullable<Task['purchase']>};
@@ -64,7 +74,7 @@ export function approveQuote(task:Task,actor:{role:string,persona:string,email:s
  if(!purchaseReady(task)||task.purchase?.stage!=='orçamento')throw Error('Encaminhe o cartão para Orçamento antes de Lúcio mover para Aprovado.');
  const canonical=syncPurchaseArt(task,task);
  const q=selectedQuote(canonical);
- return {...canonical,purchase:{...task.purchase,...canonical.purchase,stage:'aprovado',quoteApproval:quoteValid(canonical)?{by:actor.email,at:now,snapshot:quoteSnapshot(canonical)}:undefined},history:[{by:actor.name,at:now,text:actor.name+' moveu de Orçamento para Aprovado'+(q?' · '+(q.place||q.link)+' · '+q.quantity+' × '+money(q.unitPrice)+' = '+money(q.quantity*q.unitPrice):' · sem orçamento selecionado')},...task.history]};
+ return {...canonical,purchase:{...task.purchase,...canonical.purchase,stage:'aprovado',quoteApproval:quoteValid(canonical)?{by:actor.email,at:now,snapshot:quoteSnapshot(canonical)}:undefined},history:[{by:actor.name,at:now,text:actor.name+' moveu de Orçamento para Aprovado'+(q?' · '+(q.place||q.link)+' · '+money(quoteTotal(q)):' · sem orçamento selecionado')},...task.history]};
 }
 
 export function guardPurchaseEdit(previous:Task|undefined,next:Task,actor:Actor){

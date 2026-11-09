@@ -796,3 +796,5 @@ html.luke-entering .login-reveal-stage{display:block}
 }
 
 .approval-member-actions{position:relative}.approval-member-actions>summary{display:flex;list-style:none;cursor:pointer;border-radius:50%}.approval-member-actions>summary::-webkit-details-marker{display:none}.approval-member-actions>summary:focus-visible{outline:2px solid #579dff;outline-offset:4px}.approval-member-actions>summary>[inert]{display:contents}.approval-removal-menu{position:absolute;top:calc(100% + 10px);left:0;z-index:30;min-width:180px;padding:6px;border:1px solid #ffffff30;border-radius:10px;background:#162637;box-shadow:0 12px 30px #0007}.approval-removal-menu button{width:100%;padding:10px 12px;font-size:12px;white-space:nowrap}
+
+.quote-files{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:4px 0 10px}.quote-file{display:flex;align-items:center;gap:6px;max-width:100%}.quote-file a{overflow-wrap:anywhere}.quote-file .cover-image{width:36px;height:36px;object-fit:contain}.quote-files .quote-file-picker{display:flex;gap:4px}.quote-file-picker input{max-width:230px}

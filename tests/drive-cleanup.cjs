@@ -51,5 +51,12 @@ const {build}=require('esbuild'),assert=require('node:assert/strict'),fs=require
  const raceDrive=async(url,init)=>{const id=new URL(url).pathname.split('/').pop(),data=JSON.parse(init.body);if(id==='race_file'&&data.trashed&&!raced){raced=true;write([task('race',[file('race_file')])]);await processDriveCleanup(env,0,drive)}return Response.json({id,trashed:data.trashed})};
  await processDriveCleanup(env,0,raceDrive);assert(job('race_file').applied_generation<job('race_file').generation);
  await processDriveCleanup(env,0,drive);assert.deepEqual(calls.at(-1),{id:'race_file',trashed:false});
+
+ sqlite.exec(fs.readFileSync('drizzle/0013_quote_drive_cleanup.sql','utf8'));
+ register('quote_file_123');
+ const quoted={...task('one'),purchase:{quotes:[{attachments:[file('quote_file_123')]}]}};
+ write([quoted]);assert(!job('quote_file_123'));
+ write([task('one')]);assert.equal(job('quote_file_123').desired_trashed,1);
+ write([quoted]);assert.equal(job('quote_file_123').desired_trashed,0);
  console.log('PASS: atomic removal queue, whole-card deletion, shared/comment references, no historical purge, private files protected, trash only, undo restore, failed CAS, Drive outage and retries.');
 })().catch(e=>{console.error(e);process.exitCode=1});

@@ -1,9 +1,10 @@
+import {quoteFiles} from '../app/purchases';
 import type {Task} from '../app/model';
 import {centralAccess} from './drive-central-storage';
 type Job={file_id:string,desired_trashed:number,generation:number,attempts:number};
 export function linkedCentralFiles(tasks:Task[]){
  const ids=new Set<string>();
- for(const task of tasks)for(const file of [...task.attachments,...task.comments.flatMap(comment=>comment.attachments||[])])
+ for(const task of tasks)for(const file of [...task.attachments,...quoteFiles(task),...task.comments.flatMap(comment=>comment.attachments||[])])
   if(file.drive?.central&&file.drive.fileId)ids.add(file.drive.fileId);
  return ids;
 }

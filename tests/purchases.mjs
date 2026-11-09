@@ -2,7 +2,7 @@ import {withParticipants} from '../app/participants.ts';
 import {quotesFor,selectedQuote} from '../app/purchases.ts';
 import assert from 'node:assert/strict';
 import {blank} from '../app/model.ts';
-import {normalizePurchase,purchaseReady,purchaseColumns,approveQuote,quoteApproved} from '../app/purchases.ts';
+import {normalizePurchase,purchaseReady,purchaseColumns,approveQuote,quoteApproved,quoteTotal} from '../app/purchases.ts';
 import {inArea,mergeScopedTasks} from '../app/permissions.ts';
 import {castApprovalVote} from '../app/approval.ts';
 import {emptyStatusConfig} from '../app/status-config.ts';
@@ -44,3 +44,9 @@ assert.throws(()=>normalizePurchase({...multiple,purchase:{...multiple.purchase,
 assert.deepEqual(withParticipants({...blank(),assignees:['Farias','Lucio','Mateus','Lucio Alves Xavier']}).assignees,['Farias','Lucio Alves Xavier','Mateus']);
 assert.deepEqual(withParticipants({...blank(),tags:['COMPRA'],assignees:['Farias','Mateus']}).assignees,['Farias','Lucio Alves Xavier']);
 assert(!inArea(withParticipants(multiple),'farias'));
+
+const manual={...multiple,purchase:{...multiple.purchase,quotes:[{...optionB,total:149.90,unitPrice:0,quantity:0}]}};
+assert.equal(quoteTotal(optionB),optionB.unitPrice*optionB.quantity);
+assert.equal(quoteTotal(selectedQuote(manual)),149.9);
+assert(quoteApproved(approveQuote(manual,lucio)));
+assert.throws(()=>normalizePurchase({...manual,purchase:{...manual.purchase,quotes:[{...optionB,total:-1}]}}),/valor total/);
