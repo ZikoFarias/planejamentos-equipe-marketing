@@ -9,10 +9,10 @@ type Options={kind:ArtworkKind,backup?:Backup,signal:AbortSignal,onAttachment:(a
 // Injected transports keep workflow tests independent from Google credentials.
 export async function uploadArtworkBatch(files:File[],options:Options,transport={upload:uploadFile,backup:exportAttachment}){
   if(files.some(file=>file.size<1||file.size>MAX_FILE_SIZE))throw Error('Escolha arquivos entre 1 byte e 100 MB.');
-  const result={uploaded:0,backedUp:0,failedBackups:0};
+  const result={uploaded:0,backedUp:0,failedBackups:0,errors:[] as {file:File,message:string}[]};
   for(const file of files){
     options.signal.throwIfAborted();
-    const attachment:Attachment={...await transport.upload(file,percent=>options.onProgress(file.name+' — '+percent+'%'),options.signal),artworkKind:options.kind};
+    let attachment:Attachment;try{attachment={...await transport.upload(file,percent=>options.onProgress(file.name+' — '+percent+'%'),options.signal),artworkKind:options.kind}}catch(error){if(options.signal.aborted)throw error;result.errors.push({file,message:error instanceof Error?error.message:'Falha ao enviar o arquivo.'});continue}
     if(options.backup)attachment.backup={status:'pending'};
     options.onAttachment(attachment);result.uploaded++;
     if(!options.backup)continue;
