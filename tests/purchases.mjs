@@ -2,7 +2,7 @@ import {withParticipants} from '../app/participants.ts';
 import {quotesFor,selectedQuote} from '../app/purchases.ts';
 import assert from 'node:assert/strict';
 import {blank} from '../app/model.ts';
-import {normalizePurchase,purchaseReady,purchaseColumns,approveQuote,quoteApproved,quoteTotal} from '../app/purchases.ts';
+import {normalizePurchase,purchaseReady,purchaseColumns,approveQuote,quoteApproved,quoteTotal,quoteUnitPrice} from '../app/purchases.ts';
 import {inArea,mergeScopedTasks} from '../app/permissions.ts';
 import {castApprovalVote} from '../app/approval.ts';
 import {emptyStatusConfig} from '../app/status-config.ts';
@@ -50,3 +50,7 @@ assert.equal(quoteTotal(optionB),optionB.unitPrice*optionB.quantity);
 assert.equal(quoteTotal(selectedQuote(manual)),149.9);
 assert(quoteApproved(approveQuote(manual,lucio)));
 assert.throws(()=>normalizePurchase({...manual,purchase:{...manual.purchase,quotes:[{...optionB,total:-1}]}}),/valor total/);
+
+assert.equal(quoteUnitPrice({...optionB,total:150,quantity:3}),50);
+assert.equal(quoteUnitPrice({...optionB,total:150,quantity:0}),optionB.unitPrice);
+assert.equal(quoteUnitPrice(optionB),optionB.unitPrice);

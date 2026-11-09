@@ -30,6 +30,7 @@ export const isQuoteReview=(task:Task)=>purchaseReady(task)&&task.purchase?.stag
 export const quotesFor=(t:Task):QuoteOption[]=>t.purchase?.quotes??(t.purchase?.quote?[{...t.purchase.quote,id:'legacy',link:''}]:[]);
 export const selectedQuote=(t:Task)=>quotesFor(t).find(q=>q.id===(t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':undefined)));
 export const quoteSnapshot=(t:Task)=>JSON.stringify({quotes:quotesFor(t),selected:t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':''),title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags});
+export const quoteUnitPrice=(q:QuoteOption)=>q.total!==undefined&&q.quantity>0?q.total/q.quantity:q.unitPrice;
 export const quoteTotal=(q:QuoteOption)=>q.total??q.unitPrice*q.quantity;
 export const quoteFiles=(task:Task)=>quotesFor(task).flatMap(quote=>quote.attachments||[]);
 export const canEditQuotes=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&actor.persona==='farias';
