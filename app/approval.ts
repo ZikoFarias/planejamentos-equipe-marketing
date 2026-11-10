@@ -11,10 +11,19 @@ export type Decision='approved'|'adjust';
 export type Approval={administrative?:boolean,designer?:{by:string,name:string,at:string}, round:number,votes:Partial<Record<Reviewer,{decision:Decision,by:string,at:string}>>};
 export const isApproval=(status:string)=>status.startsWith('aprovação ');
 export function approvalContent(task:Task){return JSON.stringify({title:task.title.trim().toLocaleUpperCase('pt-BR'),description:task.description,companies:task.tags,art:task.attachments.filter(a=>a.artworkKind!=='reference').map(a=>({url:a.url,name:a.name})),cover:task.coverUrl})}
+export function stampApprovalDate(previous:Task|undefined,next:Task,now=new Date().toISOString()):Task{
+ if(next.status!=='aprovado ✅')return next;
+ if(previous?.status==='aprovado ✅'&&previous.due===next.due)return next;
+ if(previous?.status==='aprovado ✅'&&!next.due)return next;
+ const date=next.due||new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Sao_Paulo'}).format(new Date(now));
+ const dates=next.approvalDates||previous?.approvalDates||[];
+ return {...next,approvalDates:dates.at(-1)===date?dates:[...dates,date]};
+}
 // Ordinary task writes cannot add, erase or impersonate another person's vote.
 export function protectApproval(previous:Task|undefined,next:Task,admin=false,labels:LabelConfig={}):Task{
+ if(previous?.status==='concluidos e postados'&&!isPurchase(previous)&&next.status==='aprovado ✅')return stampApprovalDate(previous,{...next,approval:previous.approval});
  if(!admin&&next.status==='aprovado ✅'&&spellingFlagged(next))throw Error('Revise ou descarte o alerta ortográfico antes de aprovar.');
- if(admin&&next.status==='aprovado ✅'&&previous?.status!==next.status){if(JSON.stringify(previous?.approval)!==JSON.stringify(next.approval))throw Error('Use os botões de votação para registrar seu próprio voto.');return {...next,approval:{round:(previous?.approval?.round||0)+1,votes:{},administrative:true}}}
+ if(admin&&next.status==='aprovado ✅'&&previous?.status!==next.status){if(JSON.stringify(previous?.approval)!==JSON.stringify(next.approval))throw Error('Use os botões de votação para registrar seu próprio voto.');return stampApprovalDate(previous,{...next,approval:{round:(previous?.approval?.round||0)+1,votes:{},administrative:true}})}
  if(next.status==='aprovado ✅'&&previous?.status!==next.status)throw Error('Use os votos obrigatórios de Lúcio e Mateus para aprovar.');
  if(JSON.stringify(previous?.approval)!==JSON.stringify(next.approval))throw Error('Use os botões de votação para registrar seu próprio voto.');
  const entering=isApproval(next.status)&&(!previous||!isApproval(previous.status));
@@ -29,20 +38,20 @@ export function castApprovalVote(task:Task,actor:Actor&{email:string,name:string
  const designer=actor.role==='editor'&&['farias','luiz'].includes(actor.persona)&&isPurchase(task)&&purchaseHasArt(task)&&task.assignees.some(name=>name.toLowerCase()===actor.persona);
  if(designer&&decision==='approved'&&isApproval(task.status)){
   if(!statusDefinitions(config).some(s=>s.id==='aprovado ✅'))throw Error('O status APROVADO precisa estar ativo.');
-  return syncPurchaseArt({...task,status:'aprovado ✅',approval:{round:task.approval?.round||1,votes:{},designer:{by:actor.email,name:actor.name,at:now}},history:[{text:actor.name+' aprovou a arte para Compras',by:actor.name,at:now},...task.history]},task);
+  return syncPurchaseArt(stampApprovalDate(task,{...task,status:'aprovado ✅',approval:{round:task.approval?.round||1,votes:{},designer:{by:actor.email,name:actor.name,at:now}},history:[{text:actor.name+' aprovou a arte para Compras',by:actor.name,at:now},...task.history]},now),task);
  }
  if(actor.role!=='administrador'&&!(actor.role==='editor'&&['lucio','mateus'].includes(actor.persona)))throw Error('Apenas Lucio e Mateus podem votar, cada um pela própria conta.');
  if(!['approved','adjust'].includes(decision))throw Error('Voto inválido.');
  if(actor.role==='administrador'&&decision==='approved'&&task.status==='aprovado ✅'&&task.approval?.administrative)return task;
  if(!isApproval(task.status))throw Error('Encaminhe o cartão para aprovação antes de votar. Uma nova aprovação inicia uma nova rodada.');
  const active=new Set(statusDefinitions(config).map(s=>s.id));if(!active.has('ajustar ⚠️')||!active.has('aprovado ✅'))throw Error('Os status AJUSTAR e APROVADO precisam estar ativos para a votação.');
- if(actor.role==='administrador'&&decision==='approved')return syncPurchaseArt({...task,status:'aprovado ✅',approval:{round:task.approval?.round||1,votes:{},administrative:true},history:[{text:'Registrou aprovação administrativa, sem necessidade das outras aprovações.',by:actor.name,at:now},...task.history]},task);
+ if(actor.role==='administrador'&&decision==='approved')return syncPurchaseArt(stampApprovalDate(task,{...task,status:'aprovado ✅',approval:{round:task.approval?.round||1,votes:{},administrative:true},history:[{text:'Registrou aprovação administrativa, sem necessidade das outras aprovações.',by:actor.name,at:now},...task.history]},now),task);
  const reviewer=(actor.role==='administrador'?actor.reviewer||actor.persona:actor.persona) as Reviewer;if(!['lucio','mateus'].includes(reviewer))throw Error('Apenas Lucio e Mateus podem receber um voto do administrador.');if(lucioOnly(task,config.labels)&&reviewer!=='lucio')throw Error('Este cartão é aprovado apenas por Lucio.');const current=task.approval||{round:1,votes:{}};
  const approval:Approval={round:current.round,votes:{...current.votes,[reviewer]:{decision,by:actor.email,at:now}}};
  const values=lucioOnly(task,config.labels)?[approval.votes.lucio].filter(Boolean):Object.values(approval.votes);
  const status=values.some(v=>v?.decision==='adjust')?'ajustar ⚠️':approval.votes.lucio?.decision==='approved'&&(lucioOnly(task,config.labels)||approval.votes.mateus?.decision==='approved')?'aprovado ✅':task.status;
  if(current.votes[reviewer]?.decision===decision&&status===task.status)return task;
- return syncPurchaseArt({...task,status,approval,history:[{text:`${actor.name}${actor.role==='administrador'?' por '+reviewer:''} votou ${decision==='approved'?'aprovado':'ajustar'} · rodada ${approval.round}`,by:actor.name,at:now},...task.history]},task);
+ return syncPurchaseArt(stampApprovalDate(task,{...task,status,approval,history:[{text:`${actor.name}${actor.role==='administrador'?' por '+reviewer:''} votou ${decision==='approved'?'aprovado':'ajustar'} · rodada ${approval.round}`,by:actor.name,at:now},...task.history]},now),task);
 }
 
 export type ApprovalRemoval=Reviewer|'administrative'|'designer';

@@ -3,14 +3,16 @@ import type {Actor} from './permissions';
 import {lucioOnly} from './reviewer-policy';
 import type {LabelConfig} from './labels';
 import {isPurchase} from './purchases';
+import {stampApprovalDate} from './approval';
 export function canAttachArt(task:Task,actor:Actor){return actor.role==='administrador'||actor.persona!=='laura'&&!(['lucio','mateus'].includes(actor.persona)&&(task.status.startsWith('em andamento ')||task.status.startsWith('aprovação ')))}
 export function guardArtFlow(previous:Task|undefined,next:Task,actor:Actor,labels:LabelConfig={}):Task{
  // Purchases retain their separate budget workflow and Lucio-only approval.
- if(actor.role==='administrador')return {...next,workflowResume:next.status==='stand-by ⛔'?previous?.status:undefined};
+ if(actor.role==='administrador')return stampApprovalDate(previous,{...next,workflowResume:next.status==='stand-by ⛔'?previous?.status:undefined});
  if(previous?.status==='aprovado ✅'&&next.status==='ajustar ⚠️')return {...next,workflowResume:undefined};
  if(next.status==='ajustar ⚠️'&&previous?.status!==next.status&&!['lucio','mateus','farias','luiz'].includes(actor.persona))throw Error('Lúcio, Mateus, Farias e Luiz podem encaminhar para Ajustar.');
  if(isPurchase(next))return next;
  const before=previous?.status,after=next.status;
+ if(previous?.status==='concluidos e postados'&&!isPurchase(previous)&&after==='aprovado ✅')return stampApprovalDate(previous,{...next,workflowResume:undefined});
  if(after==='ajustar ⚠️'&&before!==after&&!['lucio','mateus','farias','luiz'].includes(actor.persona))throw Error('Lúcio, Mateus, Farias e Luiz podem encaminhar para Ajustar.');
  if(previous&&!canAttachArt(previous,actor)&&JSON.stringify(previous.attachments)!==JSON.stringify(next.attachments))throw Error('Lúcio e Mateus apenas revisam nesta etapa; não podem inserir ou alterar artes.');
  if(!previous){if(!['a fazer farias','a fazer luiz'].includes(after))throw Error('Crie o cartão em A Fazer Farias ou A Fazer Luiz.');return {...next,workflowResume:undefined};}
