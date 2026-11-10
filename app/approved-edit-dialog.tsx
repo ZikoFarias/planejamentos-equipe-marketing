@@ -3,7 +3,7 @@ import {useEffect,useRef,useId} from 'react';
 import type {Task} from './model';
 export function approvedEdits(previous:Task|undefined,next:Task){
  if(previous?.status!=='aprovado ✅')return false;
- const fields=['title','description','attachments','coverUrl','start','due','dueTime','priority','subtasks','checklist'] as const;
+ const fields=['title','description','attachments','coverUrl','priority','subtasks','checklist'] as const;
  if(fields.some(key=>JSON.stringify(previous[key])!==JSON.stringify(next[key])))return true;
  return (['tags','assignees'] as const).some(key=>JSON.stringify([...previous[key]].sort())!==JSON.stringify([...next[key]].sort()));
 }

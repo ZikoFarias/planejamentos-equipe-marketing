@@ -6,7 +6,7 @@ import {guardArtFlow} from './art-flow';
 import {protectSpelling} from './spelling';
 import {withParticipants} from './participants';
 import {isPurchase,purchaseHasArt,purchaseReady,isQuoteReview,normalizePurchase,guardPurchaseEdit,guardPurchaseFlow} from './purchases';
-import {protectApproval} from './approval';
+import {protectApproval,stampApprovalDate} from './approval';
 import {StatusConfig,emptyStatusConfig,configuredTask,customStatus} from './status-config';
 import {stampPosted} from './task-order';
 import type {Task} from './model';
@@ -35,7 +35,7 @@ const sameTaskData=(a:Task,b:Task)=>{const encode=(value:Task)=>JSON.stringify(v
 export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=new Date().toISOString(),config:StatusConfig=emptyStatusConfig):Task[]{
  if(actor.role==='visualizador'||(actor.role!=='administrador'&&!actor.persona))throw Error('Seu perfil não permite alterar tarefas.');
  const old=new Map(current.map(t=>[t.id,t]));
- const next=incoming.map(t=>{const previous=old.get(t.id);if(JSON.stringify(previous?.caption)!==JSON.stringify(t.caption))throw Error('Use a área de legendas para atualizar a legenda.');if(previous&&!canManageTask(previous,actor)){if(!sameTaskData(previous,t)&&!sameTaskData(withParticipants(previous,config.labels),t))throw Error('Você pode visualizar este cartão, mas apenas o responsável pode alterá-lo.');return previous;}t=protectSpelling(previous,t);
+ const next=incoming.map(t=>{const previous=old.get(t.id);if(JSON.stringify(previous?.caption)!==JSON.stringify(t.caption))throw Error('Use a área de legendas para atualizar a legenda.');if(previous&&!canManageTask(previous,actor)){if(!sameTaskData(previous,t)&&!sameTaskData(withParticipants(previous,config.labels),t))throw Error('Você pode visualizar este cartão, mas apenas o responsável pode alterá-lo.');return previous;}if(!previous&&!t.start)t={...t,start:new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Sao_Paulo'}).format(new Date(now))};t=protectSpelling(previous,t);
  guardPurchaseEdit(previous,t,actor);
  const changed=!previous||!sameTaskData(previous,t);const task=changed?stampPosted(previous,guardPurchaseFlow(previous,normalizePurchase(protectApproval(previous,{...assignStatusOwner(configuredTask(assignStatusOwner(normalizeApproval(t),config.labels),config),config.labels),title:t.title.trim().toLocaleUpperCase('pt-BR')},actor.role==='administrador',config.labels),previous,actor.role==='administrador'),actor),now):t;
  if(!previous&&canCreateTask(task,actor)&&actor.role==='editor'&&['a fazer farias','a fazer luiz'].includes(task.status))return captionAfterArt(previous,guardArtFlow(previous,task,actor,config.labels));
@@ -44,7 +44,7 @@ export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=
  if(!previous&&!isPurchase(task)&&actor.role!=='administrador'&&!['a fazer farias','a fazer luiz'].includes(task.status))throw Error('Crie as artes apenas em A FAZER FARIAS ou A FAZER LUIZ.');
 
  if(changed&&(sharedStatuses.includes(task.status)||task.status.startsWith('aprovação ')||customStatus(task.status))&&!assignedTo(task,'luiz')&&!assignedTo(task,'farias'))throw Error('Atribua a tarefa a Luiz e/ou Farias antes de enviar para aprovação ou uma etapa compartilhada.');
- return captionAfterArt(previous,guardArtFlow(previous,task,actor,config.labels));});
+ return stampApprovalDate(previous,captionAfterArt(previous,guardArtFlow(previous,task,actor,config.labels)),now);});
  const ids=new Set(next.map(t=>t.id));if(ids.size!==next.length)throw Error('Identificador de tarefa duplicado.');
  const incomingIds=new Set(next.map(t=>t.id));return [...current.filter(t=>!incomingIds.has(t.id)&&!canManageTask(t,actor)),...next];
 }
