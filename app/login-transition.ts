@@ -1,6 +1,6 @@
 const transitionKey='marketing-login-entrance';
 export const transitionShell=`<div class="login-reveal-stage" role="status" aria-label="Carregando o planejamento" hidden>
-<svg class="login-reveal-veil" width="100%" height="100%" aria-hidden="true"><defs><mask id="luke-reveal-mask"><rect width="100%" height="100%" fill="white"/><circle class="login-reveal-aperture" cx="50%" cy="50%" r="0" fill="black"/></mask></defs><g mask="url(#luke-reveal-mask)"><rect width="100%" height="100%" fill="#070e20"/><image href="/login-aurora.svg" width="100%" height="100%" preserveAspectRatio="xMidYMid slice"/></g></svg>
+<svg class="login-reveal-veil" width="100%" height="100%" aria-hidden="true"><defs><mask id="luke-reveal-mask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%"><rect width="100%" height="100%" fill="white"/><circle class="login-reveal-aperture" cx="50%" cy="50%" r="0" fill="black"/></mask></defs><g mask="url(#luke-reveal-mask)"><rect width="100%" height="100%" fill="#070e20"/><image href="/login-aurora.svg" width="100%" height="100%" preserveAspectRatio="xMidYMid slice"/></g></svg>
 <svg class="login-reveal-logo" viewBox="42.8551025390625 583.4224243164062 309.8479919433594 52.0419921875" aria-hidden="true"><use href="/brands/group-transparent.svg#luke-mark"/></svg>
 <span class="login-reveal-label">Preparando seu planejamento…</span></div>`;
 
