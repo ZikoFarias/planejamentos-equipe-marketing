@@ -31,13 +31,21 @@ export async function navigateWithLogo(destination:string){
 }
 
 export function installBoardEntrance(){
- const stage=document.querySelector<HTMLElement>('.login-reveal-stage');
  let created=0;
  try{created=Number(sessionStorage.getItem(transitionKey));sessionStorage.removeItem(transitionKey)}catch{}
- if(!stage||!created||Date.now()-created>30000){
+ let stage=document.querySelector<HTMLElement>('.login-reveal-stage');
+ if(!created||Date.now()-created>30000){
   stage?.remove();
   document.documentElement.classList.remove('luke-entering');
   return;
+ }
+ // The login page and board are separate document loads, so the transition
+ // overlay created before navigation does not survive. Recreate it on the board.
+ if(!stage){
+  const template=document.createElement('template');
+  template.innerHTML=transitionShell;
+  stage=template.content.firstElementChild as HTMLElement;
+  document.body.appendChild(stage);
  }
  stage.hidden=false;
  const root=document.getElementById('marketing-root');
