@@ -1,4 +1,4 @@
-import {canEditQuotes,isPurchase,quotesFor,selectedQuote,MAX_QUOTE_FILES} from '../app/purchases';
+import {canEditQuotes,isPurchase,quotesFor,selectedQuote,quoteApproved,MAX_QUOTE_FILES} from '../app/purchases';
 import {canAttachArt} from '../app/art-flow';
 import type {Task,Attachment} from '../app/model';
 import {canManageTask,canSeeTask,mergeScopedTasks,names,type Actor} from '../app/permissions';
@@ -20,6 +20,7 @@ export async function attachCentralArtwork(actor:Actor&{db:D1Database,user:{emai
    if(!isPurchase(task)||!canEditQuotes(actor)||!task.purchase)throw Error('Seu acesso ao orçamento mudou durante o envio.');
    const quotes=quotesFor(task),quote=quotes.find(q=>q.id===quoteId);
    if(!quote)throw Error('O orçamento foi removido durante o envio.');
+   if(attachment.purpose==='invoice'&&(!quoteApproved(task)||selectedQuote(task)?.id!==quoteId))throw Error('A NF só pode ser anexada ao orçamento aprovado.');
    if(quote.attachments?.some(a=>a.drive?.fileId===attachment.drive?.fileId))return {tasks:tasks.filter(t=>canSeeTask(t,actor)),revision:row!.revision};
    if((quote.attachments?.length||0)>=MAX_QUOTE_FILES)throw Error('Este orçamento atingiu o limite de anexos.');
    candidate={...task,purchase:{...task.purchase,selectedQuoteId:selectedQuote(task)?.id,quotes:quotes.map(q=>q.id===quoteId?{...q,attachments:[...q.attachments||[],attachment]}:q)}};

@@ -29,7 +29,7 @@ export function syncPurchaseArt(task:Task,previous?:Task):Task{
 export const isQuoteReview=(task:Task)=>purchaseReady(task)&&task.purchase?.stage==='orçamento';
 export const quotesFor=(t:Task):QuoteOption[]=>t.purchase?.quotes??(t.purchase?.quote?[{...t.purchase.quote,id:'legacy',link:''}]:[]);
 export const selectedQuote=(t:Task)=>quotesFor(t).find(q=>q.id===(t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':undefined)));
-export const quoteSnapshot=(t:Task)=>JSON.stringify({quotes:quotesFor(t),selected:t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':''),title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags});
+export const quoteSnapshot=(t:Task)=>JSON.stringify({quotes:quotesFor(t).map(q=>q.attachments?.some(a=>a.purpose==='invoice')?Object.fromEntries(Object.entries({...q,attachments:q.attachments.filter(a=>a.purpose!=='invoice')}).filter(([key,value])=>key!=='attachments'||(value as unknown[]).length>0)):q),selected:t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':''),title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags});
 export const quoteUnitPrice=(q:QuoteOption)=>q.total!==undefined&&q.quantity>0?q.total/q.quantity:q.unitPrice;
 export const quoteTotal=(q:QuoteOption)=>q.total??q.unitPrice*q.quantity;
 export const quoteFiles=(task:Task)=>quotesFor(task).flatMap(quote=>quote.attachments||[]);
@@ -40,10 +40,13 @@ export const quoteApproved=(t:Task)=>quoteValid(t)&&(t.purchase?.quoteApproval?.
 export const money=(amount:number)=>amount.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 export function normalizePurchase(t:Task,previous?:Task,admin=false):Task{
  if(!isPurchase(t))return {...t,purchase:undefined};
+ if(previous&&quoteApproved(previous)&&(selectedQuote(t)?.id||'')!==(selectedQuote(previous)?.id||''))throw Error('O orçamento aprovado não pode ser desmarcado ou trocado.');
  if(t.purchase&&(typeof t.purchase.requiresArt!=='boolean'||!purchaseColumns.some(([id])=>id===t.purchase!.stage)))throw Error('Etapa de compra inválida.');
  if(t.purchase?.quote){const q=t.purchase.quote;if(typeof q.place!=='string'||q.place.length>300||!Number.isFinite(q.unitPrice)||q.unitPrice<0||q.unitPrice>1e9||!Number.isFinite(q.quantity)||q.quantity<0||q.quantity>1e9)throw Error('Informe local, valor e quantidade válidos.');}
  if(t.purchase?.quotes!==undefined){const rows=t.purchase.quotes;if(!Array.isArray(rows)||rows.length>30||new Set(rows.map(q=>q?.id)).size!==rows.length||rows.some(q=>!q||typeof q.id!=='string'||!q.id||q.id.length>100||typeof q.place!=='string'||q.place.length>300||typeof q.link!=='string'||q.link.length>2000||(q.link&&!/^https?:\/\//.test(q.link))||!Number.isFinite(q.unitPrice)||q.unitPrice<0||q.unitPrice>1e9||!Number.isFinite(q.quantity)||q.quantity<0||q.quantity>1e9))throw Error('Revise os orçamentos: use links http/https, valores e quantidades válidos (até 30 opções).');
  for(const q of rows){
+  for(const a of q.attachments||[]){if(a.purpose==='invoice'&&(!previous||!quoteApproved(previous)||selectedQuote(previous)?.id!==q.id||previewKind(a)!=='pdf'))throw Error('A NF deve ser um PDF do orçamento aprovado.');const old=previous&&quotesFor(previous).find(row=>row.id===q.id)?.attachments?.find(file=>file.url===a.url);if(old&&old.purpose!==a.purpose)throw Error('Não é possível alterar o tipo de um anexo existente.');}
+
   if(q.total!==undefined&&(!Number.isFinite(q.total)||q.total<0||q.total>1e9))throw Error('Informe um valor total válido para o orçamento.');
   if(q.attachments!==undefined&&(!Array.isArray(q.attachments)||q.attachments.length>MAX_QUOTE_FILES||q.attachments.some(a=>!validAttachmentMetadata(a)||!a.drive?.central||a.url!==a.drive.url||typeof a.name!=='string'||!['image','pdf'].includes(previewKind(a)))))throw Error('Anexe apenas imagens e PDFs válidos ao orçamento.');
  }
@@ -79,7 +82,7 @@ export function approveQuote(task:Task,actor:{role:string,persona:string,email:s
 }
 
 export function guardPurchaseEdit(previous:Task|undefined,next:Task,actor:Actor){
- if(actor.role!=='administrador'&&next.purchase?.selectedQuoteId&&next.purchase.selectedQuoteId!==(previous?selectedQuote(previous)?.id:undefined)&&actor.persona!=='lucio')throw Error('Apenas Lúcio pode selecionar o orçamento.');
+ if(actor.role!=='administrador'&&(next.purchase?.selectedQuoteId||'')!==(previous?.purchase?.selectedQuoteId||'')&&actor.persona!=='lucio')throw Error('Apenas Lúcio pode selecionar o orçamento.');
  if(!previous||!isPurchase(previous)||!isPurchase(next)||actor.role==='administrador'||actor.persona==='farias')return;
  if(JSON.stringify(previous.purchase)===JSON.stringify(next.purchase))return;
  const {stage:oldStage,selectedQuoteId:oldSelection,...oldFields}=previous.purchase||{};
