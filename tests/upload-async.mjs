@@ -14,3 +14,9 @@ await assert.rejects(()=>attachCentralArtwork(actor,initial.id,'posto-ps',attach
 const local={...initial,title:'Título ainda não salvo',comments:[{text:'Comentário local',by:'Farias',at:'now'}]};const merged=mergeUploadDraft(local,initial,tasks[0]);assert.equal(merged.title,local.title);assert.equal(merged.description,tasks[0].description);assert.equal(merged.attachments[0].url,attachment.url);assert.equal(merged.comments[0].text,'Comentário local');assert.deepEqual(merged.history,tasks[0].history);assert(!JSON.stringify(merged).includes('blob:'));
 const both=mergeUploadDraft(local,initial,{...tasks[0],comments:[{text:'Comentário remoto',by:'Lucio',at:'later'}]});assert.equal(both.comments.length,2);assert(both.comments.some(c=>c.text==='Comentário local'));assert(both.comments.some(c=>c.text==='Comentário remoto'));
 console.log('PASS: server-side attachment survives a closed dialog, concurrent changes retained, CAS retry, idempotency, role/company protection and unsaved local edits merged without blob persistence.');
+
+// Quote uploads are linked to their original card even after its editor has closed.
+const quoteTask={...initial,id:'quote-background',tags:['fibroplast','COMPRA'],purchase:{requiresArt:false,stage:'comprar',quotes:[{id:'quote-1',place:'Fornecedor',link:'',unitPrice:10,quantity:1}]}};
+tasks=[structuredClone(quoteTask)];revision++;const pdf={...attachment,name:'orcamento.pdf',type:'application/pdf'};
+await attachCentralArtwork(actor,quoteTask.id,'fibroplast',pdf,'quote-1');assert.equal(tasks[0].purchase.quotes[0].attachments[0].name,'orcamento.pdf');assert.equal(tasks[0].attachments.length,0);const beforeRepeat=writes;await attachCentralArtwork(actor,quoteTask.id,'fibroplast',pdf,'quote-1');assert.equal(writes,beforeRepeat);
+console.log('PASS: background quote upload stays on its original quote and never becomes artwork or duplicates.');

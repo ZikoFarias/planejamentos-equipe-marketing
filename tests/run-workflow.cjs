@@ -35,6 +35,7 @@ execFileSync(process.execPath,['tests/media-navigation.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['tests/upload-kind-api.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/calendar-cards.cjs'],{stdio:'inherit'});
+execFileSync(process.execPath,['tests/upload-close.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/attachment-formats.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['tests/central-media-formats.cjs'],{stdio:'inherit'});
