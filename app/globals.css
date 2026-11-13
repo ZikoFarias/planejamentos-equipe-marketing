@@ -970,8 +970,8 @@ html.luke-entering .login-reveal-stage{display:block}
 .task-attachments .attachment-grid .attachment-tile{position:relative;aspect-ratio:4/3;height:auto;min-height:0;padding:0;border-radius:12px;overflow:hidden;background:#182e40}
 .task-attachments .attachment-tile>.image-zoom-trigger{position:absolute;inset:0;display:block;width:100%;height:100%;border-radius:inherit;overflow:hidden}
 .task-attachments .attachment-tile .attachment-image,.task-attachments .attachment-tile .cover-image,.task-attachments .attachment-tile .attachment-video{display:block;width:100%;height:100%;max-height:none;object-fit:cover;object-position:center;border-radius:inherit}
-.pdf-tile-preview.pdf-page-thumbnail{width:100%;height:100%;min-height:0;aspect-ratio:4/3;border-radius:12px;clip-path:none!important;background:#20384a}
-.pdf-tile-preview.pdf-page-thumbnail:after{display:none!important}
+.pdf-tile-preview.pdf-page-thumbnail{width:100%;height:100%;min-height:0;aspect-ratio:3/4;border-radius:12px;clip-path:polygon(0 0,calc(100% - 25px) 0,100% 25px,100% 100%,0 100%);background:#20384a}
+.pdf-tile-preview.pdf-page-thumbnail:after{display:block}
 .pdf-tile-preview.pdf-page-thumbnail>img{object-fit:cover;object-position:center;border-radius:inherit}
 .pdf-thumbnail-type{position:absolute;z-index:1;top:50%;left:50%;transform:translate(-50%,-50%);padding:5px 9px;border-radius:5px;background:#102538bf;color:white;font-size:12px;font-weight:700;pointer-events:none}
 .task-attachments .attachment-tile .attachment-caption{position:absolute;z-index:3;bottom:0;left:0;right:0;margin:0;padding:10px 40px 10px 9px;box-sizing:border-box;background:#102538ed;color:white;font-size:11px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .15s}
@@ -982,3 +982,5 @@ html.luke-entering .login-reveal-stage{display:block}
 @media(hover:none){.task-attachments .attachment-tile .attachment-caption,.task-attachments .attachment-tile>.attachment-options-trigger{opacity:1}.task-attachments .attachment-tile>.attachment-options-trigger{pointer-events:auto}}
 
 .task-attachments .attachment-grid .attachment-tile,.pdf-tile-preview.pdf-page-thumbnail{aspect-ratio:3/4}
+
+.task-attachments .attachment-grid .attachment-tile .attachment-image,.task-attachments .attachment-grid .attachment-tile .cover-image,.task-attachments .attachment-grid .attachment-tile .attachment-video{height:100%!important;max-height:none!important;object-fit:cover!important;width:100%;object-position:center;border-radius:inherit}
