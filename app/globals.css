@@ -1016,3 +1016,9 @@ html.luke-entering .login-reveal-stage{display:block}
 .task-attachments .attachment-grid .attachment-tile:hover{box-shadow:none!important}.task-attachments .attachment-tile>.card-border-glow{display:none}
 
 .calendar-card .card-approval-votes{display:flex;align-items:center;gap:6px;margin:6px 0;position:relative}.calendar-card .card-approval-votes .caption-mark{position:static;transform:none}
+
+.caption-heading-actions{display:flex;align-items:center;gap:8px;margin-left:auto}.caption-heading-actions .caption-mark{position:static;transform:none}.caption-copy{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;padding:7px;flex:none}
+
+.description-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.description-heading h3{margin:0}.description-heading{margin-bottom:12px}
+
+.task-detail-main textarea.description-expanded{max-height:none!important;overflow:hidden!important;resize:none;transition:none}
