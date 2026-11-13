@@ -1012,3 +1012,5 @@ html.luke-entering .login-reveal-stage{display:block}
 .card-border-glow{filter:drop-shadow(0 0 3px #009dff) drop-shadow(0 0 6px #0088ffb3)}.card-border-glow path{stroke:#00a6ff;stroke-width:2}@media(hover:hover){.app .task:not(.dragging,.card-drag-preview):hover,.task-attachments .attachment-tile:hover{box-shadow:0 0 8px #009dff99,0 0 20px #0088ff59!important}}
 
 .task-attachments .attachment-grid .attachment-tile.pdf-attachment-tile{width:90%;justify-self:center;align-self:center}
+
+.task-attachments .attachment-grid .attachment-tile:hover{box-shadow:none!important}.task-attachments .attachment-tile>.card-border-glow{display:none}
