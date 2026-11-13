@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useId,useRef,useState,createContext,useContext} from 'react';
 import type {ReactNode} from 'react';
-import {MoreVertical,Check,Download,ExternalLink,Trash2} from 'lucide-react';
+import {MoreVertical,Check,Download,CloudCheck,Trash2} from 'lucide-react';
 import type {Task,Attachment} from './model';
 import {SaveToDrive} from './save-to-drive';
 import type {ArtworkKind} from './drive-config';
@@ -14,11 +14,9 @@ export function AttachmentOptions({attachment:a,index,task,company,writable,busy
  const openUrl=a.drive?.fileId?'/api/drive/central/media?id='+encodeURIComponent(a.drive.fileId):(/^https?:\/\//.test(a.url)||/^\/api\/files\/[a-f0-9-]{36}$/.test(a.url))?a.url:'#';
  return <><button ref={trigger} type="button" className="attachment-options-trigger" aria-label={'Opções de '+a.name} aria-controls={id} aria-expanded={expanded} onClick={()=>{if(expanded)close();else{menu.current?.showPopover?.();setExpanded(true);place()}}}><MoreVertical size={18}/></button>
  <div ref={menu} id={id} popover="auto" className="attachment-options" aria-label={'Informações e ações de '+a.name} onToggle={e=>{const open=(e.nativeEvent as ToggleEvent).newState==='open';setExpanded(open);if(open)place()}}>
-  <strong className="attachment-file-name">{a.name}</strong><small>{sizeLabel(a.size)}</small>
-  {a.backup?<p className="attachment-backup-status">{a.backup.status==='pending'?'Backup em andamento':'Backup não confirmado'}{a.backup.message?' · '+a.backup.message:''}</p>:a.drive?<small>Arquivo confirmado no Drive</small>:null}
-  <a href={openUrl} target="_blank" rel="noreferrer"><ExternalLink size={14}/>Abrir arquivo</a>
-  <a href={a.drive?.fileId?'/api/drive/central/media?id='+encodeURIComponent(a.drive.fileId)+'&download=1':openUrl} download={a.name}><Download size={14}/>Baixar arquivo</a>
-  {a.drive&&/^[a-zA-Z0-9_-]{10,200}$/.test(a.drive.fileId)&&<a href={'https://drive.google.com/file/d/'+a.drive.fileId+'/view'} target="_blank" rel="noreferrer"><ExternalLink size={14}/>Abrir no Drive</a>}
+  <div className="attachment-menu-heading"><strong className="attachment-file-name">{a.name}</strong>{a.drive&&!a.backup&&<span className="attachment-cloud-confirmed" aria-label="Arquivo confirmado no Drive" title="Arquivo confirmado no Drive"><CloudCheck size={19}/></span>}</div><small>{sizeLabel(a.size)}</small>
+  {a.backup?<p className="attachment-backup-status">{a.backup.status==='pending'?'Backup em andamento':'Backup não confirmado'}{a.backup.message?' · '+a.backup.message:''}</p>:null}
+  <a className="attachment-download-button" href={a.drive?.fileId?'/api/drive/central/media?id='+encodeURIComponent(a.drive.fileId)+'&download=1':openUrl} download={a.name}><Download size={14}/>Baixar arquivo</a>
   {writable&&<><button type="button" disabled={busy} aria-pressed={a.artworkKind==='final'} onClick={()=>{onUpdate(t=>{const attachments=t.attachments.map((item,i)=>i===index?{...item,artworkKind:(a.artworkKind==='final'?'reference':'final') as ArtworkKind}:item);return {...t,attachments,coverUrl:automaticCover(attachments)}});close()}}><Check size={14}/>{a.artworkKind==='final'?'Usar como referência':'Marcar como arte final'}</button>
   {previewKind(a)==='image'&&<button type="button" disabled={busy} aria-pressed={coverFor(task)?.url===a.url} onClick={()=>{onUpdate(t=>({...t,coverUrl:a.url}));close()}}>{coverFor(task)?.url===a.url?'Capa do cartão':'Usar como capa'}</button>}
   <SaveToDrive attachment={a} company={company} disabled={busy} onBusy={onBusy} onSaved={attachment=>onUpdate(t=>({...t,attachments:t.attachments.map((item,i)=>i===index?attachment:item)}))}/>

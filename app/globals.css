@@ -1022,3 +1022,5 @@ html.luke-entering .login-reveal-stage{display:block}
 .description-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}.description-heading h3{margin:0}.description-heading{margin-bottom:12px}
 
 .task-detail-main textarea.description-expanded{max-height:none!important;overflow:hidden!important;resize:none;transition:none}
+
+.attachment-menu-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.attachment-menu-heading .attachment-file-name{min-width:0;overflow-wrap:anywhere}.attachment-cloud-confirmed{display:inline-flex;flex:none;color:#64dbb1;margin-left:auto}.attachment-options a.attachment-download-button{display:flex;align-items:center;gap:8px;box-sizing:border-box;width:100%;min-height:36px;padding:9px 12px;border:1px solid #ffffff0d;border-radius:10px;background:#263b50;color:#e1eaf2;text-decoration:none;font:inherit;font-size:12px;cursor:pointer}.attachment-options a.attachment-download-button:hover{background:#324b64}
