@@ -47,6 +47,7 @@ export function normalizePurchase(t:Task,previous?:Task,admin=false):Task{
  for(const q of rows){
   for(const a of q.attachments||[]){if(a.purpose==='invoice'&&(!previous||!quoteApproved(previous)||selectedQuote(previous)?.id!==q.id||previewKind(a)!=='pdf'))throw Error('A NF deve ser um PDF do orçamento aprovado.');const old=previous&&quotesFor(previous).find(row=>row.id===q.id)?.attachments?.find(file=>file.url===a.url);if(old&&old.purpose!==a.purpose)throw Error('Não é possível alterar o tipo de um anexo existente.');}
 
+  if(q.description!==undefined&&(typeof q.description!=='string'||q.description.length>2000))throw Error('Use até 2000 caracteres na descrição do orçamento.');
   if(q.total!==undefined&&(!Number.isFinite(q.total)||q.total<0||q.total>1e9))throw Error('Informe um valor total válido para o orçamento.');
   if(q.attachments!==undefined&&(!Array.isArray(q.attachments)||q.attachments.length>MAX_QUOTE_FILES||q.attachments.some(a=>!validAttachmentMetadata(a)||!a.drive?.central||a.url!==a.drive.url||typeof a.name!=='string'||!['image','pdf'].includes(previewKind(a)))))throw Error('Anexe apenas imagens e PDFs válidos ao orçamento.');
  }

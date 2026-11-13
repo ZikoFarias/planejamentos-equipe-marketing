@@ -953,3 +953,5 @@ html.luke-entering .login-reveal-stage{display:block}
 .quote-option-card .quote-select-card{align-items:flex-start;justify-content:center;text-align:left}.quote-option-card .quote-select-card>*{text-align:left}
 
 .quote-cards-grid .quote-option-card{min-width:0;overflow:hidden}.quote-cards-grid .quote-select-card{width:100%;min-width:0;max-width:100%;box-sizing:border-box;white-space:normal;align-items:flex-start;justify-content:center;text-align:left}.quote-cards-grid .quote-select-card>*{display:block;min-width:0;max-width:100%;box-sizing:border-box;white-space:normal;overflow-wrap:anywhere;word-break:normal;text-align:left}.quote-cards-grid .quote-option-card>a{display:block;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+
+.quote-description{white-space:pre-wrap!important;overflow-wrap:anywhere}.quote-editor-menu textarea{width:100%;min-width:0;box-sizing:border-box;resize:vertical}
