@@ -996,5 +996,12 @@ html.luke-entering .login-reveal-stage{display:block}
 @media(hover:hover){.app .task:not(.dragging,.card-drag-preview):hover:before,.task-attachments .attachment-tile:hover:before{animation:card-edge-trace 800ms ease-out forwards}.app .task:not(.dragging,.card-drag-preview):hover,.task-attachments .attachment-tile:hover{box-shadow:0 0 7px #228dff80,0 0 18px #228dff40!important}}
 @media(prefers-reduced-motion:reduce){.app .task:hover:before,.task-attachments .attachment-tile:hover:before{animation:none;--card-edge-sweep:180deg;opacity:1}}
 
-/* Subtle diagonal texture on the card information area; cover stays above it. */
-.app .task>.card-open,.app .task>.card-open:hover{background-image:repeating-linear-gradient(43deg,transparent 0 17px,rgba(153,183,212,.055) 17px 18px,transparent 18px 20px)!important;background-color:transparent;background-position:center bottom}.app .task .card-cover{isolation:isolate;background-color:#151619}
+
+
+/* SVG strokes animate only on the perimeter; never paint card content. */
+.app .task:before,.task-attachments .attachment-tile:before{display:none!important}
+.card-border-glow{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:6;opacity:0;border-radius:inherit;filter:drop-shadow(0 0 3px #239aff)}
+.card-border-glow path{fill:none;stroke:#50b4ff;stroke-width:2;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+@keyframes perimeter-blue-trace{to{stroke-dashoffset:0}}
+@media(hover:hover){.app .task:not(.dragging,.card-drag-preview):hover>.card-border-glow,.task-attachments .attachment-tile:hover>.card-border-glow{opacity:1}.app .task:not(.dragging,.card-drag-preview):hover>.card-border-glow path,.task-attachments .attachment-tile:hover>.card-border-glow path{animation:perimeter-blue-trace 800ms ease-out forwards}}
+@media(prefers-reduced-motion:reduce){.card-border-glow path{animation:none!important;stroke-dashoffset:0}}

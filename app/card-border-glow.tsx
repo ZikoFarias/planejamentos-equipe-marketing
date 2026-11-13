@@ -1,0 +1,1 @@
+export function CardBorderGlow(){return <svg className="card-border-glow" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M50 1H93Q99 1 99 7V93Q99 99 93 99H50" pathLength="1" vectorEffect="non-scaling-stroke"/><path d="M50 1H7Q1 1 1 7V93Q1 99 7 99H50" pathLength="1" vectorEffect="non-scaling-stroke"/></svg>}
