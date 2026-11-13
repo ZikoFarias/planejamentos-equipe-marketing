@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {uploadCentralBatch} from '../app/drive-central-client';
+const files=Array.from({length:7},(_,i)=>new File(['data'],`arte-${i}.png`,{type:'image/png'}));
+let active=0,peak=0,finished=0;const callbacks=[];
+const fetcher=async url=>{active++;peak=Math.max(peak,active);await new Promise(resolve=>setTimeout(resolve,10));active--;finished++;const name=new URL(url,'https://test.local').searchParams.get('name');return Response.json({name,url:'https://drive.test/'+name,drive:{central:true},board:{tasks:[],revision:finished}})};
+const result=await uploadCentralBatch(files,{taskId:'original',kind:'reference',signal:new AbortController().signal,onProgress(){},onAttachment:(attachment,board,file)=>{assert.equal(attachment.name,file.name);assert(board);callbacks.push(file)}},fetcher);
+assert.equal(peak,3);assert.equal(result.uploaded,7);assert.equal(callbacks.length,7);assert.equal(new Set(callbacks).size,7);assert.deepEqual(result.errors,[]);
+const partial=await uploadCentralBatch(files,{taskId:'original',kind:'reference',signal:new AbortController().signal,onProgress(){},onAttachment(){}},async url=>String(url).includes('arte-2.png')?Response.json({error:'Falha simulada'},{status:503}):fetcher(url));assert.equal(partial.uploaded,6);assert.equal(partial.errors.length,1);assert.match(partial.errors[0],/arte-2.png/);
+const controller=new AbortController();const cancelled=await uploadCentralBatch(files,{taskId:'original',kind:'reference',signal:controller.signal,onProgress(){},onAttachment(){}},async()=>{controller.abort();throw Error('Cancelado')});assert.equal(cancelled.uploaded,0);assert.equal(cancelled.errors.length,7);
+console.log('PASS: three files upload together, batch finishes all seven without duplicates, one failure preserves other uploads and cancellation retains all pending files.');

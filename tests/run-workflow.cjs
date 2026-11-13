@@ -36,6 +36,9 @@ execFileSync(process.execPath,['tests/upload-kind-api.cjs'],{stdio:'inherit'});
 
 execFileSync(process.execPath,['tests/calendar-cards.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['tests/upload-close.cjs'],{stdio:'inherit'});
+{
+const file=path.resolve('.sites-runtime/upload-parallel-tests.mjs');buildSync({entryPoints:['tests/upload-parallel.mjs'],bundle:true,platform:'node',format:'esm',outfile:file});execFileSync(process.execPath,[file],{stdio:'inherit'});
+}
 
 execFileSync(process.execPath,['tests/attachment-formats.cjs'],{stdio:'inherit'});
 execFileSync(process.execPath,['tests/central-media-formats.cjs'],{stdio:'inherit'});
