@@ -980,3 +980,5 @@ html.luke-entering .login-reveal-stage{display:block}
 .task-attachments .attachment-tile:hover>.attachment-options-trigger,.task-attachments .attachment-tile:focus-within>.attachment-options-trigger,.task-attachments .attachment-tile>.attachment-options-trigger[aria-expanded=true]{opacity:1;pointer-events:auto}
 .task-attachments .attachment-tile>.attachment-final-label{position:absolute;z-index:2;top:7px;left:7px;right:auto;bottom:auto;display:inline-flex;align-items:center;gap:4px;width:auto;padding:3px 6px;border:1px solid #5db58d80;border-radius:4px;background:#154b37;color:#d4f9e7;font-size:10px;line-height:14px;pointer-events:none}
 @media(hover:none){.task-attachments .attachment-tile .attachment-caption,.task-attachments .attachment-tile>.attachment-options-trigger{opacity:1}.task-attachments .attachment-tile>.attachment-options-trigger{pointer-events:auto}}
+
+.task-attachments .attachment-grid .attachment-tile,.pdf-tile-preview.pdf-page-thumbnail{aspect-ratio:3/4}
