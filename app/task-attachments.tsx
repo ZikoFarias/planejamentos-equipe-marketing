@@ -2,11 +2,12 @@
 import {useRef,useState} from 'react';
 import {Paperclip,Check} from 'lucide-react';
 import type {Task,Attachment} from './model';
+import {previewKind} from './media';
 import {AttachmentPreview} from './attachment-preview';
 import {CardBorderGlow} from './card-border-glow';
 import {AttachmentOptions} from './attachment-options';
 import type {ArtworkKind} from './drive-config';
-function AttachmentTile(props:{attachment:Attachment,index:number,task:Task,company:string,writable:boolean,busy:boolean,onBusy:(busy:boolean)=>void,onUpdate:(update:(task:Task)=>Task)=>void}){const a=props.attachment;return <div className="attachment-tile attachment-photo"><CardBorderGlow/><AttachmentPreview attachment={a}/>{a.artworkKind==='final'&&<span className="attachment-final-label"><Check size={12}/>Arte final</span>}<AttachmentOptions {...props}/><div className="attachment-caption" title={a.name}>{a.name}</div></div>}
+function AttachmentTile(props:{attachment:Attachment,index:number,task:Task,company:string,writable:boolean,busy:boolean,onBusy:(busy:boolean)=>void,onUpdate:(update:(task:Task)=>Task)=>void}){const a=props.attachment;return <div className={'attachment-tile attachment-photo '+(previewKind(a)==='pdf'?'pdf-attachment-tile':'')}><CardBorderGlow/><AttachmentPreview attachment={a}/>{a.artworkKind==='final'&&<span className="attachment-final-label"><Check size={12}/>Arte final</span>}<AttachmentOptions {...props}/><div className="attachment-caption" title={a.name}>{a.name}</div></div>}
 
 export function TaskAttachments({task,company,writable,busy,onBusy,onUpdate,onAdd,onDropFiles}:{task:Task,company:string,writable:boolean,busy:boolean,onBusy:(busy:boolean)=>void,onUpdate:(update:(task:Task)=>Task)=>void,activeKind?:ArtworkKind,onKindChange?:(kind:ArtworkKind)=>void,onAdd:(kind:ArtworkKind)=>void,onDropFiles:(files:File[],kind:ArtworkKind)=>void}){
  const fileInput=useRef<HTMLInputElement>(null),[draggingFiles,setDraggingFiles]=useState(false),[dropMessage,setDropMessage]=useState('');
