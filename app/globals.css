@@ -1008,3 +1008,5 @@ html.luke-entering .login-reveal-stage{display:block}
 
 /* Continuous measured perimeter with a lighter blue, plus the requested lower texture. */
 .card-border-glow{filter:drop-shadow(0 0 4px #65baff)}.card-border-glow path{stroke:#a1dcff;stroke-width:1.7;stroke-dasharray:1000;stroke-dashoffset:1000}.app .task>.card-open,.app .task>.card-open:hover{background-image:repeating-linear-gradient(43deg,transparent 0 17px,rgba(153,183,212,.065) 17px 18px,transparent 18px 20px)!important;background-color:transparent;background-position:center bottom}.app .task .card-cover{isolation:isolate;background-color:#151619}@media(prefers-reduced-motion:reduce){.card-border-glow path{stroke-dashoffset:0}}
+
+.card-border-glow{filter:drop-shadow(0 0 3px #009dff) drop-shadow(0 0 6px #0088ffb3)}.card-border-glow path{stroke:#00a6ff;stroke-width:2}@media(hover:hover){.app .task:not(.dragging,.card-drag-preview):hover,.task-attachments .attachment-tile:hover{box-shadow:0 0 8px #009dff99,0 0 20px #0088ff59!important}}
