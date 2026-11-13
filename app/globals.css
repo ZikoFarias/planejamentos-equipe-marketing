@@ -1005,3 +1005,6 @@ html.luke-entering .login-reveal-stage{display:block}
 @keyframes perimeter-blue-trace{to{stroke-dashoffset:0}}
 @media(hover:hover){.app .task:not(.dragging,.card-drag-preview):hover>.card-border-glow,.task-attachments .attachment-tile:hover>.card-border-glow{opacity:1}.app .task:not(.dragging,.card-drag-preview):hover>.card-border-glow path,.task-attachments .attachment-tile:hover>.card-border-glow path{animation:perimeter-blue-trace 800ms ease-out forwards}}
 @media(prefers-reduced-motion:reduce){.card-border-glow path{animation:none!important;stroke-dashoffset:0}}
+
+/* Continuous measured perimeter with a lighter blue, plus the requested lower texture. */
+.card-border-glow{filter:drop-shadow(0 0 4px #65baff)}.card-border-glow path{stroke:#a1dcff;stroke-width:1.7;stroke-dasharray:1000;stroke-dashoffset:1000}.app .task>.card-open,.app .task>.card-open:hover{background-image:repeating-linear-gradient(43deg,transparent 0 17px,rgba(153,183,212,.065) 17px 18px,transparent 18px 20px)!important;background-color:transparent;background-position:center bottom}.app .task .card-cover{isolation:isolate;background-color:#151619}@media(prefers-reduced-motion:reduce){.card-border-glow path{stroke-dashoffset:0}}
