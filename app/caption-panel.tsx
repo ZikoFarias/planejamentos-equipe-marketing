@@ -14,5 +14,5 @@ export function CaptionPanel({task,actor,text,onText,onAction,busy}:{task:Task,a
 export function CardApprovalMarks({task,labels}:{task:Task,labels?:LabelConfig}){
  const reviewers=(['lucio','mateus'] as const).filter(person=>(!lucioOnly(task,labels)||person==='lucio')&&task.approval?.votes[person]?.decision==='approved');
  if(!reviewers.length&&!captionSent(task))return null;
- return <div className="card-approval-votes" aria-label="Aprovações e legenda recebidas">{reviewers.map(person=><span key={person} title={'Aprovado por '+(person==='lucio'?'Lúcio':'Mateus')} aria-label={'Aprovado por '+(person==='lucio'?'Lúcio':'Mateus')}><ThumbsUp size={15}/></span>)}<CaptionMark task={task}/></div>;
+ return <div className="card-approval-votes" aria-label="Aprovações e legenda recebidas">{reviewers.map(person=><span key={person} title={'Aprovado por '+(person==='lucio'?'Lúcio':'Mateus')} aria-label={'Aprovado por '+(person==='lucio'?'Lúcio':'Mateus')}><ThumbsUp size={15} fill={person==='lucio'?'currentColor':'none'}/></span>)}<CaptionMark task={task}/></div>;
 }
