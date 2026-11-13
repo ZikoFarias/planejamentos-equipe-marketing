@@ -1,3 +1,4 @@
+import {preparePdfAssets} from './pdf-assets.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createRequire} from 'node:module';
@@ -10,6 +11,7 @@ const configPath=path.join(root,'server/wrangler.json');
 const config=JSON.parse(await fs.readFile(configPath,'utf8'));
 await fs.cp('dist/server',path.join(root,'server'),{recursive:true,filter:source=>path.basename(source)!=='wrangler.json'});
 await fs.cp('dist/client',path.join(root,'client'),{recursive:true});
+await preparePdfAssets(path.join(root,'client'));
 await build({entryPoints:['server/cloudflare-entry.ts'],bundle:true,platform:'browser',format:'esm',target:'es2022',external:['./index.js','node:*'],outfile:path.join(root,'server/preview.js')});
 const markupModule=path.resolve('.sites-runtime/static-login-markup.cjs');
 await build({entryPoints:['app/login/login-form.tsx'],bundle:true,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],outfile:markupModule});

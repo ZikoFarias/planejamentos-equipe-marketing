@@ -959,3 +959,5 @@ html.luke-entering .login-reveal-stage{display:block}
 .quote-option-card{position:relative}.quote-option-card .quote-thumb{position:absolute;top:9px;right:9px;display:flex;align-items:center;justify-content:center;width:30px;height:30px;padding:5px;background:transparent;border:1px solid transparent;color:inherit}.quote-option-card .quote-thumb[aria-pressed=true]{color:#74e6a8}.quote-option-card .quote-thumb:disabled{opacity:.65}.quote-cards-grid .quote-option-card .quote-select-card{padding-right:30px}
 
 .quote-cards-grid .quote-option-card{padding-bottom:54px}.quote-card-actions{position:absolute;bottom:10px;right:10px;display:flex;gap:6px}.quote-card-actions button{display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:7px}
+
+.pdf-page-thumbnail{position:relative;width:100%;height:150px;overflow:hidden;background:#e9edf0}.pdf-page-thumbnail>img{display:block;width:100%;height:100%;object-fit:contain;object-position:top;background:white}.pdf-thumbnail-open{position:absolute;bottom:5px;right:5px;padding:3px 6px;border-radius:4px;background:#102538;color:white;font-size:10px}
