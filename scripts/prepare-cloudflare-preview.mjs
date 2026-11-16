@@ -9,6 +9,13 @@ const root=path.resolve('.sites-runtime/cloudflare-free-preview');
 // Reuse the isolated preview configuration, including its database identity.
 const configPath=path.join(root,'server/wrangler.json');
 const config=JSON.parse(await fs.readFile(configPath,'utf8'));
+// Replace the generated SSR chunks so Wrangler only bundles the current build.
+const stagedSsr=path.join(root,'server','ssr');
+const realSsr=await fs.realpath(stagedSsr).catch(error=>{if(error.code!=='ENOENT')throw error;});
+if(realSsr){
+ if(path.relative(await fs.realpath(root),realSsr)!==path.join('server','ssr'))throw Error('Unexpected SSR staging path');
+ await fs.rm(realSsr,{recursive:true});
+}
 await fs.cp('dist/server',path.join(root,'server'),{recursive:true,filter:source=>path.basename(source)!=='wrangler.json'});
 await fs.cp('dist/client',path.join(root,'client'),{recursive:true});
 await preparePdfAssets(path.join(root,'client'));
