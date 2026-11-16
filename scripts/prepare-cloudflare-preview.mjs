@@ -30,5 +30,10 @@ await fs.writeFile(path.join(directory,boardScript),boardClient.outputFiles[0].c
 await fs.writeFile(path.join(directory,'board.html'),'<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><link rel="icon" type="image/png" href="/favicon-luke-group.png"><link rel="apple-touch-icon" href="/favicon-luke-group.png"><title>Planejamento de Marketing</title><script>try{const entered=Number(sessionStorage.getItem("marketing-login-entrance"));if(entered&&Date.now()-entered<30000)document.documentElement.classList.add("luke-entering")}catch{}</script>'+links+'</head><body>'+transitionShell+'<div id="marketing-root"><p class="loading" role="status">Carregando seu planejamento…</p></div><noscript>Ative o JavaScript para abrir o quadro.</noscript><script type="module" src="/_team/'+boardScript+'"></script></body></html>');
 config.assets={...config.assets,binding:'ASSETS'};
 config.triggers={...config.triggers,crons:['* * * * *']};
+const bindings=config.durable_objects?.bindings||[];
+config.durable_objects={bindings:[...bindings.filter(binding=>binding.name!=='LIVE_BOARD'),{name:'LIVE_BOARD',class_name:'LiveBoard'}]};
+if(!config.migrations?.some(migration=>migration.tag==='live-board-v1')){
+ config.migrations=[...(config.migrations||[]),{tag:'live-board-v1',new_sqlite_classes:['LiveBoard']}];
+}
 await fs.writeFile(configPath,JSON.stringify(config,null,2)+'\n');
 console.log('Installation prepared: authenticated board and login use lightweight static entry pages; all APIs remain protected.');
