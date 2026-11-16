@@ -1244,6 +1244,17 @@ html.luke-entering .login-reveal-stage{display:block}
  color: #eef7ff;
 }
 
+.app .task > .card-open > .external-media-ribbon { z-index: 7; }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+ .app .task > .card-open > .card-cover .cover-image {
+  transition: transform 220ms ease-out;
+ }
+ .app .task:not(.dragging,.card-drag-preview):hover > .card-open > .card-cover .cover-image {
+  transform: scale(1.07);
+ }
+}
+
 .live-card-drags {
  position: fixed;
  inset: 0;
