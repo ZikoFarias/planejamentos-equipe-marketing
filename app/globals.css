@@ -1152,13 +1152,13 @@ html.luke-entering .login-reveal-stage{display:block}
 .team-sidebar { display: none; }
 .board-area-title { font-size: 13px; font-weight: 650; }
 @media (min-width: 701px) {
- .app.app-full-width { grid-template-columns: 52px minmax(0, 1fr); }
+ .app.app-full-width { grid-template-columns: 0 minmax(0, 1fr); }
  .app.app-full-width:has(> .team-sidebar[data-expanded='true']) {
   grid-template-columns: clamp(220px, 19vw, 258px) minmax(0, 1fr);
  }
  .app.app-full-width > main { grid-column: 2; grid-row: 1; min-width: 0; }
  .team-sidebar {
-  display: block;
+  display: none;
   grid-column: 1;
   grid-row: 1;
   min-height: 0;
@@ -1166,6 +1166,7 @@ html.luke-entering .login-reveal-stage{display:block}
   background: #13243a;
   border-right: 1px solid #314760;
  }
+ .team-sidebar[data-expanded='true'] { display: block; }
  .team-sidebar .unified-account-menu .account-panel {
   position: static;
   width: 100%;
@@ -1177,15 +1178,21 @@ html.luke-entering .login-reveal-stage{display:block}
   box-shadow: none;
   overflow: visible;
  }
- .team-sidebar .team-sidebar-toggle {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  margin: 10px 4px 0 auto;
-  color: #dce7f1;
+ .app.apple-hig .team-sidebar-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  text-align: left;
  }
- .team-sidebar[data-expanded='true'] .team-sidebar-toggle svg { transform: rotate(180deg); }
+ .team-sidebar-trigger .account-avatar { flex: none; }
+ .team-sidebar-trigger .board-area-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ .app.apple-hig .team-sidebar-trigger:hover { background: #ffffff12; }
 }
 @media (max-width: 700px) {
  .mobile-team-menu { display: block; margin-bottom: 10px; }
