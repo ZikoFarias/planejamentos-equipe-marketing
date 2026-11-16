@@ -1133,8 +1133,24 @@ html.luke-entering .login-reveal-stage{display:block}
 }
 .unified-account-menu .account-profile-row { background: #1b3046; }
 .account-profile-row > span:nth-child(2) { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
-.account-profile-row small { text-transform: capitalize; }
-.account-menu-group button > svg:last-child, .account-profile-row > svg:last-child { margin-left: auto; flex: none; }
+.account-profile-row small { color: #b5cadd; }
+.unified-account-menu .account-profile-row .account-avatar { width: 54px; height: 54px; }
+.app.apple-hig .account-profile-row .account-collapse {
+ display: grid;
+ place-items: center;
+ flex: none;
+ width: 30px;
+ height: 34px;
+ min-width: 30px;
+ min-height: 34px;
+ margin-left: auto;
+ padding: 0;
+ border: 0;
+ background: transparent;
+ color: inherit;
+}
+.app.apple-hig .account-profile-row .account-collapse:hover { background: #29455f; }
+.account-menu-group button > svg:last-child { margin-left: auto; flex: none; }
 .account-menu-group button > small { margin-left: auto; color: #b5cadd; font-variant-numeric: tabular-nums; }
 .account-menu-group button > small + svg { margin-left: 0; }
 .unified-account-menu .account-areas button {

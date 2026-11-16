@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {Settings,LogOut,Bell,ChevronDown,ChevronRight,UserRound} from 'lucide-react';
+import {Settings,LogOut,Bell,ChevronDown,ChevronRight,ChevronLeft,UserRound} from 'lucide-react';
 import {photoFrameStyle,type PhotoFrame} from './profiles';
 type AreaLink = {id:string; label:string; count?:number};
 export function AccountAvatar({name,photo,frame}:{name:string;photo?:string;frame?:PhotoFrame}) {
@@ -10,16 +10,18 @@ export function AccountAvatar({name,photo,frame}:{name:string;photo?:string;fram
   {photo && failed!==photo ? <img src={photo} alt="" style={photoFrameStyle(frame)} onError={()=>setFailed(photo)}/> : initials || <UserRound size={17}/>}
  </span>;
 }
-export function AccountMenu({name,email,role,photo,frame,busy,onSettings,onLogout,unread=0,onNotifications,onProfileOpen,areas=[],activeArea,onAreaChange,persistent=false}:{name:string,email:string,role:string,photo?:string,frame?:PhotoFrame,busy:boolean,onSettings:()=>void,onLogout:()=>void,unread?:number,onNotifications?:()=>void,onProfileOpen?:()=>void,areas?:AreaLink[],activeArea?:string,onAreaChange?:(id:string)=>void,persistent?:boolean}){
+export function AccountMenu({name,email,job,role,photo,frame,busy,onSettings,onLogout,unread=0,onNotifications,onProfileOpen,areas=[],activeArea,onAreaChange,persistent=false,onCollapse}:{name:string,email:string,job?:string,role:string,photo?:string,frame?:PhotoFrame,busy:boolean,onSettings:()=>void,onLogout:()=>void,unread?:number,onNotifications?:()=>void,onProfileOpen?:()=>void,areas?:AreaLink[],activeArea?:string,onAreaChange?:(id:string)=>void,persistent?:boolean,onCollapse?:()=>void}){
  const menu=useRef<HTMLDetailsElement>(null);
  useEffect(()=>{const outside=(e:PointerEvent)=>{if(!menu.current?.contains(e.target as Node)&&menu.current)menu.current.open=false};const escape=(e:KeyboardEvent)=>{if(e.key==='Escape'&&menu.current?.open){menu.current.open=false;menu.current.querySelector('summary')?.focus()}};document.addEventListener('pointerdown',outside);document.addEventListener('keydown',escape);return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',escape)}},[]);
  const close=()=>{if(menu.current)menu.current.open=false};
  const avatar = <AccountAvatar name={name} photo={photo} frame={frame}/>;
  const panel = (
   <div className="account-panel">
-   <button className="account-profile-row" type="button" disabled={!role} onClick={()=>{close();onSettings()}}>
-    {avatar}<span><strong>{name||'Equipe'}</strong><span>{email}</span><small>{role}</small></span><ChevronRight size={16}/>
-   </button>
+   <div className="account-profile-row">
+    {avatar}
+    <span><strong>{name||'Equipe'}</strong><span>{job}</span><small>{email}</small></span>
+    {onCollapse&&<button type="button" className="account-collapse" aria-label="Recolher barra lateral" title="Recolher barra lateral" onClick={onCollapse}><ChevronLeft size={18} aria-hidden="true"/></button>}
+   </div>
    <div className="account-menu-group account-areas" role="group" aria-label="Contas e áreas">
     <span className="account-group-label">Contas / Áreas</span>
     {areas.map(area=><button type="button" key={area.id} disabled={!role||busy} aria-current={activeArea===area.id?'page':undefined} onClick={()=>{close();onAreaChange?.(area.id)}}>
