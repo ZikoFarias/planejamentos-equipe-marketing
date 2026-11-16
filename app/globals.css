@@ -1176,6 +1176,42 @@ html.luke-entering .login-reveal-stage{display:block}
  text-align: left;
 }
 
+.task-detail-cover {
+ position: relative;
+ isolation: isolate;
+ padding: 6px;
+}
+.task-detail-cover-backdrop {
+ position: absolute;
+ inset: 0;
+ z-index: -1;
+ max-height: none;
+ pointer-events: none;
+}
+.task-detail-cover .task-detail-cover-backdrop img {
+ display: block;
+ width: 100%;
+ height: 100%;
+ max-height: none;
+ object-fit: cover;
+ filter: blur(8px) brightness(.58);
+ transform: scale(1.05);
+}
+.task-detail-cover-backdrop::after {
+ content: '';
+ position: absolute;
+ inset: 0;
+ background: linear-gradient(0deg, #060f1add, transparent 64%), linear-gradient(90deg, #060f1a88, transparent 25% 75%, #060f1a88);
+}
+.task-detail-cover-backdrop .file-placeholder { display: none; }
+.task-detail-cover .attachment-image {
+ width: auto;
+ height: 100%;
+ max-height: 100%;
+ border-radius: 9px;
+ box-shadow: 0 0 0 1px #ffffff40, 0 2px 10px #020509c0;
+}
+
 .live-card-drags {
  position: fixed;
  inset: 0;
