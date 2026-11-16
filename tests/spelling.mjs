@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {blank} from '../app/model';
-import {finalImages,spellingFingerprint,spellingFlagged,parseSpelling,applySpelling,protectSpelling} from '../app/spelling';
+import {finalImages,needsFilenameRecheck,spellingFingerprint,spellingFlagged,parseSpelling,applySpelling,protectSpelling} from '../app/spelling';
 import {protectApproval,castApprovalVote} from '../app/approval';
 import {emptyStatusConfig} from '../app/status-config';
 const attachment={name:'arte.png',url:'https://drive.google.com/file/d/test_file_123/view',type:'image/png',size:10,artworkKind:'final',drive:{central:true,fileId:'test_file_123',folderId:'folder',folderName:'Artes',url:'https://drive.google.com/file/d/test_file_123/view',savedAt:''}};
@@ -16,6 +16,10 @@ assert.equal(protectSpelling(flagged,{...flagged,spelling:{...review,state:'dism
 assert.equal(protectSpelling(flagged,{...flagged,attachments:[]}).spelling,undefined);
 assert.throws(()=>protectApproval(flagged,{...flagged,status:'aprovado ✅'}),/ortográfico/);
 assert.throws(()=>castApprovalVote({...flagged,status:'aprovação fibroplast'},{role:'editor',persona:'lucio',email:'test',name:'Lucio'},'approved',emptyStatusConfig),/ortográfico/);
+const legacy={...flagged,spelling:{...review,issues:[{file:'kit para lavatorio.png',text:'lavatorio',suggestion:'lavatório',reason:'Falta o acento.'}]}};
+assert(needsFilenameRecheck(legacy));
+assert(!needsFilenameRecheck({...legacy,spelling:{...legacy.spelling,visibleTextOnly:true}}));
+assert(!needsFilenameRecheck(flagged));
 const pending=applySpelling(task,{...review,state:'pending',issues:[]});assert.equal(pending.status,task.status);
 const purchase=applySpelling({...task,purchase:{requiresArt:true,stage:'pagamento'}},review);assert.equal(purchase.purchase.stage,'comprar');
 console.log('PASS: final-image-only analysis, strict result validation, stale-image rejection, server-owned alerts, approval block, purchase reset and failure never moves cards.');

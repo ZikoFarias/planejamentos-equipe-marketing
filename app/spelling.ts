@@ -1,8 +1,18 @@
 import type {Task} from './model';
-export type SpellingReview={fingerprint:string,state:'pending'|'clean'|'flagged'|'dismissed',message:string,issues:{file:string,text:string,suggestion:string,reason:string}[],checkedAt:string};
+export type SpellingReview={fingerprint:string,state:'pending'|'clean'|'flagged'|'dismissed',message:string,issues:{file:string,text:string,suggestion:string,reason:string}[],checkedAt:string,visibleTextOnly?:true};
 export const finalImages=(task:Task)=>task.attachments.filter(a=>a.artworkKind==='final'&&a.drive?.central&&/^image\/(png|jpeg|webp)$/.test(a.type||''));
 export function spellingFingerprint(task:Task){return JSON.stringify(finalImages(task).map(a=>[a.drive!.fileId,a.name]))}
 export function spellingFlagged(task:Task){return task.spelling?.state==='flagged'&&task.spelling.fingerprint===spellingFingerprint(task)}
+export function needsFilenameRecheck(task:Task){
+ const review=task.spelling;
+ if(!review||review.visibleTextOnly||!spellingFlagged(task))return false;
+ const words=(value:string)=>value.normalize('NFC').toLocaleLowerCase('pt-BR').match(/[\p{L}\p{N}]+/gu)?.join(' ')||'';
+ return review.issues.some(issue=>{
+  const text=words(issue.text);
+  const filename=words(issue.file.replace(/\.[^.]+$/,''));
+  return !!text&&(' '+filename+' ').includes(' '+text+' ');
+ });
+}
 export function protectSpelling(previous:Task|undefined,next:Task):Task{const spelling=previous?.spelling?.fingerprint===spellingFingerprint(next)?previous.spelling:undefined;if(!spelling&&!('spelling' in next))return next;const {spelling:ignored,...rest}=next;return spelling?{...rest,spelling}:rest}
 export function parseSpelling(value:unknown,files:string[]){const v=value as any;if(!v||typeof v.readable!=='boolean'||!Array.isArray(v.issues)||v.issues.length>30)throw Error('Resposta da análise inválida.');const issues=v.issues.map((i:any)=>{if(!i||!Number.isInteger(i.file)||!files[i.file]||!['text','suggestion','reason'].every(k=>typeof i[k]==='string'&&i[k].trim()&&i[k].length<=500)||i.text===i.suggestion)throw Error('Resposta da análise inválida.');return {file:files[i.file],text:i.text,suggestion:i.suggestion,reason:i.reason}});return {readable:v.readable,issues}}
 import {syncPurchaseArt} from './purchases';
