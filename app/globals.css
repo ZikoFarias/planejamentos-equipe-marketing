@@ -1091,3 +1091,60 @@ html.luke-entering .login-reveal-stage{display:block}
 .google-login-button { display: flex; justify-content: center; }
 .google-login-message { color: #ffc4bc; font-size: 13px; }
 .google-login-message:empty { display: none; }
+
+.header-heading .unified-account-menu { max-width: 100%; }
+.unified-account-menu > summary {
+ justify-content: flex-start;
+ gap: 9px;
+ min-height: 44px;
+ padding-inline: 4px 8px;
+ border-radius: 10px;
+}
+.unified-account-menu .account-avatar { flex: none; }
+.account-active-area { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 650; }
+.unified-account-menu > summary > svg { flex: none; }
+.unified-account-menu .account-panel {
+ right: auto;
+ left: 0;
+ width: 324px;
+ max-height: min(640px, calc(100dvh - 90px));
+ overflow-y: auto;
+ gap: 10px;
+ padding: 10px;
+ background: #13243a;
+}
+.account-menu-group { display: grid; gap: 2px; padding: 6px; background: #1b3046; border-radius: 10px; }
+.account-group-label { padding: 4px 8px; font-size: 11px; color: #b3c8db; text-transform: uppercase; }
+.unified-account-menu .account-menu-group button,
+.unified-account-menu .account-profile-row,
+.unified-account-menu .account-sign-out {
+ display: flex;
+ align-items: center;
+ justify-content: flex-start;
+ gap: 8px;
+ width: 100%;
+ min-height: 44px;
+ padding: 7px 9px;
+ border: 0;
+ border-radius: 8px;
+ background: transparent;
+ text-align: left;
+ color: inherit;
+}
+.unified-account-menu .account-profile-row { background: #1b3046; }
+.account-profile-row > span:nth-child(2) { display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.account-profile-row small { text-transform: capitalize; }
+.account-menu-group button > svg:last-child, .account-profile-row > svg:last-child { margin-left: auto; flex: none; }
+.account-menu-group button > small { margin-left: auto; color: #b5cadd; font-variant-numeric: tabular-nums; }
+.account-menu-group button > small + svg { margin-left: 0; }
+.account-area-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: #a4b3c4; }
+.unified-account-menu .account-menu-group button[aria-current='page'] { background: #274766; }
+.account-menu-group [aria-current='page'] .account-area-dot { background: #8dcaff; }
+.unified-account-menu .account-sign-out { justify-content: center; color: #ffaaa4; }
+.unified-account-menu button:hover:not(:disabled) { background: #29455f; }
+.mobile-team-menu { display: none; }
+@media (max-width: 700px) {
+ .mobile-team-menu { display: block; margin-bottom: 10px; }
+ .mobile-dashboard .mobile-welcome { display: block; }
+ .mobile-team-menu .account-panel { position: fixed; top: 68px; left: 12px; bottom: auto; }
+}

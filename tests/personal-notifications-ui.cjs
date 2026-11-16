@@ -8,7 +8,12 @@ const {buildSync}=require('esbuild'),fs=require('fs'),path=require('path'),asser
  const {AccountMenu}=require(path.resolve('.sites-runtime/account-menu.cjs')),{PersonalNotificationPanel,PersonalNotificationBubble}=require(path.resolve('.sites-runtime/personal-notification-ui.cjs')),{usePersonalNotifications}=require(path.resolve('.sites-runtime/use-personal-notifications.cjs'));
  const mount=document.createElement('div');document.body.appendChild(mount);const root=createRoot(mount);let opened=0,read=[],closed=0,more=0,all=0;
  const notification={id:2,kind:'assigned',taskId:'card',title:'Novo cartão',message:'Arte para você',targets:[],createdAt:'2026-11-01T11:00:00Z',readAt:null,seenAt:null};
- await act(async()=>root.render(React.createElement(AccountMenu,{name:'Luiz',email:'luiz@test',role:'editor',unread:3,busy:false,onNotifications:()=>opened++,onSettings(){},onLogout(){}})));
+ let selectedArea;
+ await act(async()=>root.render(React.createElement(AccountMenu,{name:'Luiz',email:'luiz@test',role:'editor',unread:3,busy:false,onNotifications:()=>opened++,onSettings(){},onLogout(){},areas:[{id:'luiz',label:'Luiz',count:20},{id:'compras',label:'Compras',count:14}],activeArea:'luiz',onAreaChange:id=>{selectedArea=id}})));
+ const areaGroup=mount.querySelector('[aria-label="Contas e áreas"]');
+ assert.match(areaGroup.querySelector('[aria-current="page"]').textContent,/Luiz20/);
+ await act(async()=>[...areaGroup.querySelectorAll('button')].find(button=>button.textContent.includes('Compras')).click());
+ assert.equal(selectedArea,'compras');
  assert.equal(mount.querySelector('.account-unread').textContent,'3');await act(async()=>mount.querySelector('summary').click());await act(async()=>[...mount.querySelectorAll('button')].find(b=>b.textContent.includes('Notificações')).click());assert.equal(opened,1);
  await act(async()=>root.render(React.createElement(PersonalNotificationPanel,{items:[notification,{...notification,id:1,kind:'daily',taskId:undefined,targets:[{id:'pending',title:'Pendência',status:'a fazer luiz'}]}],unread:2,loading:false,error:'',moreBusy:false,hasMore:true,onMore:()=>more++,onReadAll:async()=>all++,onRead:async id=>read.push(id),onOpenTask:async(id,kind)=>{assert.ok(['card','pending'].includes(id));opened++;return true},onClose:()=>closed++})));
  assert.equal(mount.querySelector('dialog').open,true);assert.equal(mount.querySelectorAll('.personal-notification.unread').length,2);
