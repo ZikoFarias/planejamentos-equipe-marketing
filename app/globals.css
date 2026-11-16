@@ -1137,12 +1137,44 @@ html.luke-entering .login-reveal-stage{display:block}
 .account-menu-group button > svg:last-child, .account-profile-row > svg:last-child { margin-left: auto; flex: none; }
 .account-menu-group button > small { margin-left: auto; color: #b5cadd; font-variant-numeric: tabular-nums; }
 .account-menu-group button > small + svg { margin-left: 0; }
+.unified-account-menu .account-areas button {
+ display: grid;
+ grid-template-columns: 7px minmax(0, 1fr) 3ch 15px;
+}
+.account-areas button > span:nth-child(2) { min-width: 0; overflow-wrap: anywhere; }
+.account-areas button > .account-area-count { margin: 0; text-align: right; }
 .account-area-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: #a4b3c4; }
 .unified-account-menu .account-menu-group button[aria-current='page'] { background: #274766; }
 .account-menu-group [aria-current='page'] .account-area-dot { background: #8dcaff; }
 .unified-account-menu .account-sign-out { justify-content: center; color: #ffaaa4; }
 .unified-account-menu button:hover:not(:disabled) { background: #29455f; }
 .mobile-team-menu { display: none; }
+.team-sidebar { display: none; }
+.board-area-title { font-size: 13px; font-weight: 650; }
+@media (min-width: 701px) {
+ .app.app-full-width { grid-template-columns: clamp(220px, 19vw, 258px) minmax(0, 1fr); }
+ .app.app-full-width > main { grid-column: 2; grid-row: 1; min-width: 0; }
+ .team-sidebar {
+  display: block;
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #13243a;
+  border-right: 1px solid #314760;
+ }
+ .team-sidebar .unified-account-menu .account-panel {
+  position: static;
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  padding: 12px 10px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+ }
+}
 @media (max-width: 700px) {
  .mobile-team-menu { display: block; margin-bottom: 10px; }
  .mobile-dashboard .mobile-welcome { display: block; }
