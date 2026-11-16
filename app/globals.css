@@ -1152,7 +1152,10 @@ html.luke-entering .login-reveal-stage{display:block}
 .team-sidebar { display: none; }
 .board-area-title { font-size: 13px; font-weight: 650; }
 @media (min-width: 701px) {
- .app.app-full-width { grid-template-columns: clamp(220px, 19vw, 258px) minmax(0, 1fr); }
+ .app.app-full-width { grid-template-columns: 52px minmax(0, 1fr); }
+ .app.app-full-width:has(> .team-sidebar[data-expanded='true']) {
+  grid-template-columns: clamp(220px, 19vw, 258px) minmax(0, 1fr);
+ }
  .app.app-full-width > main { grid-column: 2; grid-row: 1; min-width: 0; }
  .team-sidebar {
   display: block;
@@ -1174,6 +1177,15 @@ html.luke-entering .login-reveal-stage{display:block}
   box-shadow: none;
   overflow: visible;
  }
+ .team-sidebar .team-sidebar-toggle {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 10px 4px 0 auto;
+  color: #dce7f1;
+ }
+ .team-sidebar[data-expanded='true'] .team-sidebar-toggle svg { transform: rotate(180deg); }
 }
 @media (max-width: 700px) {
  .mobile-team-menu { display: block; margin-bottom: 10px; }
