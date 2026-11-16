@@ -1164,7 +1164,17 @@ html.luke-entering .login-reveal-stage{display:block}
 .account-area-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: #a4b3c4; }
 .unified-account-menu .account-menu-group button[aria-current='page'] { background: #274766; }
 .account-menu-group [aria-current='page'] .account-area-dot { background: #8dcaff; }
-.unified-account-menu .account-sign-out { justify-content: flex-start; color: #ffaaa4; }
+.unified-account-menu .account-sign-out { justify-content: center; color: #ffaaa4; }
+.app .task-options-menu :is(button, a) {
+ display: flex;
+ align-items: center;
+ justify-content: flex-start;
+ gap: 8px;
+ width: 100%;
+ box-sizing: border-box;
+ padding-inline: 10px;
+ text-align: left;
+}
 .unified-account-menu button:hover:not(:disabled) { background: #29455f; }
 .mobile-team-menu { display: none; }
 .team-sidebar { display: none; }
