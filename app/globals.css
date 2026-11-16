@@ -1041,14 +1041,14 @@ html.luke-entering .login-reveal-stage{display:block}
 .minimized-card-notice{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #579dff66;border-radius:10px;background:#122b41;color:#e1eaf2;max-width:420px;box-shadow:0 4px 16px #0005}.minimized-card-notice>span{display:grid;gap:4px;min-width:0}.minimized-card-notice strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.minimized-card-notice small{font-size:11px;color:#adbed0}.minimized-card-notice button{flex:none}
 
 @keyframes board-item-entrance {
- from { opacity: 0; transform: translateY(5px); }
- to { opacity: 1; transform: translateY(0); }
+ from { opacity: 0; translate: 0 7px; }
+ to { opacity: 1; translate: 0 0; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
  .apple-hig .kanban > .column {
   --entrance-delay: 144ms;
-  animation: board-item-entrance 220ms ease-out var(--entrance-delay) backwards;
+  animation: board-item-entrance 220ms cubic-bezier(.2,.75,.3,1) var(--entrance-delay) backwards;
  }
  .apple-hig .kanban > .column:nth-child(1) { --entrance-delay: 0ms; }
  .apple-hig .kanban > .column:nth-child(2) { --entrance-delay: 28ms; }
@@ -1056,11 +1056,35 @@ html.luke-entering .login-reveal-stage{display:block}
  .apple-hig .kanban > .column:nth-child(4) { --entrance-delay: 84ms; }
  .apple-hig .kanban > .column:nth-child(5) { --entrance-delay: 112ms; }
  .apple-hig .kanban > .column .task:nth-of-type(-n+4):not(.dragging, .card-drag-preview) {
-  animation: board-item-entrance 240ms ease-out calc(var(--entrance-delay) + var(--card-delay, 35ms)) backwards;
+  animation: board-item-entrance 240ms cubic-bezier(.2,.75,.3,1) calc(var(--entrance-delay) + var(--card-delay, 35ms)) backwards;
  }
  .apple-hig .kanban > .column .task:nth-of-type(2) { --card-delay: 55ms; }
  .apple-hig .kanban > .column .task:nth-of-type(3) { --card-delay: 75ms; }
  .apple-hig .kanban > .column .task:nth-of-type(4) { --card-delay: 95ms; }
+}
+
+.apple-hig :is(.card-open, .calendar-card, .mobile-task, .header-controls button):focus-visible {
+ outline: 2px solid #8bc7ff;
+ outline-offset: -3px;
+}
+.apple-hig .column.drop-receiving {
+ outline-color: #76b9ff;
+}
+.apple-hig .column.drop-receiving .card-drop-placeholder {
+ border-color: #8bc7ff;
+ background: #579dff26;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+ .apple-hig .task:not(.dragging, .card-drag-preview, .selection-mode) > .card-open,
+ .apple-hig :is(.calendar-card, .mobile-task) {
+  transition: scale 140ms cubic-bezier(.2,.75,.3,1);
+ }
+ .apple-hig .task:not(.dragging, .card-drag-preview, .selection-mode) > .card-open:active,
+ .apple-hig :is(.calendar-card, .mobile-task):active {
+  scale: .985;
+  transition-duration: 75ms;
+ }
 }
 
 .google-login { margin-top: 16px; }
