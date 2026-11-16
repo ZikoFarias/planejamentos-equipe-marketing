@@ -5,6 +5,9 @@ import {createPortal} from 'react-dom';
 import type {Area} from './permissions';
 import type {Task} from './model';
 import {ProfileAvatar,profileName} from './profile-avatar';
+import {AttachmentPreview} from './attachment-preview';
+import {coverFor} from './media';
+import {spellingFlagged} from './spelling';
 import type {LiveActivity,LiveEvent} from './live-board-events';
 
 type Presence = LiveActivity & {sender:string; name:string; seen:number};
@@ -115,8 +118,11 @@ export function LiveCardDrags({events,area,board,tasks}:{events:EventTarget;area
   {peers.map(peer=>{
    if(peer.kind!=='drag')return null;
    const task=tasks.find(item=>item.id===peer.taskId);
-   return task&&<div className="live-card-drag" key={peer.sender} style={{left:bounds.left+peer.x*bounds.width,top:bounds.top+peer.y*bounds.height}}>
+   if(!task)return null;
+   const cover=coverFor(task);
+   return <div className="live-card-drag" key={peer.sender} style={{left:bounds.left+peer.x*bounds.width,top:bounds.top+peer.y*bounds.height}}>
     <span><ProfileAvatar name={peer.name}/>{profileName(peer.name)}</span>
+    {cover&&<div className={'live-card-cover'+(spellingFlagged(task)?' spelling-blurred':'')}><AttachmentPreview key={cover.url} attachment={cover} compact/></div>}
     <strong>{task.title}</strong>
    </div>;
   })}
