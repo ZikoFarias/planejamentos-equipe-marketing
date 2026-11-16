@@ -1,6 +1,9 @@
 import {navigateWithLogo} from './login-transition';
 import {loginDestination} from './task-link';
 import {submitTeamLogin} from './login-client';
+import {mountGoogleLogin} from './google-login-client';
+const googleLogin = document.querySelector<HTMLElement>('.google-login');
+if (googleLogin) mountGoogleLogin(googleLogin);
 const form=document.querySelector<HTMLFormElement>('.login-panel form')!;
 const email=form.querySelector<HTMLInputElement>('input[type=email]')!,password=form.querySelector<HTMLInputElement>('#login-password')!;
 const submit=form.querySelector<HTMLButtonElement>('.login-submit')!,toggle=form.querySelector<HTMLButtonElement>('.login-password button')!;

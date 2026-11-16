@@ -1062,3 +1062,8 @@ html.luke-entering .login-reveal-stage{display:block}
  .apple-hig .kanban > .column .task:nth-of-type(3) { --card-delay: 75ms; }
  .apple-hig .kanban > .column .task:nth-of-type(4) { --card-delay: 95ms; }
 }
+
+.google-login { margin-top: 16px; }
+.google-login-button { display: flex; justify-content: center; }
+.google-login-message { color: #ffc4bc; font-size: 13px; }
+.google-login-message:empty { display: none; }

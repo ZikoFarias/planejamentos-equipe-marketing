@@ -8,6 +8,7 @@ import {enqueueSpelling,processSpellingQueue} from './spelling-review';
 import {spellingFingerprint,finalImages} from '../app/spelling';
 import type {Task} from '../app/model';
 import {handleTeamLogin} from '../app/team-login-handler';
+import {handleGoogleTeamLogin} from '../app/google-team-login';
 type Environment=Cloudflare.Env&{ASSETS:Fetcher};
 // Keep authentication independent of the server-rendering runtime on Workers Free.
 export default {async scheduled(_event:ScheduledController,env:Environment,ctx:ExecutionContext){ctx.waitUntil(Promise.allSettled([processSpellingQueue(env),processPersonalNotifications(env.DB!),processDriveCleanup(env)]))},async fetch(request:Request,env:Environment,ctx:ExecutionContext){
@@ -21,6 +22,7 @@ export default {async scheduled(_event:ScheduledController,env:Environment,ctx:E
  else if(url.pathname==='/api/captions')response=await handleCaption(clean,env,await requestTeamSession(clean,env));
  else if(url.pathname==='/api/drive/central/media'&&request.method==='GET')response=await serveCentralMedia(clean,env,await requestTeamSession(clean,env));
  else if(url.pathname==='/api/auth/login'||url.pathname==='/api/auth/challenge')response=await handleTeamLogin(clean,env,url.pathname.endsWith('/challenge'));
+ else if(url.pathname==='/api/auth/google')response=await handleGoogleTeamLogin(clean,env);
  else if(url.pathname==='/login'&&['GET','HEAD'].includes(request.method)){
   url.pathname='/_team/login.html';url.search='';response=await env.ASSETS.fetch(new Request(url,{method:request.method}));
  }else{
