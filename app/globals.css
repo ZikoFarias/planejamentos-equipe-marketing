@@ -328,6 +328,15 @@ dialog.settings-dialog,dialog.settings-dialog[open]{position:fixed;inset:0;margi
  background: url('/particulas-kliva.svg') left top / 260px 260px repeat,
              #0c1520 url('/wallpaper-kliva.png') center / cover no-repeat;
 }
+@keyframes kliva-particle-drift {
+ from { background-position: 0 0, center; }
+ to { background-position: 260px -260px, center; }
+}
+@media (prefers-reduced-motion: no-preference) {
+ .app.app-full-width.has-default-background {
+  animation: kliva-particle-drift 60s linear infinite;
+ }
+}
 @media(max-width:700px){
  .app.app-full-width main>header,.app.app-full-width main>.breadcrumb,.app.app-full-width .kanban,.app.app-full-width main>footer,.app.app-full-width .selection-bar{display:none!important}
  .mobile-dashboard{display:block;min-height:100dvh;overflow:auto;padding:24px 16px 112px;color:#f3f7ff}
