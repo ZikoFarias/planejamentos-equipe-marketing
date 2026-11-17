@@ -1,3 +1,4 @@
+import {recordableBoardResponse} from '../../board-action-response';
 import {mentionedEmails} from '../../comment-mentions';
 import {env} from 'cloudflare:workers';
 import {getActor} from '../../access';
@@ -24,7 +25,7 @@ export async function POST(req:Request){try{
   const update=env.DB!.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(next),row!.revision);
   const recipients=people.filter(person=>mentioned.includes(person.email)&&person.email!==actor.user.email&&canSeeTask(task,person));
   const notifications=recipients.map(person=>env.DB!.prepare("INSERT OR IGNORE INTO marketing_notifications(event_key,email,kind,task_id,title,message,targets,created_at) SELECT ?,?,'comment-mention',?,?,?,?,? WHERE EXISTS(SELECT 1 FROM marketing_board b,json_each(b.data) task,json_each(task.value,'$.comments') item WHERE b.id=1 AND json_extract(task.value,'$.id')=? AND json_extract(item.value,'$.id')=? AND json_extract(item.value,'$.by')=? AND json_extract(item.value,'$.text')=?)").bind('mention:'+task.id+':'+comment.id+':'+person.email,person.email,task.id,'Você foi marcado em um comentário',(profiles[actor.user.email]?.name||actor.user.displayName||'Um integrante')+' marcou você em '+task.title+': '+comment.text.slice(0,250),'[]',comment.at,task.id,comment.id,actor.user.email,comment.text));
-  const result=notifications.length?(await env.DB!.batch([update,...notifications]))[0]:await update.run();if(result.meta.changes)return json({tasks:next.filter(t=>canSeeTask(t,actor)),revision:row!.revision+1});
+  const result=notifications.length?(await env.DB!.batch([update,...notifications]))[0]:await update.run();if(result.meta.changes)return recordableBoardResponse(json({tasks:next.filter(t=>canSeeTask(t,actor)),revision:row!.revision+1}),row!.revision+1);
 
  }
  return json({error:'O cartão está recebendo outras alterações. Tente enviar novamente.'},409);

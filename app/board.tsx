@@ -4,7 +4,7 @@ import {isWeeklyDraft} from './weekly-drafts';
 import {CaptionPanel,CaptionMark,CardApprovalMarks} from './caption-panel';
 import {needsCaption,canWriteCaption,canRequestCaption} from './captions';
 import {HeaderCreateMenu} from './header-create-menu';
-import {canCancelAdjustment,type ReviewAdjustment} from './adjustments';
+import {canCancelAdjustment} from './adjustments';
 import {apiResponse} from './api-response';
 import {useBackgroundImage} from './use-background-image';
 import {dateLabel,dateTone} from './date-label';
@@ -35,7 +35,7 @@ import {DriveConnection} from './drive-connection';
 import {uploadCentralBatch} from './drive-central-client';
 import {uploadDirectDriveBatch} from './drive-upload';
 import {disconnectDrive} from './drive-client';
-import {boundedPush,restoreEdit,type BoardEdit} from './edit-history';
+import {boundedPush} from './edit-history';
 import {withParticipants} from './participants';
 import {LabelEditor} from './label-editor';
 import {labelName as configuredLabelName,labelStyle as configuredLabelStyle} from './labels';
@@ -226,9 +226,28 @@ export default function Board(){
  const [selectMode,setSelectMode]=useState(false),[selected,setSelected]=useState<string[]>([]),[bulkOpen,setBulkOpen]=useState(false),[bulkDelete,setBulkDelete]=useState(false);
  const [celebration,setCelebration]=useState({id:0,status:''});
  const [deleteConfirm,setDeleteConfirm]=useState(false);const initialDraft=useRef('');const [dragging,setDragging]=useState('');const dialog=useRef<HTMLDialogElement>(null),drag=useRef(''),originFocus=useRef<HTMLElement|null>(null); const actor={role,persona};const reviewerWritable=role==='administrador'||(role==='editor'&&!!persona);const writable=reviewerWritable&&(!draft||(tasks.some(t=>t.id===draft.id)?canManageTask(tasks.find(t=>t.id===draft.id)!,actor):canCreateTask(draft,actor)));
- const acceptedTasks=useRef<Task[]>([]),acceptedRevision=useRef(0);const writeLock=useRef(false),outsideDown=useRef(false);const undoBoard=useRef<(BoardEdit|ReviewAdjustment)[]>([]),redoBoard=useRef<(BoardEdit|ReviewAdjustment)[]>([]),undoDraft=useRef<Task[]>([]),redoDraft=useRef<Task[]>([]),lastDraft=useRef<Task|null>(null),restoringDraft=useRef(false);
+ const acceptedTasks=useRef<Task[]>([]),acceptedRevision=useRef(0);const writeLock=useRef(false),outsideDown=useRef(false);const undoDraft=useRef<Task[]>([]),redoDraft=useRef<Task[]>([]),lastDraft=useRef<Task|null>(null),restoringDraft=useRef(false);
  useEffect(()=>{if(!draft){lastDraft.current=null;undoDraft.current=[];redoDraft.current=[];return}if(lastDraft.current?.id!==draft.id){lastDraft.current=structuredClone(draft);undoDraft.current=[];redoDraft.current=[];return}if(JSON.stringify(lastDraft.current)!==JSON.stringify(draft)){if(!restoringDraft.current&&!saving){undoDraft.current=boundedPush(undoDraft.current,lastDraft.current);redoDraft.current=[]}restoringDraft.current=false;lastDraft.current=structuredClone(draft)}},[draft]);
- useEffect(()=>{const handler=async(e:KeyboardEvent)=>{if(!(e.ctrlKey||e.metaKey)||e.key.toLowerCase()!=='z'||e.altKey)return;const input=e.target as HTMLElement;if(input.closest('.caption-panel textarea'))return;if(!draft&&input.closest('input,textarea,[contenteditable=true]'))return;if(saving||loading||writeLock.current||admin||settings||weekly||bulkOpen)return;const redo=e.shiftKey;if(draft){const source=redo?redoDraft.current:undoDraft.current,target=redo?undoDraft.current:redoDraft.current;const next=source.at(-1);if(next&&writable){e.preventDefault();source.pop();target.push(structuredClone(draft));restoringDraft.current=true;setDraft(structuredClone(next));setNotice(redo?'Edição refeita':'Edição desfeita');return}}const source=redo?redoBoard.current:undoBoard.current,target=redo?undoBoard.current:redoBoard.current,edit=source.at(-1);if(!edit||draft&&(!('kind' in edit)||edit.id!==draft.id))return;e.preventDefault();try{if('kind' in edit){const result=redo?await voteByMoving(edit.id,'adjust',undefined,edit):await undoReviewerMove(edit);if(result){source.pop();target.push(typeof result==='object'?result:edit)}return}const next=restoreEdit(tasks,edit,redo);if(await commit(next,redo?'Ação refeita':'Ação desfeita',false)){source.pop();target.push(edit)}}catch(error){setError(error instanceof Error?error.message:'Não foi possível desfazer.')}};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler)},[draft,tasks,revision,saving,loading,admin,settings,weekly,bulkOpen,writable]);
+ useEffect(()=>{
+  function keydown(event:KeyboardEvent){
+   if(!(event.ctrlKey||event.metaKey)||event.key.toLowerCase()!=='z'||event.altKey||event.repeat)return;
+   const input=event.target instanceof HTMLElement?event.target:null;
+   if(input?.closest('.caption-panel textarea,.comment-composer textarea')||!draft&&input?.closest('input,textarea,[contenteditable=true]'))return;
+   if(!role||saving||loading||uploading||commentSending||writeLock.current)return;
+   const redo=event.shiftKey;
+   if(draft){
+    const source=redo?redoDraft.current:undoDraft.current,target=redo?undoDraft.current:redoDraft.current;
+    const next=source.at(-1);
+    if(next&&writable){
+     event.preventDefault();source.pop();target.push(structuredClone(draft));
+     restoringDraft.current=true;setDraft(structuredClone(next));setNotice(redo?'Edição refeita':'Edição desfeita');return;
+    }
+   }
+   event.preventDefault();void replayBoardAction(redo);
+  }
+  window.addEventListener('keydown',keydown);
+  return()=>window.removeEventListener('keydown',keydown);
+ },[draft,role,saving,loading,uploading,commentSending,writable]);
  async function load(){setLoading(true);setError('');try{const r=await fetch('/api/board');const a:any=await apiResponse(r);if(!r.ok)throw Error(a.error);setTasks(a.tasks);setRevision(a.revision);setStatusConfig(readStatusConfig(a.statusConfig));setRole(a.role);setUser(a.user);setMembers(a.members);setUserEmail(a.email||'');setProfiles(a.profiles||{});setTeamProfiles(a.profiles||{});setLabelCatalog(a.labels||companies.map(c=>c.id));setPersona(a.persona||'');if(a.role!=='administrador')setArea(defaultArea(a.persona||''))}catch(e:any){setError(e.message)}finally{setLoading(false)}}
  const syncState=useRef({revision,saving,loading,draft,comment,commentFiles,commentMedia,commentSending,bulkOpen,weekly,settings,admin,dragging,role,persona});syncState.current={revision,saving,loading,draft,comment,commentFiles,commentMedia,commentSending,bulkOpen,weekly,settings,admin,dragging,role,persona};
  const [syncWarning,setSyncWarning]=useState('');
@@ -260,7 +279,7 @@ export default function Board(){
  function dismissDraft(){liveBoard.current.draft=null;setDraft(null)}
  async function close(){if(draft&&(commentSendLock.current===draft.id||uploading&&uploadTaskId===draft.id)){minimizeCard();return}if(draft&&canWriteCaption(actor)&&captionText!==(draft.caption?.text||'')){if(!await captionAction('save'))return;dismissDraft();return}if(saving||writeLock.current||commentSending)return;if(draft&&(commentFiles.length||commentMedia.length||!writable&&comment.trim())){void sendComment();if(commentSendLock.current===draft.id)minimizeCard();return}if(draft&&writable){if(!tasks.some(t=>t.id===draft.id)&&emptyNewCard(draft,JSON.parse(initialDraft.current),comment)){setIncompleteCard([]);dismissDraft();setComment('');return}const missing=missingCardFields(draft);if(missing.length){setCardEditor(null);setIncompleteCard(missing);return}}if(draft&&writable&&(!tasks.some(t=>t.id===draft.id)||JSON.stringify(draft)!==initialDraft.current||comment.trim())){await save(true);return}dismissDraft();setAdmin(false);setSettings(false);setWeekly(false);setBulkOpen(false);setBulkDelete(false)}
  async function spellingAction(action:'review'|'dismiss'){if(!draft||saving||writeLock.current)return;if((JSON.stringify(draft)!==initialDraft.current||comment.trim())&&!await save(false))return;if(writeLock.current)return;writeLock.current=true;setSaving(true);try{const response=await fetch('/api/spelling',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:draft.id,action})});const value:any=await apiResponse(response);if(!response.ok)throw Error(value.error);setTasks(value.tasks);setRevision(value.revision);const updated=value.tasks.find((t:Task)=>t.id===draft.id);if(updated){initialDraft.current=JSON.stringify(updated);lastDraft.current=structuredClone(updated);undoDraft.current=[];redoDraft.current=[];setDraft(updated)}setNotice(action==='dismiss'?'Alerta descartado. Cartão enviado para aprovação.':'Verificação atualizada')}catch(error){setError(error instanceof Error?error.message:'Verificação pendente.')}finally{writeLock.current=false;setSaving(false)}}
- async function commit(next:Task[],message='Alterações salvas',remember=true){
+ async function commit(next:Task[],message='Alterações salvas'){
   if(!writable||saving||writeLock.current)return false;
   const editedApproved=next.filter(t=>t.status==='aprovado ✅'&&approvedEdits(tasks.find(old=>old.id===t.id),t));if(editedApproved.length){if(!await confirmApprovedEdit())return false;const ids=new Set(editedApproved.map(t=>t.id));next=next.map(t=>ids.has(t.id)?{...t,status:'ajustar ⚠️'}:t)}
    const originalTasks=tasks;let rollbackTasks=originalTasks;
@@ -270,7 +289,6 @@ export default function Board(){
     const response=await fetch('/api/board',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks:payload,revision:writeRevision})});const value:any=await apiResponse(response);
      if(response.status===409&&attempt===0){const fresh=await fetch('/api/board',{cache:'no-store',signal:AbortSignal.timeout(15000)});const latest:any=await apiResponse(fresh);if(!fresh.ok||!Array.isArray(latest.tasks)||!Number.isSafeInteger(latest.revision))throw Error(latest.error||'Não foi possível conferir as atualizações do quadro.');rollbackTasks=latest.tasks;payload=rebaseBoardEdit(originalTasks,next,latest.tasks);setTasks(payload);historyBase=latest.tasks;writeRevision=latest.revision;continue}
     if(!response.ok)throw Error(value.error);const accepted=value.tasks||payload;acceptedTasks.current=accepted;acceptedRevision.current=value.revision;liveBoard.current={...liveBoard.current,tasks:accepted,revision:value.revision};
-    if(remember&&historyBase.some(old=>accepted.some((t:Task)=>t.id===old.id&&JSON.stringify(t)!==JSON.stringify(old)))){undoBoard.current=boundedPush(undoBoard.current,{before:structuredClone(historyBase),after:structuredClone(accepted)});redoBoard.current=[]}
     const celebrate=celebrationStatus(historyBase,accepted.filter((t:Task)=>payload.some(n=>n.id===t.id&&n.status===t.status)));setTasks(accepted);setRevision(value.revision);if(message)setNotice(message);if(celebrate)setCelebration(v=>({id:v.id+1,status:celebrate}));return true;
    }return false;
   }catch(error){setTasks(rollbackTasks);setError(error instanceof Error?error.message:'Não foi possível salvar.')}finally{writeLock.current=false;setSaving(false)}return false;
@@ -294,20 +312,36 @@ export default function Board(){
  function confirmApprovedEdit(){return new Promise<boolean>(resolve=>{approvedAnswer.current=resolve;setApprovedQuestion(true)})}
  function discardApprovedEdits(closeAfter:boolean){setCommentFiles([]);setCommentMedia([]);setComment('');setCardEditor(null);const original=tasks.find(t=>t.id===draft?.id);if(original){initialDraft.current=JSON.stringify(original);setDraft(closeAfter?null:structuredClone(original))}}
  async function save(closeAfter=true,includeComment=true){if(!draft||!writable)return false;if(includeComment&&(comment.trim()||commentFiles.length||commentMedia.length)){const sent=await sendComment();if(sent&&closeAfter)dismissDraft();return sent}try{const missing=missingCardFields(draft);if(missing.length){setCardEditor(null);setIncompleteCard(missing);return false}if(draft.start&&draft.due&&draft.due<draft.start)throw Error('A data de entrega não pode ser anterior à data de início.');const old=tasks.find(t=>t.id===draft.id);let edited=draft;if(approvedEdits(old,draft)){if(!await confirmApprovedEdit()){discardApprovedEdits(closeAfter);return false}edited={...draft,status:'ajustar ⚠️'}}const candidate=edited;const t=history(assignStatusOwner(configuredTask(normalizeApproval(setCompany({...candidate,title:candidate.title.trim().toLocaleUpperCase('pt-BR')},companyOf(candidate)!.id)),statusConfig),statusConfig.labels),old?'Tarefa atualizada':'Tarefa criada');const next=old?tasks.map(x=>x.id===t.id?t:x):[...tasks,t];if(await commit(next,'')){if(includeComment)setComment('');const persisted=acceptedTasks.current.find(x=>x.id===t.id)||t;if(liveBoard.current.draft?.id===t.id){initialDraft.current=JSON.stringify(persisted);setDraft(current=>current?.id===t.id?(closeAfter?null:persisted):current)}return true}return false}catch(e:any){setError(e.message);return false}}
- async function voteByMoving(id:string,decision:'approved'|'adjust',scope?:'quote',redoEdit?:ReviewAdjustment):Promise<boolean|ReviewAdjustment>{
+ async function voteByMoving(id:string,decision:'approved'|'adjust',scope?:'quote'):Promise<boolean>{
   if(saving||writeLock.current)return false;writeLock.current=true;setSaving(true);setError('');
-  try{const fresh=await fetch('/api/board',{cache:'no-store'}),state:any=await apiResponse(fresh);if(!fresh.ok)throw Error(state.error);if(redoEdit){const current=state.tasks.find((task:Task)=>task.id===id);if(!current?.status.startsWith('aprovação ')||current.approval?.round!==redoEdit.round)throw Error('O cartão mudou desde que o ajuste foi desfeito.');}const response=await fetch('/api/approval',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,decision,revision:state.revision,movement:true,scope})});const value:any=await apiResponse(response);if(!response.ok)throw Error(value.error);const updated=value.task as Task;setTasks(state.tasks.map((t:Task)=>t.id===id?updated:t));setRevision(value.revision);liveBoard.current={...liveBoard.current,tasks:state.tasks.map((t:Task)=>t.id===id?updated:t),revision:value.revision};if(draft?.id===id){initialDraft.current=JSON.stringify(updated);lastDraft.current=structuredClone(updated);setDraft(updated)}if(scope==='quote')setNotice('Compra confirmada por Lúcio');else if(decision==='adjust'){const ownVote=persona==='lucio'||persona==='mateus'?updated.approval?.votes[persona]:undefined;if(updated.status==='ajustar ⚠️'&&updated.approval&&ownVote?.decision==='adjust'&&ownVote.by===userEmail){const edit:ReviewAdjustment={kind:'review-adjustment',id,round:updated.approval.round,at:ownVote.at};if(!redoEdit){undoBoard.current=boundedPush(undoBoard.current,edit);redoBoard.current=[]}setNotice('Cartão enviado para Ajustar');return edit}setNotice('Cartão enviado para Ajustar');}else if(updated.status==='aprovado ✅')setNotice('Arte aprovada');else{const missing=lucioOnly(updated,statusConfig.labels)?['lucio']:['lucio','mateus'];setNotice((user||names[persona])+' moveu, aguardando aprovação de '+missing.filter(p=>updated.approval?.votes[p as 'lucio'|'mateus']?.decision!=='approved').map(p=>p==='lucio'?'Lúcio':'Mateus').join(' e '))}return true;
+  try{const fresh=await fetch('/api/board',{cache:'no-store'}),state:any=await apiResponse(fresh);if(!fresh.ok)throw Error(state.error);const response=await fetch('/api/approval',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,decision,revision:state.revision,movement:true,scope})});const value:any=await apiResponse(response);if(!response.ok)throw Error(value.error);const updated=value.task as Task;setTasks(state.tasks.map((t:Task)=>t.id===id?updated:t));setRevision(value.revision);liveBoard.current={...liveBoard.current,tasks:state.tasks.map((t:Task)=>t.id===id?updated:t),revision:value.revision};if(draft?.id===id){initialDraft.current=JSON.stringify(updated);lastDraft.current=structuredClone(updated);setDraft(updated)}if(scope==='quote')setNotice('Compra confirmada por Lúcio');else if(decision==='adjust')setNotice('Cartão enviado para Ajustar');else if(updated.status==='aprovado ✅')setNotice('Arte aprovada');else{const missing=lucioOnly(updated,statusConfig.labels)?['lucio']:['lucio','mateus'];setNotice((user||names[persona])+' moveu, aguardando aprovação de '+missing.filter(p=>updated.approval?.votes[p as 'lucio'|'mateus']?.decision!=='approved').map(p=>p==='lucio'?'Lúcio':'Mateus').join(' e '))}return true;
   }catch(error){setError(error instanceof Error?error.message:'Não foi possível registrar o movimento.');return false}finally{writeLock.current=false;setSaving(false)}
  }
- async function undoReviewerMove(edit:ReviewAdjustment){
+ async function replayBoardAction(redo:boolean){
   writeLock.current=true;setSaving(true);setError('');
-  try{const fresh=await fetch('/api/board',{cache:'no-store'}),state=await apiResponse(fresh);if(!fresh.ok)throw Error(state.error);
-   const response=await fetch('/api/adjustments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:edit.id,revision:state.revision,undoReview:{round:edit.round,at:edit.at}})}),value=await apiResponse(response);if(!response.ok)throw Error(value.error);
-   setTasks(value.tasks);setRevision(value.revision);acceptedTasks.current=value.tasks;acceptedRevision.current=value.revision;
-   if(liveBoard.current.draft?.id===edit.id){initialDraft.current=JSON.stringify(value.task);lastDraft.current=structuredClone(value.task);setDraft(value.task)}
-   setNotice('Movimento desfeito. Cartão devolvido para aprovação.');return true;
-  }catch(error){setError(error instanceof Error?error.message:'Não foi possível desfazer o ajuste.');return false}
-  finally{writeLock.current=false;setSaving(false)}
+  try{
+   const response=await fetch('/api/undo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({redo})});
+   const result=await apiResponse(response);
+   if(!response.ok)throw Error(result.error);
+   if(result.empty){setNotice(redo?'Nenhuma ação para refazer.':'Nenhuma ação para desfazer.');return;}
+   const fresh=await fetch('/api/board',{cache:'no-store'}),state=await apiResponse(fresh);
+   if(!fresh.ok)throw Error(state.error||'A ação foi aplicada. Recarregue para atualizar o quadro.');
+   const next=state.tasks as Task[],opened=liveBoard.current.draft,previous=liveBoard.current.tasks;
+   setTasks(next);setRevision(state.revision);acceptedTasks.current=next;acceptedRevision.current=state.revision;
+   setStatusConfig(readStatusConfig(state.statusConfig));setLabelCatalog(state.labels||[]);
+   liveBoard.current={...liveBoard.current,tasks:next,revision:state.revision};
+   if(opened){
+    const updated=next.find(t=>t.id===opened.id);
+    if(updated){
+     const baseline=JSON.parse(initialDraft.current) as Task,merged=mergeUploadDraft(opened,baseline,updated);
+     initialDraft.current=JSON.stringify(updated);lastDraft.current=structuredClone(merged);
+     undoDraft.current=[];redoDraft.current=[];setDraft(merged);
+     setCaptionText(current=>current===(opened.caption?.text||'')?updated.caption?.text||'':current);
+    }else if(previous.some(t=>t.id===opened.id)){dismissDraft();}
+   }
+   setNotice(redo?'Ação refeita':'Ação desfeita');
+  }catch(error){setError(error instanceof Error?error.message:'Não foi possível aplicar o histórico.');}
+  finally{writeLock.current=false;setSaving(false);}
  }
  async function captionAction(action:'save'|'submit'|'request_adjust'|'move_todo'|'move_review'|'move_adjust',task=draft):Promise<boolean>{
   if(!task||saving||writeLock.current)return false;
@@ -372,9 +406,9 @@ export default function Board(){
   if(preview)rememberUploadPreview(attachment.url,preview);
   if(!board||!Array.isArray(board.tasks)||!Number.isSafeInteger(board.revision))throw Error('Backup confirmado no Drive, mas o cartão precisa ser recarregado para conferir o vínculo. Não reenvie antes de conferir.');
   if(board.revision<liveBoard.current.revision)return;
-  const opened=liveBoard.current.draft,remote=board.tasks.find(t=>t.id===id),previous=liveBoard.current.tasks.find(t=>t.id===id);let undoTask:Task|undefined;if(remote&&remote.attachments.some(a=>a.url===attachment.url)&&!previous?.attachments.some(a=>a.url===attachment.url)){const attachments=remote.attachments.filter(a=>a.url!==attachment.url);undoTask={...remote,attachments,coverUrl:previous?.coverUrl&&attachments.some(a=>a.url===previous.coverUrl)?previous.coverUrl:automaticCover(attachments)};undoBoard.current=boundedPush(undoBoard.current,{before:board.tasks.map(t=>t.id===id?undoTask!:t),after:board.tasks});redoBoard.current=[]}liveBoard.current={...liveBoard.current,tasks:board.tasks,revision:board.revision};
+  const opened=liveBoard.current.draft,remote=board.tasks.find(t=>t.id===id);liveBoard.current={...liveBoard.current,tasks:board.tasks,revision:board.revision};
   setTasks(board.tasks);setRevision(board.revision);acceptedTasks.current=board.tasks;acceptedRevision.current=board.revision;
-  if(opened?.id===id&&remote){const baseline=initialDraft.current?JSON.parse(initialDraft.current):opened;const next=mergeUploadDraft(opened,baseline.id===id?baseline:opened,remote);if(undoTask){undoDraft.current=boundedPush(undoDraft.current,mergeUploadDraft(opened,baseline.id===id?baseline:opened,undoTask));redoDraft.current=[]}initialDraft.current=JSON.stringify(remote);lastDraft.current=structuredClone(next);liveBoard.current.draft=next;setDraft(next)}
+  if(opened?.id===id&&remote){const baseline=initialDraft.current?JSON.parse(initialDraft.current):opened;const next=mergeUploadDraft(opened,baseline.id===id?baseline:opened,remote);initialDraft.current=JSON.stringify(remote);lastDraft.current=structuredClone(next);liveBoard.current.draft=next;setDraft(next)}
  }
  async function sendComment(){
   if(!draft||commentSendLock.current||commentSending||saving||(uploading&&commentFiles.length>0)||writeLock.current)return false;

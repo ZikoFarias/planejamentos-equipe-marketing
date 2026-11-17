@@ -9,9 +9,11 @@ import {spellingFingerprint,finalImages} from '../app/spelling';
 import type {Task} from '../app/model';
 import {handleTeamLogin} from '../app/team-login-handler';
 import {handleGoogleTeamLogin} from '../app/google-team-login';
+import {boardActionRevision} from '../app/board-action-response';
+import {boardUndoSnapshot,handleBoardUndo,rememberBoardAction,undoableRoutes} from './board-undo';
 export {LiveBoard} from './live-board';
 type Environment=Cloudflare.Env&{ASSETS:Fetcher;LIVE_BOARD?:DurableObjectNamespace};
-const boardChanges=new Set(['/api/board','/api/comments','/api/approval','/api/adjustments','/api/captions','/api/weekly','/api/statuses','/api/labels']);
+const boardChanges=new Set([...undoableRoutes,'/api/undo']);
 // Keep authentication independent of the server-rendering runtime on Workers Free.
 export default {async scheduled(_event:ScheduledController,env:Environment,ctx:ExecutionContext){ctx.waitUntil(Promise.allSettled([processSpellingQueue(env),processPersonalNotifications(env.DB!),processDriveCleanup(env)]))},async fetch(request:Request,env:Environment,ctx:ExecutionContext){
  const url=new URL(request.url),headers=new Headers(request.headers);
@@ -27,9 +29,12 @@ export default {async scheduled(_event:ScheduledController,env:Environment,ctx:E
   return live.fetch(new Request(clean,{headers:{Upgrade:'websocket','X-Team-Email':session.user.email,'X-Team-Name':encodeURIComponent(session.user.displayName),'X-Team-Role':session.role}}));
  }
  const boardWrite=request.method==='POST'&&(url.pathname==='/api/board'||(url.pathname==='/api/drive/central/upload'&&url.searchParams.get('attach')==='1'));
- const before=boardWrite?await env.DB!.prepare('SELECT data FROM marketing_board WHERE id=1').first<{data:string}>():null;
+ const remember=request.method==='POST'&&undoableRoutes.has(url.pathname)&&(url.pathname!=='/api/drive/central/upload'||boardWrite);
+ const actor=remember||url.pathname==='/api/undo'?await requestTeamSession(clean,env):null;
+ const before=remember&&actor?await boardUndoSnapshot(env.DB!):null;
  if(url.pathname==='/'&&['GET','HEAD'].includes(request.method)){if(!await requestTeamSession(clean,env))response=Response.redirect(new URL('/login'+url.search,url).href,302);else{url.pathname='/_team/board.html';url.search='';response=await env.ASSETS.fetch(new Request(url,{method:request.method}));response=new Response(response.body,response);response.headers.set('Cache-Control','private, no-store')}}
  else if(url.pathname==='/api/adjustments')response=await handleCancelAdjustment(clean,env,await requestTeamSession(clean,env));
+ else if(url.pathname==='/api/undo')response=await handleBoardUndo(clean,env.DB!,actor);
  else if(url.pathname==='/api/captions')response=await handleCaption(clean,env,await requestTeamSession(clean,env));
  else if(url.pathname==='/api/drive/central/media'&&request.method==='GET')response=await serveCentralMedia(clean,env,await requestTeamSession(clean,env));
  else if(url.pathname==='/api/auth/login'||url.pathname==='/api/auth/challenge')response=await handleTeamLogin(clean,env,url.pathname.endsWith('/challenge'));
@@ -40,12 +45,17 @@ export default {async scheduled(_event:ScheduledController,env:Environment,ctx:E
   // @ts-ignore Generated server bundle is present in the deployment staging directory.
   const {default:app}=await import('./index.js');response=await app.fetch(clean,env,ctx);
  }
+ if(before&&actor&&response.ok){
+  try{const revision=Number(response.headers.get(boardActionRevision));
+   if(Number.isSafeInteger(revision)&&revision>0)await rememberBoardAction(env.DB!,before,revision,actor.user.email);
+  }catch(error){console.warn('O histórico desta ação não pôde ser gravado.',error);}
+ }
  if(boardWrite&&response.ok)ctx.waitUntil(processDriveCleanup(env).catch(()=>{}));
  if(live&&response.ok&&['POST','PATCH','PUT','DELETE'].includes(request.method)&&(boardWrite||boardChanges.has(url.pathname))){
   ctx.waitUntil(live.fetch('https://board.internal/change',{method:'POST'}).catch(()=>{}));
  }
  if(boardWrite&&response.ok){try{const value:any=await response.clone().json(),body=value.board||value;const old=JSON.parse(before?.data||'[]') as Task[];const changed=(body.tasks||[]).filter((task:Task)=>finalImages(task).length&&spellingFingerprint(task)!==(old.find(t=>t.id===task.id)?spellingFingerprint(old.find(t=>t.id===task.id)!):'[]'));if(changed.length)ctx.waitUntil(enqueueSpelling(env,changed.map((task:Task)=>task.id)).catch(()=>{}));}catch{}}
- const out=new Response(response.body,response);out.headers.set('X-Robots-Tag','noindex, nofollow');out.headers.set('X-Application-Environment','production');
+ const out=new Response(response.body,response);out.headers.delete(boardActionRevision);out.headers.set('X-Robots-Tag','noindex, nofollow');out.headers.set('X-Application-Environment','production');
  if(url.pathname==='/_team/login.html')out.headers.set('Cache-Control','no-store');
  return out;
 }};

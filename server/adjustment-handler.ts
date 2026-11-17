@@ -1,3 +1,4 @@
+import {recordableBoardResponse} from '../app/board-action-response';
 import {canCancelAdjustment,cancelTaskAdjustment,undoReviewAdjustment} from '../app/adjustments';
 import type {Actor} from '../app/permissions';
 import type {Task} from '../app/model';
@@ -20,6 +21,6 @@ export async function handleCancelAdjustment(req:Request,env:Cloudflare.Env,acto
  const next=tasks.map(item=>item.id===task.id?updated:item);
  const result=await env.DB!.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(next),row.revision).run();
  if(!result.meta.changes)return json({error:'O cartão mudou durante o cancelamento. Confira antes de tentar novamente.'},409);
- return json({tasks:next,revision:row.revision+1,task:updated});
+ return recordableBoardResponse(json({tasks:next,revision:row.revision+1,task:updated}),row.revision+1);
  }catch{return json({error:'Não foi possível cancelar o ajuste. Tente novamente.'},500)}
 }

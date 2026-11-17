@@ -1,3 +1,4 @@
+import {recordableBoardResponse} from '../../board-action-response';
 import {getActor} from '../../access';
 import {readStatusConfig} from '../../status-config';
 import {validLabel} from '../../labels';
@@ -12,5 +13,5 @@ export async function POST(req:Request){try{
  const tasks=JSON.parse(row.data) as Task[],known=new Set(['COMPRA',...companies.map(c=>c.id),...tasks.flatMap(t=>t.tags)]),config=readStatusConfig(row.status_config);if(!known.has(body.id))return json({error:'Salve um cartão com a nova etiqueta antes de editá-la.'},400);
  config.labels={...config.labels,[body.id]:{name:body.name.trim(),color:body.color.toLowerCase()}};
  const result=await actor.db.prepare('UPDATE marketing_board SET status_config=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(config),row.revision).run();if(!result.meta.changes)return json({error:'Outra pessoa alterou o quadro. Recarregue antes de tentar novamente.'},409);
- return json({labels:config.labels,revision:row.revision+1});
+ return recordableBoardResponse(json({labels:config.labels,revision:row.revision+1}),row.revision+1);
  }catch{return json({error:'Não foi possível salvar a etiqueta.'},500)}}

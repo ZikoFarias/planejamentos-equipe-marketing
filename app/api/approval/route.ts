@@ -1,3 +1,4 @@
+import {recordableBoardResponse} from '../../board-action-response';
 import {withParticipants} from '../../participants';
 import {lucioOnly} from '../../reviewer-policy';
 import {isPurchase,purchaseHasArt,approveQuote,syncPurchaseArt} from '../../purchases';
@@ -27,6 +28,6 @@ export async function POST(req:Request){
   updated=withParticipants(syncPurchaseArt(updated,task),readStatusConfig(row.status_config).labels);
   const result=await actor.db.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(tasks.map(t=>t.id===task.id?updated:t)),row.revision).run();
   if(!result.meta.changes)return json({error:'Outra pessoa votou ou alterou o quadro. Recarregue o cartão antes de tentar novamente.'},409);
-  return json({task:updated,revision:row.revision+1});
+  return recordableBoardResponse(json({task:updated,revision:row.revision+1}),row.revision+1);
  }catch{return json({error:'Não foi possível registrar o voto. Recarregue o cartão para conferir antes de tentar novamente.'},500)}
 }

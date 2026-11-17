@@ -1,3 +1,4 @@
+import {recordableBoardResponse} from '../app/board-action-response';
 import type {Task} from '../app/model';
 import type {Actor} from '../app/permissions';
 import {changeCaption} from '../app/captions';
@@ -20,7 +21,7 @@ export async function handleCaption(req:Request,env:Cloudflare.Env,actor:(Actor&
  updated={...updated,history:[{text,by:actor.user.email,at},...task.history]};
  const next=tasks.map(t=>t.id===task.id?updated:t);
  const result=await env.DB!.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(next),row.revision).run();
- if(result.meta.changes)return json({tasks:next,revision:row.revision+1,task:updated});
+ if(result.meta.changes)return recordableBoardResponse(json({tasks:next,revision:row.revision+1,task:updated}),row.revision+1);
  }
  return json({error:'O quadro mudou. Tente novamente; sua legenda continua no campo.'},409);
  }catch{return json({error:'Não foi possível salvar a legenda. Tente novamente.'},500)}

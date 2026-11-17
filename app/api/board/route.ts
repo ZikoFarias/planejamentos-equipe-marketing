@@ -1,3 +1,4 @@
+import {recordableBoardResponse} from '../../board-action-response';
 import {quoteFiles} from '../../purchases';
 import {withParticipants} from '../../participants';
 import {recordActivity} from '../../activity';
@@ -42,5 +43,5 @@ export async function POST(req:Request){try{const body:any=await req.json();if(r
  }
  const result=notices.length?(await c.db.batch([...notices,update])).at(-1):await update.run();
  if(!result?.meta.changes)return json({error:'Outra pessoa alterou o quadro. Recarregue antes de salvar novamente.'},409);
- return json({revision:body.revision+1,tasks:merged.filter(t=>canSeeTask(t,c))});
+ return recordableBoardResponse(json({revision:body.revision+1,tasks:merged.filter(t=>canSeeTask(t,c))}),body.revision+1);
  }catch{return json({error:'Falha ao salvar. Os dados anteriores foram preservados.'},500)}}

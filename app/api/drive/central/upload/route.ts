@@ -1,3 +1,4 @@
+import {recordableBoardResponse} from '../../../../board-action-response';
 import {canEditQuotes,isPurchase,quotesFor,quoteApproved,selectedQuote,MAX_QUOTE_FILES} from '../../../../purchases';
 import {uploadArtworkKind} from '../../../../upload-kind';
 import {canAttachArt} from '../../../../art-flow';
@@ -33,5 +34,5 @@ export async function POST(req:Request){try{
  if(url.searchParams.get('attach')!=='1')return Response.json(attachment,{headers:{'Cache-Control':'no-store'}});
  const current=await getActor();if(!current)throw Error('O arquivo chegou ao Drive, mas a sessão expirou. Entre novamente e confira antes de reenviar.');
  const board=await attachCentralArtwork(current,taskId,company,invoice?{...attachment,purpose:'invoice'}:attachment,quoteId??undefined);
- return Response.json({...attachment,board},{headers:{'Cache-Control':'no-store','Server-Timing':`drive;dur=${Math.round(uploaded-started)},link;dur=${Math.round(performance.now()-uploaded)}`}});
+ return recordableBoardResponse(Response.json({...attachment,board},{headers:{'Cache-Control':'no-store','Server-Timing':`drive;dur=${Math.round(uploaded-started)},link;dur=${Math.round(performance.now()-uploaded)}`}}),board.revision);
  }catch(e){return Response.json({error:e instanceof Error?e.message:'Não foi possível confirmar o envio.'},{status:503,headers:{'Cache-Control':'no-store'}})}}
