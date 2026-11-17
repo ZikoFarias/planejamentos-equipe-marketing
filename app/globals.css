@@ -1311,6 +1311,43 @@ html.luke-entering .login-reveal-stage{display:block}
  .weekly-calendar-content .unscheduled { padding: 14px 16px; }
 }
 
+.app.apple-hig main > header .header-search {
+ position: relative;
+ isolation: isolate;
+}
+.app.apple-hig main > header .header-search input:focus {
+ outline: none;
+ box-shadow: none;
+}
+.app.apple-hig main > header .header-search:focus-within {
+ box-shadow: inset 0 0 0 2px #579dff;
+}
+@media (max-width: 520px) {
+ .app.apple-hig.app-full-width main > header .header-search:focus-within { position: absolute; }
+}
+@property --search-ring-angle {
+ syntax: '<angle>';
+ inherits: false;
+ initial-value: 0deg;
+}
+@keyframes search-ring-orbit { to { --search-ring-angle: 360deg; } }
+@media (prefers-reduced-motion: no-preference) {
+ @supports (mask-composite: exclude) {
+  .app.apple-hig main > header .header-search:focus-within::after {
+   content: '';
+   position: absolute;
+   inset: 0;
+   padding: 2px;
+   border-radius: inherit;
+   pointer-events: none;
+   background: conic-gradient(from var(--search-ring-angle, 0deg), transparent 0 55%, #76d7ff 79%, #d2f4ff 88%, transparent 100%);
+   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+   mask-composite: exclude;
+   animation: search-ring-orbit 2s linear infinite;
+  }
+ }
+}
+
 .live-card-drags {
  position: fixed;
  inset: 0;
