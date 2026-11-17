@@ -22,6 +22,7 @@ assert.equal((await call(laura,{id:current.id,action:'request_adjust'})).status,
 r=await call(laura,{id:current.id,action:'submit',text:'Legenda corrigida',version:current.caption.version});body=await r.json();assert.equal(body.task.status,'aprovação fibroplast');assert(captionSent(body.task));assert.deepEqual(body.task.approval,current.approval);current=body.task;
 assert.throws(()=>mergeScopedTasks([current],[{...current,caption:{...current.caption,text:'forjada'}}],lucio),/legendas/);assert.throws(()=>mergeScopedTasks([current],[{...current,title:'outra'}],laura),/responsável/);
 const approved={...current,status:'aprovado ✅',approval:{round:2,votes:{},administrative:true}};
+const editedByLucio=changeCaption(approved,{...lucio,email:lucio.user.email},'save','Legenda atualizada',approved.caption?.version||0);assert.equal(editedByLucio.status,approved.status);assert.equal(editedByLucio.caption.text,'Legenda atualizada');
 const adjusted=changeCaption(approved,{...lucio,email:lucio.user.email},'request_adjust',undefined,undefined);
 const returned=changeCaption(adjusted,{...laura,email:laura.user.email},'submit','Corrigida',adjusted.caption.version);
 assert.equal(returned.status,'aprovado ✅');assert.deepEqual(returned.approval,approved.approval);

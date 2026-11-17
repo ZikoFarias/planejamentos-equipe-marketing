@@ -9,7 +9,7 @@ export const captionColumns=[['caption:todo','#d8a5bc','A fazer'],['caption:revi
 export function needsCaption(t:Task,labels:LabelConfig={}){return !isPurchase(t)&&!externalMediaLabel(t,labels)&&!!(t.caption||t.status.startsWith('aprovação ')||t.status==='ajustar legenda'||t.approval||t.status==='aprovado ✅'||t.status==='concluidos e postados')}
 export const captionColumn=(t:Task)=>['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(t.status)?t.status:'caption:'+(t.status==='ajustar legenda'?'adjust':t.caption?.status||'todo');
 export const captionSent=(t:Task)=>t.caption?.status==='review'&&!!t.caption.submittedAt;
-export const canWriteCaption=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&actor.persona==='laura';
+export const canWriteCaption=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&['laura','lucio'].includes(actor.persona);
 export const canRequestCaption=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&['lucio','mateus'].includes(actor.persona);
 export function changeCaption(t:Task,actor:Actor&{email:string},action:string,text:unknown,version:unknown,labels:LabelConfig={},now=new Date().toISOString()):Task{
  if(!needsCaption(t,labels))throw Error('Esta arte ainda não está na fila de legendas.');
@@ -29,7 +29,7 @@ export function changeCaption(t:Task,actor:Actor&{email:string},action:string,te
   const caption:Caption={text:t.caption?.text||'',status:'adjust',version:(t.caption?.version||0)+1,resumeStatus:t.status==='ajustar legenda'?t.caption?.resumeStatus:t.status};
   return {...t,status:'ajustar legenda',caption};
  }
- if(!canWriteCaption(actor))throw Error('Apenas Laura ou o administrador podem editar e enviar a legenda.');
+ if(!canWriteCaption(actor))throw Error('Apenas Laura, Lúcio ou o administrador podem editar e enviar a legenda.');
  if(!['save','submit'].includes(action)||typeof text!=='string'||text.length>10000)throw Error('Informe uma legenda válida de até 10.000 caracteres.');
  if(version!==(t.caption?.version||0))throw Error('A legenda foi alterada em outra tela. Reabra o cartão antes de editar.');
  if(action==='submit'&&!text.trim())throw Error('Adicione a legenda antes de enviar para aprovação.');

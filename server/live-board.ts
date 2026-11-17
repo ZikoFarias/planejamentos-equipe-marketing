@@ -24,7 +24,7 @@ export class LiveBoard {
   const now=Date.now();
   if(now>=peer.expires){socket.close(1008,'Sessão expirada');return;}
   const activity=parseLiveActivity(raw);
-  if(!peer.editor||!activity)return;
+  if(!activity||(!peer.editor&&activity.kind==='drag'))return;
   if(activity.kind!=='idle'&&now-peer.lastSent<45)return;
   peer.lastSent=now;
   socket.serializeAttachment(peer);

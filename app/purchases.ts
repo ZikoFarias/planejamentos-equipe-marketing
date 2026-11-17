@@ -33,7 +33,7 @@ export const quoteSnapshot=(t:Task)=>JSON.stringify({quotes:quotesFor(t).map(q=>
 export const quoteUnitPrice=(q:QuoteOption)=>q.total!==undefined&&q.quantity>0?q.total/q.quantity:q.unitPrice;
 export const quoteTotal=(q:QuoteOption)=>q.total??q.unitPrice*q.quantity;
 export const quoteFiles=(task:Task)=>quotesFor(task).flatMap(quote=>quote.attachments||[]);
-export const canEditQuotes=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&actor.persona==='farias';
+export const canEditQuotes=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&['farias','lucio'].includes(actor.persona);
 export const MAX_QUOTE_FILES=10;
 export const quoteValid=(t:Task)=>{const q=selectedQuote(t);return !!q&&!!(q.place.trim()||/^https?:\/\//.test(q.link)||q.attachments?.length)&&quoteTotal(q)>0};
 export const quoteApproved=(t:Task)=>quoteValid(t)&&(t.purchase?.quoteApproval?.snapshot===quoteSnapshot(t)||(!t.purchase?.quotes&&t.purchase?.quoteApproval?.snapshot===JSON.stringify({quote:t.purchase?.quote||null,title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags})));
@@ -86,10 +86,10 @@ export function guardPurchaseEdit(previous:Task|undefined,next:Task,actor:Actor)
  if(actor.role!=='administrador'&&(next.purchase?.selectedQuoteId||'')!==(previous?.purchase?.selectedQuoteId||'')&&actor.persona!=='lucio')throw Error('Apenas Lúcio pode selecionar o orçamento.');
  if(!previous||!isPurchase(previous)||!isPurchase(next)||actor.role==='administrador'||actor.persona==='farias')return;
  if(JSON.stringify(previous.purchase)===JSON.stringify(next.purchase))return;
- const {stage:oldStage,selectedQuoteId:oldSelection,...oldFields}=previous.purchase||{};
- const {stage:newStage,selectedQuoteId:newSelection,...newFields}=next.purchase||{};
+ const {stage:oldStage,selectedQuoteId:oldSelection,quotes:oldQuotes,quote:oldQuote,...oldFields}=previous.purchase||{};
+ const {stage:newStage,selectedQuoteId:newSelection,quotes:newQuotes,quote:newQuote,...newFields}=next.purchase||{};
  if(actor.persona==='lucio'&&JSON.stringify(oldFields)===JSON.stringify(newFields))return;
- throw Error('Farias é responsável por editar e direcionar as compras. Lúcio pode selecionar o orçamento e confirmar a compra.');
+ throw Error('Farias é responsável por editar e direcionar as compras. Lúcio pode editar e selecionar o orçamento e confirmar a compra.');
 }
 export function guardPurchaseFlow(previous:Task|undefined,next:Task,actor:Actor):Task{
  if(!isPurchase(next)||actor.role==='administrador')return next;

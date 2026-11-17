@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
 import {blank} from '../app/model';
 import {mergeScopedTasks,canCreateTask,canManageTask} from '../app/permissions';
+import {undoReviewAdjustment} from '../app/adjustments';
 import {canAttachArt} from '../app/art-flow';
 import {castApprovalVote} from '../app/approval';
 import {emptyStatusConfig} from '../app/status-config';
 const farias={role:'editor',persona:'farias'},lucio={role:'editor',persona:'lucio',email:'lucio@test',name:'Lucio'},mateus={role:'editor',persona:'mateus',email:'mateus@test',name:'Mateus'};
-const task={...blank(),title:'ARTE TESTE',tags:['fibroplast'],assignees:['Farias']};
+const task={...blank(),title:'ARTE TESTE',tags:['fibroplast'],assignees:['Farias','Lucio Alves Xavier','Mateus']};
 const move=(t,status,actor=farias)=>mergeScopedTasks([t],[{...t,status}],actor)[0];
 for(const persona of ['farias','luiz','lucio','mateus'])for(const status of ['a fazer farias','a fazer luiz'])assert.equal(mergeScopedTasks([],[{...task,status}],{role:'editor',persona})[0].status,status);
 assert.equal(move(task,'aprovação fibroplast').status,'aprovação fibroplast');assert.throws(()=>move(task,'aprovado ✅'),/votos/);assert.throws(()=>move(task,'concluidos e postados'),/aprovação/);assert.throws(()=>move(task,'aprovação fibroplast',lucio),/revisão/);
@@ -14,6 +15,13 @@ for(const actor of [lucio,mateus]){assert(!canAttachArt(review,actor));assert(ca
 const one=castApprovalVote(review,lucio,'approved',emptyStatusConfig);assert.equal(one.status,review.status);assert.throws(()=>move(one,'aprovado ✅'),/votos/);
 const two=castApprovalVote(one,mateus,'approved',emptyStatusConfig);assert.equal(two.status,'aprovado ✅');assert.equal(move(two,'concluidos e postados').status,'concluidos e postados');assert.equal(move(two,'ajustar ⚠️',farias).status,'ajustar ⚠️');assert.equal(move(two,'ajustar ⚠️',lucio).status,'ajustar ⚠️');
 const negative=castApprovalVote(review,mateus,'adjust',emptyStatusConfig);assert.equal(negative.status,'ajustar ⚠️');assert.equal(move(negative,'aprovação fibroplast').status,'aprovação fibroplast');
+const adjustedByMateus=castApprovalVote(one,mateus,'adjust',emptyStatusConfig);
+const undo={kind:'review-adjustment',id:adjustedByMateus.id,round:adjustedByMateus.approval.round,at:adjustedByMateus.approval.votes.mateus.at};
+assert(canAttachArt(adjustedByMateus,lucio));assert(canAttachArt(adjustedByMateus,mateus));
+assert.throws(()=>undoReviewAdjustment(adjustedByMateus,lucio,emptyStatusConfig,undo),/Só quem/);
+assert.throws(()=>undoReviewAdjustment(adjustedByMateus,mateus,emptyStatusConfig,{...undo,round:0}),/rodada/);
+const undone=undoReviewAdjustment(adjustedByMateus,mateus,emptyStatusConfig,undo);
+assert.equal(undone.status,review.status);assert.deepEqual(undone.approval.votes,one.approval.votes);
 const standby=move(task,'stand-by ⛔',lucio);assert.equal(standby.workflowResume,task.status);assert.throws(()=>move(standby,'concluidos e postados',lucio),/Retome/);assert.throws(()=>move(standby,'aprovação fibroplast'),/Retome/);assert.equal(move(standby,task.status).status,task.status);
 const approvedStandby=move(two,'stand-by ⛔');assert.equal(move(approvedStandby,'concluidos e postados').status,'concluidos e postados');
 assert.equal(move(task,'aprovação fibroplast',{role:'administrador',persona:'farias'}).status,'aprovação fibroplast');const administrative=move(task,'aprovado ✅',{role:'administrador',persona:'farias'});assert(administrative.approval.administrative);assert.deepEqual(administrative.approval.votes,{});

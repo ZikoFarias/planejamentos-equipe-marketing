@@ -1,4 +1,4 @@
-import {canCancelAdjustment,cancelTaskAdjustment} from '../app/adjustments';
+import {canCancelAdjustment,cancelTaskAdjustment,undoReviewAdjustment} from '../app/adjustments';
 import type {Actor} from '../app/permissions';
 import type {Task} from '../app/model';
 import {readStatusConfig} from '../app/status-config';
@@ -12,8 +12,10 @@ export async function handleCancelAdjustment(req:Request,env:Cloudflare.Env,acto
  const row=await env.DB!.prepare('SELECT data,revision,status_config FROM marketing_board WHERE id=1').first<{data:string,revision:number,status_config:string}>();
  if(!row||row.revision!==body.revision)return json({error:'O quadro mudou. Reabra o cartão para conferir antes de cancelar o ajuste.'},409);
  const tasks=JSON.parse(row.data) as Task[],task=tasks.find(item=>item.id===body.id);
- if(!task||!canCancelAdjustment(task,actor))return json({error:'Este ajuste não está disponível para sua conta.'},403);
- let updated:Task;try{updated=cancelTaskAdjustment(task,actor,readStatusConfig(row.status_config),body.captionText)}catch(error){return json({error:(error as Error).message},400)}
+ const undo=body.undoReview;
+ if(undo&&(!Number.isSafeInteger(undo.round)||typeof undo.at!=='string'||undo.at.length>40))return json({error:'Movimento inválido.'},400);
+ if(!task||(!undo&&!canCancelAdjustment(task,actor)))return json({error:'Este ajuste não está disponível para sua conta.'},403);
+ let updated:Task;try{updated=undo?undoReviewAdjustment(task,{...actor,email:actor.user.email},readStatusConfig(row.status_config),{kind:'review-adjustment',id:task.id,round:undo.round,at:undo.at}):cancelTaskAdjustment(task,actor,readStatusConfig(row.status_config),body.captionText)}catch(error){return json({error:(error as Error).message},400)}
  updated={...updated,history:[{text:(task.status==='ajustar legenda'?'Cancelou o ajuste de legenda':'Cancelou o ajuste de arte')+' e devolveu o cartão para aprovação.',by:actor.user.email,at:new Date().toISOString()},...task.history]};
  const next=tasks.map(item=>item.id===task.id?updated:item);
  const result=await env.DB!.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(next),row.revision).run();

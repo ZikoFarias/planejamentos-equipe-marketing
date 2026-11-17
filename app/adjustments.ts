@@ -3,7 +3,21 @@ import {canManageTask,type Actor} from './permissions';
 import {canWriteCaption,canRequestCaption,captionAfterArt} from './captions';
 import {approvalFor} from './workflow';
 import {configuredStatus,statusDefinitions,type StatusConfig} from './status-config';
-export function canCancelAdjustment(task:Task,actor:Actor){if(task.status==='ajustar legenda')return canWriteCaption(actor)||canRequestCaption(actor);return task.status==='ajustar ⚠️'&&canManageTask(task,actor)}
+import type {Reviewer} from './approval';
+export type ReviewAdjustment={kind:'review-adjustment';id:string;round:number;at:string};
+
+export function undoReviewAdjustment(task:Task,actor:Actor&{email:string},config:StatusConfig,edit:ReviewAdjustment):Task{
+ const approval=task.approval;
+ const reviewer=actor.persona as Reviewer;
+ const vote=approval?.votes[reviewer];
+ if(actor.role!=='editor'||!['lucio','mateus'].includes(reviewer)||task.status!=='ajustar ⚠️'||task.id!==edit.id||approval?.round!==edit.round||vote?.decision!=='adjust'||vote.by!==actor.email||vote.at!==edit.at)throw Error('Só quem enviou este cartão para Ajustar pode desfazer o movimento da rodada atual.');
+ const status=configuredStatus(approvalFor(task),config);
+ if(!status.startsWith('aprovação ')||!statusDefinitions(config).some(item=>item.id===status))throw Error('Ative a coluna de aprovação desta empresa antes de desfazer o ajuste.');
+ const votes={...approval.votes};
+ delete votes[reviewer];
+ return {...task,status,workflowResume:undefined,approval:{...approval,votes}};
+}
+export function canCancelAdjustment(task:Task,actor:Actor){if(task.status==='ajustar legenda')return canWriteCaption(actor)||canRequestCaption(actor);return task.status==='ajustar ⚠️'&&(actor.role==='administrador'||!['lucio','mateus'].includes(actor.persona)&&canManageTask(task,actor))}
 export function cancelTaskAdjustment(task:Task,actor:Actor,config:StatusConfig,captionText?:unknown):Task{
  if(!['ajustar ⚠️','ajustar legenda'].includes(task.status))throw Error('Este cartão não está em ajuste.');
  if(!canCancelAdjustment(task,actor))throw Error('Seu perfil não pode cancelar este ajuste.');

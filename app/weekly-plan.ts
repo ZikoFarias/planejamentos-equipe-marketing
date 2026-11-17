@@ -7,7 +7,7 @@ export const weeklyTitle='DESIGN PARA REDE-SOCIAIS';
 export const dayNames=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado','Domingo'];
 const materials=['materiais-ps','materiais-smo'];
 export const weeklySchedule=[['posto-ps','posto-brr','concreto'],['fibroplast','posto-rv',...materials],['fibroplast','posto-brr','ervateira',...materials],['posto-ps'],['fibroplast','posto-ps','posto-rv','ervateira',...materials,'concreto'],['fibroplast',...materials],['posto-rv','ervateira']];
-export function canLaunchWeekly(role:string,persona:string){return role==='administrador'||(role==='editor'&&['mateus','lucio'].includes(persona))}
+export function canLaunchWeekly(role:string,persona:string){return role==='administrador'||(role==='editor'&&['mateus','lucio','farias','luiz'].includes(persona))}
 export function validDay(day:unknown){return day==='all'||(typeof day==='string'&&/^[0-6]$/.test(day))}
 export function validDate(date:unknown):date is string{if(typeof date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(date))return false;const d=new Date(date+'T12:00:00Z');return !isNaN(+d)&&d.toISOString().slice(0,10)===date}
 export function launchDates(selected:string[],mode:'day'|'week'){if(mode==='day')return [...new Set(selected)].filter(validDate).sort();const anchor=selected[0];return validDate(anchor)?weekDates(anchor).filter(date=>date>=anchor):[]}

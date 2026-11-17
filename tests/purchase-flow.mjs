@@ -19,9 +19,10 @@ const parkedStart=move(base,'stand-by');const forgedResume=mergeScopedTasks([par
 const option={id:'a',place:'Loja',link:'',unitPrice:10,quantity:2},withQuotes={...base,purchase:{...base.purchase,stage:'orçamento',quotes:[option]}};
 assert.throws(()=>mergeScopedTasks([withQuotes],[{...withQuotes,purchase:{...withQuotes.purchase,selectedQuoteId:'a'}}],farias,now),/selecionar/);
 const chosen=mergeScopedTasks([withQuotes],[{...withQuotes,purchase:{...withQuotes.purchase,selectedQuoteId:'a'}}],lucio,now)[0];assert.equal(chosen.purchase.selectedQuoteId,'a');assert.equal(chosen.purchase.stage,'orçamento');
+const editedByLucio=mergeScopedTasks([withQuotes],[{...withQuotes,purchase:{...withQuotes.purchase,quotes:[{...option,unitPrice:12}]}}],lucio,now)[0];assert.equal(editedByLucio.purchase.quotes[0].unitPrice,12);
 const notChosen=approveQuote(withQuotes,lucio,now);assert.equal(notChosen.purchase.stage,'aprovado');assert.equal(notChosen.purchase.selectedQuoteId,undefined);
 const unfinished={...base,tags:[...base.tags,'MÍDIA EXTERNA'],status:'a fazer luiz',assignees:['Luiz','Farias','Lucio Alves Xavier'],purchase:{requiresArt:true,stage:'comprar'}};assert.equal(canManageTask(unfinished,farias),true);const parkedBeforeArt=mergeScopedTasks([unfinished],[{...unfinished,status:'stand-by ⛔'}],farias,now)[0];assert.equal(parkedBeforeArt.status,'stand-by ⛔');assert.equal(purchaseReady(parkedBeforeArt),false);
-const mirror={...base,tags:[...base.tags,'MÍDIA EXTERNA'],status:'aprovado ✅',approval:{round:1,votes:{lucio:{decision:'approved',by:lucio.email,at:now}}},purchase:{requiresArt:true,stage:'orçamento'}};
+const mirror={...base,tags:[...base.tags,'MÍDIA EXTERNA'],status:'aprovado ✅',assignees:['Farias','Lucio Alves Xavier'],approval:{round:1,votes:{lucio:{decision:'approved',by:lucio.email,at:now}}},purchase:{requiresArt:true,stage:'orçamento'}};
 const parked=move(mirror,'stand-by',lucio);assert.equal(parked.status,'stand-by ⛔');assert.ok(inArea(parked,'compras'));
 assert.throws(()=>move(mirror,'stand-by',mateus));
 const fromOriginal=mergeScopedTasks([mirror],[{...mirror,status:'stand-by ⛔'}],lucio,now)[0];assert.equal(fromOriginal.purchase.stage,'stand-by');
