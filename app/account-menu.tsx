@@ -1,6 +1,6 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {Settings,LogOut,Bell,ChevronDown,ChevronRight,ChevronLeft,UserRound} from 'lucide-react';
+import {Settings,LogOut,Bell,ChevronDown,ChevronRight,UserRound} from 'lucide-react';
 import {photoFrameStyle,type PhotoFrame} from './profiles';
 type AreaLink = {id:string; label:string; count?:number};
 export function AccountAvatar({name,photo,frame}:{name:string;photo?:string;frame?:PhotoFrame}) {
@@ -15,16 +15,16 @@ export function AccountMenu({name,email,job,role,photo,frame,busy,onSettings,onL
  useEffect(()=>{const outside=(e:PointerEvent)=>{if(!menu.current?.contains(e.target as Node)&&menu.current)menu.current.open=false};const escape=(e:KeyboardEvent)=>{if(e.key==='Escape'&&menu.current?.open){menu.current.open=false;menu.current.querySelector('summary')?.focus()}};document.addEventListener('pointerdown',outside);document.addEventListener('keydown',escape);return()=>{document.removeEventListener('pointerdown',outside);document.removeEventListener('keydown',escape)}},[]);
  const close=()=>{if(menu.current)menu.current.open=false};
  const avatar = <AccountAvatar name={name} photo={photo} frame={frame}/>;
+ const ProfileRow=onCollapse?'button':'div';
  const panel = (
   <div className="account-panel">
-   <div className="account-profile-row">
+   <ProfileRow className="account-profile-row" type={onCollapse?'button':undefined} onClick={onCollapse} title={onCollapse?'Recolher barra lateral':undefined}>
     {avatar}
     <span><strong>{name||'Equipe'}</strong><span>{job}</span><small>{email}</small></span>
-    {onCollapse&&<button type="button" className="account-collapse" aria-label="Recolher barra lateral" title="Recolher barra lateral" onClick={onCollapse}><ChevronLeft size={18} aria-hidden="true"/></button>}
-   </div>
+   </ProfileRow>
    <div className="account-menu-group account-areas" role="group" aria-label="Contas e áreas">
     <span className="account-group-label">Contas / Áreas</span>
-    {areas.map(area=><button type="button" key={area.id} disabled={!role||busy} aria-current={activeArea===area.id?'page':undefined} onClick={()=>{close();onAreaChange?.(area.id)}}>
+    {areas.map(area=><button type="button" key={area.id} disabled={!role||busy} aria-current={activeArea===area.id?'page':undefined} onClick={()=>{close();onAreaChange?.(area.id);onCollapse?.()}}>
      <span className="account-area-dot"/><span>{area.label}</span><small className="account-area-count">{area.count}</small><ChevronRight size={15}/>
     </button>)}
    </div>

@@ -15,6 +15,12 @@ const {buildSync}=require('esbuild'),fs=require('fs'),path=require('path'),asser
  await act(async()=>[...areaGroup.querySelectorAll('button')].find(button=>button.textContent.includes('Compras')).click());
  assert.equal(selectedArea,'compras');
  assert.equal(mount.querySelector('.account-unread').textContent,'3');await act(async()=>mount.querySelector('summary').click());await act(async()=>[...mount.querySelectorAll('button')].find(b=>b.textContent.includes('Notificações')).click());assert.equal(opened,1);
+ const sidebarActions=[];
+ await act(async()=>root.render(React.createElement(AccountMenu,{name:'Luiz',email:'luiz@test',role:'editor',busy:false,persistent:true,onCollapse:()=>sidebarActions.push('collapse'),onSettings(){},onLogout(){},areas:[{id:'compras',label:'Compras',count:14}],onAreaChange:id=>sidebarActions.push(id)})));
+ assert.equal(mount.querySelector('.account-profile-row button'),null);
+ await act(async()=>mount.querySelector('button.account-profile-row .account-avatar').click());
+ await act(async()=>mount.querySelector('.account-areas button').click());
+ assert.deepEqual(sidebarActions,['collapse','compras','collapse']);
  await act(async()=>root.render(React.createElement(PersonalNotificationPanel,{items:[notification,{...notification,id:1,kind:'daily',taskId:undefined,targets:[{id:'pending',title:'Pendência',status:'a fazer luiz'}]}],unread:2,loading:false,error:'',moreBusy:false,hasMore:true,onMore:()=>more++,onReadAll:async()=>all++,onRead:async id=>read.push(id),onOpenTask:async(id,kind)=>{assert.ok(['card','pending'].includes(id));opened++;return true},onClose:()=>closed++})));
  assert.equal(mount.querySelector('dialog').open,true);assert.equal(mount.querySelectorAll('.personal-notification.unread').length,2);
  await act(async()=>mount.querySelector('.personal-notification-open').click());assert.equal(read.at(-1),2);assert.equal(closed,1);
