@@ -10,14 +10,14 @@ assert.throws(()=>move(task,'orçamento'),/ordem/);
 task=move(task,'em andamento');assert.throws(()=>move(task,'orçamento',lucio),/responsável/);task=move(task,'orçamento');
 assert.throws(()=>move(task,'aprovado'),/Lúcio/);
 assert.throws(()=>move(task,'pagamento'),/ordem/);
-assert.throws(()=>approveQuote(task,{...lucio,persona:'farias'}),/Apenas Lucio/);
+assert.equal(approveQuote(task,{...lucio,persona:'farias'}).purchase.stage,'aprovado');assert.throws(()=>approveQuote(task,{...lucio,persona:'luiz'}),/Apenas/);
 task=approveQuote(task,lucio,now);assert.equal(task.purchase.stage,'aprovado');assert.equal(task.purchase.selectedQuoteId,undefined);
 task=move(task,'pagamento');task=move(task,'aguardando chegada');task=move(task,'concluído');
 for(const [stage]of purchaseColumns){const jumped=move(base,stage,admin);assert.equal(jumped.purchase.stage,stage);}
 for(const [stage]of purchaseColumns){const current={...base,purchase:{...base.purchase,stage}};for(const actor of [farias,lucio]){const parked=move(current,'stand-by',actor);assert.equal(parked.purchase.stage,'stand-by');if(stage!=='stand-by')assert.equal(move(parked,stage,actor).purchase.stage,stage);}}
 const parkedStart=move(base,'stand-by');const forgedResume=mergeScopedTasks([parkedStart],[{...parkedStart,purchase:{...parkedStart.purchase,resumeStage:'pagamento'}}],farias,now)[0];assert.equal(forgedResume.purchase.resumeStage,'comprar');assert.throws(()=>move(forgedResume,'pagamento'),/ordem/);
 const option={id:'a',place:'Loja',link:'',unitPrice:10,quantity:2},withQuotes={...base,purchase:{...base.purchase,stage:'orçamento',quotes:[option]}};
-assert.throws(()=>mergeScopedTasks([withQuotes],[{...withQuotes,purchase:{...withQuotes.purchase,selectedQuoteId:'a'}}],farias,now),/selecionar/);
+const pickedByFarias=mergeScopedTasks([withQuotes],[{...withQuotes,purchase:{...withQuotes.purchase,selectedQuoteId:'a'}}],farias,now)[0];assert.equal(pickedByFarias.purchase.selectedQuoteId,'a');assert.equal(mergeScopedTasks([pickedByFarias],[{...pickedByFarias,purchase:{...pickedByFarias.purchase,selectedQuoteId:undefined}}],farias,now)[0].purchase.selectedQuoteId,undefined);
 const chosen=mergeScopedTasks([withQuotes],[{...withQuotes,purchase:{...withQuotes.purchase,selectedQuoteId:'a'}}],lucio,now)[0];assert.equal(chosen.purchase.selectedQuoteId,'a');assert.equal(chosen.purchase.stage,'orçamento');
 const editedByLucio=mergeScopedTasks([withQuotes],[{...withQuotes,purchase:{...withQuotes.purchase,quotes:[{...option,unitPrice:12}]}}],lucio,now)[0];assert.equal(editedByLucio.purchase.quotes[0].unitPrice,12);
 const notChosen=approveQuote(withQuotes,lucio,now);assert.equal(notChosen.purchase.stage,'aprovado');assert.equal(notChosen.purchase.selectedQuoteId,undefined);

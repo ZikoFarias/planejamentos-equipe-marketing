@@ -75,7 +75,7 @@ export function normalizePurchase(t:Task,previous?:Task,admin=false):Task{
  return next;
 }
 export function approveQuote(task:Task,actor:{role:string,persona:string,email:string,name:string},now=new Date().toISOString()):Task{
- if(actor.role!=='administrador'&&!(actor.role==='editor'&&actor.persona==='lucio'))throw Error('Apenas Lucio ou um administrador por Lucio pode aprovar o orçamento.');
+ if(actor.role!=='administrador'&&!(actor.role==='editor'&&['lucio','farias'].includes(actor.persona)))throw Error('Apenas Lúcio, Farias ou o administrador podem aprovar o orçamento.');
  if(!purchaseReady(task)||task.purchase?.stage!=='orçamento')throw Error('Encaminhe o cartão para Orçamento antes de Lúcio mover para Aprovado.');
  const canonical=syncPurchaseArt(task,task);
  const q=selectedQuote(canonical);
@@ -83,7 +83,7 @@ export function approveQuote(task:Task,actor:{role:string,persona:string,email:s
 }
 
 export function guardPurchaseEdit(previous:Task|undefined,next:Task,actor:Actor){
- if(actor.role!=='administrador'&&(next.purchase?.selectedQuoteId||'')!==(previous?.purchase?.selectedQuoteId||'')&&actor.persona!=='lucio')throw Error('Apenas Lúcio pode selecionar o orçamento.');
+ if(actor.role!=='administrador'&&(next.purchase?.selectedQuoteId||'')!==(previous?.purchase?.selectedQuoteId||'')&&!['lucio','farias'].includes(actor.persona))throw Error('Apenas Lúcio, Farias ou o administrador podem selecionar o orçamento.');
  if(!previous||!isPurchase(previous)||!isPurchase(next)||actor.role==='administrador'||actor.persona==='farias')return;
  if(JSON.stringify(previous.purchase)===JSON.stringify(next.purchase))return;
  const {stage:oldStage,selectedQuoteId:oldSelection,quotes:oldQuotes,quote:oldQuote,...oldFields}=previous.purchase||{};
