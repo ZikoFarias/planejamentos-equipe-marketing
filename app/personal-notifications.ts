@@ -19,12 +19,7 @@ export function personalEvents(old:NotificationTask|null,next:NotificationTask,l
  const add=(recipient:NotificationPersona,kind:string,title:string,message:string)=>events.push({recipient,kind,title,message,taskId:next.id});
  if((next.status==='ajustar ⚠️'||next.status==='ajustar legenda')&&old?.status!==next.status)events.push({recipient:'all',kind:'adjust-all',title:next.status==='ajustar legenda'?'Legenda para ajustar':'Arte para ajustar',message:next.title+' foi enviado para '+(next.status==='ajustar legenda'?'Ajustar legenda.':'Ajustar.'),taskId:next.id});
  const ready=purchaseReady(asTask(next)),wasReady=!!old&&purchaseReady(asTask(old));
- if(next.status==='a fazer luiz'&&(!old||old.status!==next.status||!assigned(old,'luiz')))add('luiz','assigned','Novo cartão para você',next.title+' foi adicionado em A Fazer Luiz.');
- if(assigned(next,'farias')&&(!old||!assigned(old,'farias'))&&!(ready&&!wasReady))add('farias','assigned','Novo cartão para você',next.title+' foi atribuído a você.');
- for(const person of ['luiz','farias'] as const)if(next.status==='ajustar ⚠️'&&assigned(next,person)&&(!old||old.status!==next.status||!assigned(old,person)))add(person,'adjust','Cartão para ajustar',next.title+' precisa de ajustes.');
  if(ready&&!wasReady)add('farias','purchase-arrived','Nova compra disponível',next.title+' está disponível na área Compras.');
- if(ready&&next.purchase?.stage==='aprovado'&&(!old||!wasReady||old.purchase?.stage!=='aprovado'))add('farias','purchase-approved','Compra aprovada',next.title+' está em Aprovado na área Compras.');
- if(ready&&next.purchase?.stage==='orçamento'&&(!old||!wasReady||old.purchase?.stage!=='orçamento'))add('lucio','budget','Compra aguardando sua confirmação',next.title+' chegou a Orçamento.');
  if(review(next)){
   const newRound=!old||old.status!==next.status||old.approval?.round!==next.approval?.round;
   if(newRound)add('lucio','review','Arte aguardando revisão',next.title+' foi enviado para aprovação.');

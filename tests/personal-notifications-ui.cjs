@@ -41,15 +41,18 @@ const {buildSync}=require('esbuild'),fs=require('fs'),path=require('path'),asser
  let hook;
  function Harness({email}){hook=usePersonalNotifications(email,true,()=>{});return React.createElement('div',{},hook.bubble?.id||'none')}
  const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
- await act(async()=>{root.render(React.createElement(Harness,{email:owner}));await tick()});assert.equal(hook.unread,2);assert.equal(hook.bubble.id,2);
- await act(async()=>{win.dispatchEvent(new Event('focus'));await tick()});assert.equal(hook.bubble.id,2,'Older unseen messages must not replace the current bubble');
- await act(async()=>{hook.openPanel();await tick()});assert.equal(hook.bubble,null);assert.ok(posts.some(post=>post.action==='seen'));assert.equal(hook.unread,2);
- await act(async()=>{await hook.read(2);await tick()});assert.equal(hook.unread,1);
- await act(async()=>{await hook.markAll();await tick()});assert.equal(hook.unread,0);
- await act(async()=>hook.closePanel());rows[owner].unshift({...notification,id:3,readAt:null,seenAt:null});await act(async()=>{win.dispatchEvent(new Event('focus'));await tick()});assert.equal(hook.bubble.id,3);
+ const desktop=[];
+ class DesktopNotification{static permission='granted';constructor(title,options){desktop.push({title,...options})}close(){}}
+ globalThis.Notification=win.Notification=DesktopNotification;
+ rows[owner]=['assigned','daily','budget','purchase-approved','review','review-hour','last-review','adjust-all','purchase-arrived','comment-mention'].map((kind,id)=>({...notification,id:id+1,kind,title:kind,createdAt:new Date().toISOString()}));
+ await act(async()=>{root.render(React.createElement(Harness,{email:owner}));await tick()});
+ assert.equal(hook.unread,0);assert.equal(hook.bubble,null);assert.deepEqual(hook.items,[]);
+ assert.deepEqual(desktop.map(item=>item.title),['review','review-hour','last-review','adjust-all','purchase-arrived','comment-mention']);
+ await act(async()=>{win.dispatchEvent(new Event('focus'));await tick()});assert.equal(desktop.length,6,'Polling must not duplicate Windows alerts');
+ await act(async()=>{hook.openPanel();await tick()});assert.equal(hook.unread,0);assert.equal(hook.bubble,null);
  delayOwner=owner;await act(async()=>{win.dispatchEvent(new Event('focus'));await tick()});assert.equal(typeof release,'function');
- owner='mateus@test';await act(async()=>{root.render(React.createElement(Harness,{email:owner}));await tick()});assert.equal(hook.items[0].id,99);
- await act(async()=>{release();await tick()});assert.equal(hook.items[0].id,99,'A stale response from another account must be ignored');
+ owner='mateus@test';await act(async()=>{root.render(React.createElement(Harness,{email:owner}));await tick()});assert.deepEqual(hook.items,[]);
+ await act(async()=>{release();await tick()});assert.deepEqual(hook.items,[],'Stale responses cannot restore removed in-app notices');
  await act(async()=>root.unmount());menu.remove();
- console.log('PASS: profile unread counter and notifications menu; readable history and daily targets; clickable anchored bubble; no old-bubble cycling; read/seen separation; account switch discards stale responses.');
+ console.log('PASS: account menu, notification controls, Windows-only delivery, removed kinds suppressed, desktop deduplication and stale-account protection.');
 })().catch(error=>{console.error(error);process.exitCode=1});

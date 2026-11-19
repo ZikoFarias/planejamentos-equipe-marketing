@@ -1,4 +1,6 @@
-import {personalEvents,dailySummary,type PersonalEvent,type NotificationPersona,type NotificationTask} from '../app/personal-notifications';
+import {personalEvents,type PersonalEvent,type NotificationPersona,type NotificationTask} from '../app/personal-notifications';
+import {isWeeklyDraft} from '../app/weekly-drafts';
+import {lucioOnly} from '../app/reviewer-policy';
 import {teamAccounts} from '../app/team-auth';
 import {readStatusConfig} from '../app/status-config';
 type Member={email:string,role:string,persona:string};
@@ -24,13 +26,19 @@ export function localNotificationDay(now:Date){
  const value=(type:string)=>parts.find(part=>part.type===type)?.value||'';
  return {day:value('year')+'-'+value('month')+'-'+value('day'),hour:Number(value('hour'))};
 }
-export async function runDailyNotifications(db:D1Database,now=new Date()){
- const {day,hour}=localNotificationDay(now);if(hour<8)return false;
- if(await db.prepare('SELECT day FROM marketing_notification_days WHERE day=?').bind(day).first())return false;
- const board=await db.prepare('SELECT data,status_config FROM marketing_board WHERE id=1').first<{data:string,status_config:string}>();if(!board)return false;
+export async function runHourlyApprovalNotifications(db:D1Database,now=new Date()){
+ const board=await db.prepare('SELECT data,status_config FROM marketing_board WHERE id=1').first<{data:string,status_config:string}>();if(!board)return 0;
  const people=await members(db),tasks=JSON.parse(board.data) as NotificationTask[],labels=readStatusConfig(board.status_config).labels,at=now.toISOString();
- const statements=people.filter(person=>['luiz','farias','lucio','mateus'].includes(recipient(person))).map(person=>insert(db,dailySummary(recipient(person),tasks,day,labels),person.email,'daily:'+day+':'+person.email,at));
- statements.push(db.prepare('INSERT OR IGNORE INTO marketing_notification_days(day,created_at) VALUES(?,?)').bind(day,at));
- await db.batch(statements);return true;
+ const recent=(await db.prepare("SELECT email,task_id,MAX(created_at) AS last_at FROM marketing_notifications WHERE kind IN ('review','last-review','review-hour') GROUP BY email,task_id").all<{email:string,task_id:string,last_at:string}>()).results;
+ const latest=new Map(recent.map(row=>[row.email+'|'+row.task_id,row.last_at])),statements:D1PreparedStatement[]=[];
+ for(const task of tasks){
+  if(isWeeklyDraft(task)||!(task.status==='aprovação'||task.status.startsWith('aprovação ')))continue;
+  for(const person of people){
+   const persona=recipient(person);if(persona!=='lucio'&&persona!=='mateus'||persona==='mateus'&&lucioOnly(task as import('../app/model').Task,labels)||task.approval?.votes[persona]?.decision==='approved')continue;
+   const last=latest.get(person.email.toLowerCase()+'|'+task.id);if(!last||now.getTime()-Date.parse(last)<3600000)continue;
+   statements.push(insert(db,{recipient:persona,kind:'review-hour',title:'Arte aguardando aprovação',message:task.title+' continua aguardando sua aprovação.',taskId:task.id},person.email,'review-hour:'+task.id+':'+person.email+':'+Math.floor(now.getTime()/3600000),at));
+  }
+ }
+ if(statements.length)await db.batch(statements);return statements.length;
 }
-export async function processPersonalNotifications(db:D1Database,now=new Date()){await drainNotificationChanges(db);await runDailyNotifications(db,now)}
+export async function processPersonalNotifications(db:D1Database,now=new Date()){await drainNotificationChanges(db);await runHourlyApprovalNotifications(db,now)}
