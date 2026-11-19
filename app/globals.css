@@ -1545,3 +1545,6 @@ html.luke-entering .login-reveal-stage{display:block}
  .mobile-dashboard .mobile-welcome { display: block; }
  .mobile-team-menu .account-panel { position: fixed; top: 68px; left: 12px; bottom: auto; }
 }
+
+/* Uploads occupy their final attachment slot. */
+.task-attachments .attachment-uploading{pointer-events:none}.task-attachments .attachment-uploading>.attachment-image,.task-attachments .attachment-uploading>.attachment-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.attachment-upload-status{position:absolute;z-index:5;inset:auto 0 0;display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 8px 15px;color:#fff;background:linear-gradient(transparent,rgba(6,20,34,.88));font-size:12px}.attachment-upload-status svg{animation:attachment-upload-spin 1s linear infinite}.attachment-upload-status progress{position:absolute;bottom:4px;left:8px;width:calc(100% - 16px);height:3px;accent-color:#39aaff}.task-attachments .attachment-uploading .attachment-caption{display:none}@keyframes attachment-upload-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.attachment-upload-status svg{animation:none}}
