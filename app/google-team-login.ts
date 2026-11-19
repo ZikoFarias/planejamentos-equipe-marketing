@@ -18,7 +18,7 @@ export async function handleGoogleTeamLogin(request: Request, env: Cloudflare.En
  if (Number(request.headers.get('content-length') || 0) > 10000) return json({error: 'Solicitação inválida.'}, 400);
  const nonceCookie = (value: string, age: number) => `marketing_google_nonce=${value}; Path=/api/auth/google; HttpOnly; SameSite=Strict; Max-Age=${age}${secure}`;
  try {
-  const body = await request.json() as {credential?: string; action?: string};
+  const body = await request.json() as {credential?: string; action?: string; administrator?:boolean};
   const now = Date.now();
   if (body?.action === 'start') {
    const nonce = newToken();
@@ -43,6 +43,8 @@ export async function handleGoogleTeamLogin(request: Request, env: Cloudflare.En
   const member = await db.prepare('SELECT role,persona FROM marketing_members WHERE email=?').bind(account).first<{role: string; persona: string}>();
   if (!member || !validTeamRole(account, member.role) || member.persona !== teamAccounts[account]) return json({error: denied}, 401);
 
+  if(member.role==='administrador'&&body.administrator!==true)return json({error:'Use Acesso do administrador para entrar com esta conta.'},403);
+  if(member.role!=='administrador'&&body.administrator===true)return json({error:'Esta conta deve entrar pelo acesso da equipe.'},403);
   const challenge = await db.prepare('DELETE FROM marketing_login_challenges WHERE token_hash=? AND email=? AND expires_at>? RETURNING token_hash').bind(await tokenHash(nonce), '_google', now).first();
   if (!challenge) return json({error: 'Recarregue a página para entrar com Google novamente.'}, 401);
   const token = newToken();

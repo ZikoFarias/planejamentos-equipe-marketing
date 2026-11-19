@@ -29,6 +29,8 @@ export async function handleTeamLogin(req:Request,env:Cloudflare.Env,challengeRe
  const password=await accountPassword(db,account,{salt:env.BOARD_LOGIN_SALT,hash:env.BOARD_LOGIN_HASH});if(!await verifyLoginProof(password.hash,email,body.challenge,body.proof))return denied();
  const member=await db.prepare('SELECT role,persona FROM marketing_members WHERE email=?').bind(account).first<{role:string,persona:string}>();
  if(!member||!validTeamRole(account,member.role)||member.persona!==teamAccounts[account])return denied();
+ if(member.role==='administrador'&&body.administrator!==true)return json({error:'Use Acesso do administrador para entrar com esta conta.'},403);
+ if(member.role!=='administrador'&&body.administrator===true)return json({error:'Esta conta deve entrar pelo acesso da equipe.'},403);
  const token=newToken();await db.prepare('INSERT INTO marketing_sessions(token_hash,email,expires_at) VALUES(?,?,?)').bind(await tokenHash(token),account,now+SESSION_SECONDS*1000).run();
  await db.prepare('DELETE FROM marketing_login_attempts WHERE key=? OR reset_at<=?').bind(await tokenHash(email),now).run();
  await db.prepare('DELETE FROM marketing_sessions WHERE expires_at<=?').bind(now).run();

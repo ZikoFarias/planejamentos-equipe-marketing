@@ -23,7 +23,7 @@ export function mountGoogleLogin(element: HTMLElement) {
  let active = true;
  let signingIn = false;
  const send = async (payload: object) => {
-  const response = await fetch('/api/auth/google', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload), signal: AbortSignal.timeout(15000)});
+  const response = await fetch('/api/auth/google', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({...payload,administrator:new URLSearchParams(window.location.search).get('admin')==='1'}), signal: AbortSignal.timeout(15000)});
   const data = await response.json() as {error?: string; clientId: string; nonce: string};
   if (!response.ok) throw new Error(data.error);
   return data;

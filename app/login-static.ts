@@ -2,6 +2,12 @@ import {navigateWithLogo} from './login-transition';
 import {loginDestination} from './task-link';
 import {submitTeamLogin} from './login-client';
 import {mountGoogleLogin} from './google-login-client';
+const administrator=new URLSearchParams(location.search).get('admin')==='1';
+if(administrator){
+ document.querySelector('.login-intro h1')!.textContent='Acesso do administrador';
+ document.querySelector('.login-intro p')!.textContent='Entre com a conta de administração.';
+ const link=document.querySelector<HTMLAnchorElement>('.login-admin')!;link.href='/login';link.textContent='Voltar ao acesso da equipe';
+}
 const googleLogin = document.querySelector<HTMLElement>('.google-login');
 if (googleLogin) mountGoogleLogin(googleLogin);
 const form=document.querySelector<HTMLFormElement>('.login-panel form')!;
