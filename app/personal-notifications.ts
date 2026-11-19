@@ -6,7 +6,7 @@ import type {LabelConfig} from './labels';
 export type NotificationPersona='luiz'|'farias'|'lucio'|'mateus';
 export type NotificationTask=Pick<Task,'id'|'title'|'status'|'tags'|'assignees'|'purchase'|'approval'|'workflowResume'>;
 export type NotificationTarget={id:string,title:string,status:string};
-export type PersonalEvent={recipient:NotificationPersona,kind:string,title:string,message:string,taskId?:string,targets?:NotificationTarget[]};
+export type PersonalEvent={recipient:NotificationPersona|'all',kind:string,title:string,message:string,taskId?:string,targets?:NotificationTarget[]};
 export type PersonalNotification={id:number,kind:string,title:string,message:string,taskId?:string,targets:NotificationTarget[],createdAt:string,readAt:string|null,seenAt:string|null};
 const normalized=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
 const asTask=(task:NotificationTask)=>task as Task;
@@ -17,6 +17,7 @@ export function personalEvents(old:NotificationTask|null,next:NotificationTask,l
  if(old&&isWeeklyDraft(old))old=null;
  const events:PersonalEvent[]=[];
  const add=(recipient:NotificationPersona,kind:string,title:string,message:string)=>events.push({recipient,kind,title,message,taskId:next.id});
+ if((next.status==='ajustar ⚠️'||next.status==='ajustar legenda')&&old?.status!==next.status)events.push({recipient:'all',kind:'adjust-all',title:next.status==='ajustar legenda'?'Legenda para ajustar':'Arte para ajustar',message:next.title+' foi enviado para '+(next.status==='ajustar legenda'?'Ajustar legenda.':'Ajustar.'),taskId:next.id});
  const ready=purchaseReady(asTask(next)),wasReady=!!old&&purchaseReady(asTask(old));
  if(next.status==='a fazer luiz'&&(!old||old.status!==next.status||!assigned(old,'luiz')))add('luiz','assigned','Novo cartão para você',next.title+' foi adicionado em A Fazer Luiz.');
  if(assigned(next,'farias')&&(!old||!assigned(old,'farias'))&&!(ready&&!wasReady))add('farias','assigned','Novo cartão para você',next.title+' foi atribuído a você.');
