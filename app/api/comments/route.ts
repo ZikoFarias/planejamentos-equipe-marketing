@@ -10,7 +10,7 @@ const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cac
 export async function POST(req:Request){try{
  if(req.headers.get('origin')!==new URL(req.url).origin)return json({error:'Origem inválida.'},403);
  const actor=await getActor();if(!actor)return json({error:'Entre novamente.'},401);
- const body:any=await req.json();if(['edit','react'].includes(body.action)){
+ const body:any=await req.json();if(['edit','react','delete'].includes(body.action)){
  if(typeof body.taskId!=='string'||typeof body.id!=='string')return json({error:'Comentário inválido.'},400);
  for(let attempt=0;attempt<4;attempt++){
  const row=await env.DB!.prepare('SELECT data,revision FROM marketing_board WHERE id=1').first<{data:string,revision:number}>();
@@ -30,7 +30,9 @@ export async function POST(req:Request){try{
   const existing=task.comments.find(c=>c.id===body.id);if(existing){if(existing.by!==actor.user.email||existing.text!==body.text.trim()||JSON.stringify(existing.attachments?.map(a=>a.url)||[])!==JSON.stringify([...new Set(body.urls)]))return json({error:'Este comentário já foi enviado. Recarregue o cartão para conferir.'},409);return json({tasks:tasks.filter(t=>canSeeTask(t,actor)),revision:row!.revision});}
   if(body.urls.length&&(!canManageTask(task,actor)||!canAttachArt(task,actor)))return json({error:'Seu perfil não pode adicionar mídia nesta etapa.'},403);
   const urls=[...new Set(body.urls)] as string[],attachments=urls.map(url=>task.attachments.find(a=>a.url===url));if(attachments.some(a=>!a))return json({error:'Aguarde os arquivos terminarem de enviar antes de comentar.'},400);
-  const comment={id:body.id,text:body.text.trim(),by:actor.user.email,at:new Date().toISOString(),...(attachments.length?{attachments:attachments as Task['attachments']}:{})};const next=tasks.map(t=>t.id===task.id?{...t,comments:[...t.comments,comment]}:t);
+  const replied=typeof body.replyTo==='string'?task.comments.find(item=>item.id===body.replyTo&&!item.deletedAt):undefined;
+  if(body.replyTo&&!replied)return json({error:'A mensagem respondida não está disponível.'},400);
+  const comment={...(replied?{reply:{id:replied.id!,by:replied.by,text:replied.text.slice(0,500)||replied.attachments?.[0]?.name||'Arquivo'}}:{}),id:body.id,text:body.text.trim(),by:actor.user.email,at:new Date().toISOString(),...(attachments.length?{attachments:attachments as Task['attachments']}:{})};const next=tasks.map(t=>t.id===task.id?{...t,comments:[...t.comments,comment]}:t);
 
   const update=env.DB!.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(next),row!.revision);
   const recipients=people.filter(person=>mentioned.includes(person.email)&&person.email!==actor.user.email&&canSeeTask(task,person));

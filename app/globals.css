@@ -1376,6 +1376,27 @@ html.luke-entering .login-reveal-stage{display:block}
 .app.apple-hig .comment-reactions details > div > button { min-width: 28px; min-height: 30px; padding: 3px; border: 0; background: transparent; font-size: 20px; }
 .comment-reactions .comment-more-reactions > div { width: 150px; flex-wrap: wrap; bottom: 40px; left: auto; right: 0; }
 .comment-reactions .comment-more-reactions summary { background: transparent; }
+.comment-action-menu { position: absolute; top: 7px; right: 7px; z-index: 6; }
+.comment-action-menu > summary { display: grid; place-items: center; width: 22px; height: 22px; cursor: pointer; list-style: none; border-radius: 50%; background: #242b2f; }
+.comment-action-menu > summary::-webkit-details-marker { display: none; }
+.comment-action-menu > div { position: absolute; right: 0; top: 25px; width: 155px; padding: 5px; border: 1px solid #496071; border-radius: 9px; background: #20292e; box-shadow: 0 7px 20px #0005; }
+.app.apple-hig .comment-action-menu button { display: flex; gap: 9px; align-items: center; width: 100%; min-height: 34px; background: transparent; text-align: left; }
+.app.apple-hig .comment-action-menu button:hover { background: #ffffff10; }
+.conversation-feed .activity-entry.comment header time { padding-right: 20px; }
+.comment-action-menu:not([open]) > summary, .comment-reactions > details:not([open]) > summary { opacity: 0; }
+.activity-entry:hover .comment-action-menu > summary, .activity-entry:focus-within .comment-action-menu > summary,
+.activity-entry:hover .comment-reactions > details > summary, .activity-entry:focus-within .comment-reactions > details > summary { opacity: 1; }
+.comment-mention { color: #62baff; font-weight: 600; }
+.comment-reply-quote, .comment-reply-preview { display: flex; gap: 8px; padding: 8px 10px; margin: 0 0 6px; background: #111e2780; border-left: 3px solid #579dff; border-radius: 5px; }
+.comment-reply-quote { flex-direction: column; gap: 3px; }
+.comment-reply-quote strong, .comment-reply-preview strong { color: #62baff; font-size: 11px; }
+.comment-reply-quote span, .comment-reply-preview span { display: block; max-height: 36px; overflow: hidden; font-size: 11px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.comment-reply-preview > div { flex: 1; min-width: 0; }
+.comment-reply-preview button { align-self: start; padding: 3px; }
+.deleted-comment { opacity: .7; font-style: italic; }
+@media (hover: none) {
+ .comment-action-menu:not([open]) > summary, .comment-reactions > details:not([open]) > summary { opacity: 1; }
+}
 .app.apple-hig .task-activity .comment-composer { display: grid; grid-template-columns: 30px 30px minmax(0,1fr) 34px; gap: 4px; align-items: end; padding: 6px 8px; border-radius: 24px; background: #252c30; }
 .comment-composer .comment-composer-actions { display: contents; }
 .comment-composer .comment-mention-editor { grid-column: 3; grid-row: 1; min-width: 0; }

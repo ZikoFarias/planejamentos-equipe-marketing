@@ -3,6 +3,11 @@ export const reactionEmojis=['👍','❤️','😂','😮','😢','🙏','👏',
 export function changeComment(task:Task,email:string,body:{id:string;action:string;text?:unknown;emoji?:unknown},now=Date.now()):Task{
  const comment=task.comments.find(item=>item.id===body.id);
  if(!comment)throw Error('Comentário indisponível.');
+ if(comment.deletedAt)throw Error('Esta mensagem foi apagada.');
+ if(body.action==='delete'){
+  if(comment.by!==email)throw Error('Você só pode apagar suas próprias mensagens.');
+  return {...task,comments:task.comments.map(item=>item===comment?{...item,text:'',deletedAt:new Date(now).toISOString(),reactions:{}}:item)};
+ }
  if(body.action==='edit'){
   if(comment.by!==email||now-Date.parse(comment.at)>=60000||now<Date.parse(comment.at))throw Error('A edição é permitida ao autor durante 1 minuto após o envio.');
   if(typeof body.text!=='string'||body.text.length>10000||!body.text.trim()&&!comment.attachments?.length)throw Error('Informe um comentário válido.');
