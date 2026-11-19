@@ -40,4 +40,4 @@ export async function runHourlyApprovalNotifications(db:D1Database,now=new Date(
  }
  if(statements.length)await db.batch(statements);return statements.length;
 }
-export async function processPersonalNotifications(db:D1Database,now=new Date()){await drainNotificationChanges(db);await runHourlyApprovalNotifications(db,now)}
+export async function processPersonalNotifications(db:D1Database,now=new Date()){const changed=await drainNotificationChanges(db);return changed+await runHourlyApprovalNotifications(db,now)}

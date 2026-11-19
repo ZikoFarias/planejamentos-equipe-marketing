@@ -10,7 +10,7 @@ export function usePersonalNotifications(email:string,enabled:boolean,onError:(m
  useEffect(()=>{
   setOwner(email);setData(empty);setBubble(null);setError('');setPanelOpen(false);shown.current.clear();seenWrites.current.clear();
   if(!enabled||!email)return;
-  let alive=true,running=false,after=0;const controller=new AbortController();setLoading(true);
+  let alive=true,running=false,after=0,connected=false;const controller=new AbortController();setLoading(true);
   const desktopShown=new Set<number>(),started=Date.now();
   const refresh=async()=>{
    if(!alive||running)return;running=true;const stamp=version.current;
@@ -23,9 +23,10 @@ export function usePersonalNotifications(email:string,enabled:boolean,onError:(m
    finally{running=false;if(alive)setLoading(false)}
   };
   refreshRef.current=refresh;void refresh();
-  const timer=setInterval(()=>{void refresh()},15000),wake=()=>{void refresh()};
+  const timer=setInterval(()=>{if(!connected)void refresh()},30000),wake=()=>{void refresh()},status=(event:Event)=>{connected=(event as CustomEvent<boolean>).detail;if(connected)wake()};
+  window.addEventListener('marketing-live-status',status);window.addEventListener('marketing-live-change',wake);
   window.addEventListener('focus',wake);document.addEventListener('visibilitychange',wake);
-  return()=>{alive=false;controller.abort();clearInterval(timer);window.removeEventListener('focus',wake);document.removeEventListener('visibilitychange',wake)};
+  return()=>{alive=false;window.removeEventListener('marketing-live-status',status);window.removeEventListener('marketing-live-change',wake);controller.abort();clearInterval(timer);window.removeEventListener('focus',wake);document.removeEventListener('visibilitychange',wake)};
  },[email,enabled]);
  async function mark(action:'seen'|'read'|'read-all',ids:number[]=[]){
   if(action!=='read-all'&&!ids.length)return;const owner=email;version.current++;

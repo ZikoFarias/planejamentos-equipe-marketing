@@ -34,6 +34,7 @@ export function useLiveBoard(enabled:boolean){
    socket.current=connection;
    connection.onopen=()=>{
     retry=1000;
+    window.dispatchEvent(new CustomEvent('marketing-live-status',{detail:true}));
     renew=setTimeout(()=>connection.close(),5*60_000);
     window.dispatchEvent(new Event('marketing-live-change'));
    };
@@ -43,6 +44,7 @@ export function useLiveBoard(enabled:boolean){
     else events.dispatchEvent(new CustomEvent('presence',{detail:event}));
    };
    connection.onclose=()=>{
+    window.dispatchEvent(new CustomEvent('marketing-live-status',{detail:false}));
     clearTimeout(renew);
     if(!stopped)reconnect=setTimeout(connect,retry);
     retry=Math.min(retry*2,30000);
@@ -60,6 +62,7 @@ export function useLiveBoard(enabled:boolean){
    clearInterval(heartbeat);
    socket.current?.close();
    socket.current=null;
+   window.dispatchEvent(new CustomEvent('marketing-live-status',{detail:false}));
   };
  },[enabled,events]);
 

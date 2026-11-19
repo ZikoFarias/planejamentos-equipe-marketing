@@ -257,12 +257,12 @@ export default function Board(){
  const syncState=useRef({revision,saving,loading,draft,comment,commentFiles,commentMedia,commentSending,bulkOpen,weekly,settings,admin,dragging,role,persona});syncState.current={revision,saving,loading,draft,comment,commentFiles,commentMedia,commentSending,bulkOpen,weekly,settings,admin,dragging,role,persona};
  const [syncWarning,setSyncWarning]=useState('');
  useEffect(()=>{
-  let stopped=false,timer:ReturnType<typeof setTimeout>|undefined,controller:AbortController|null=null,running=false;
+  let stopped=false,timer:ReturnType<typeof setTimeout>|undefined,controller:AbortController|null=null,running=false,connected=false,pending=false,lastCheck=Date.now();
   const blocked=()=>{const v=syncState.current;return writeLock.current||v.loading||v.saving||v.bulkOpen||v.weekly||v.settings||v.admin||!!v.dragging||v.commentSending||!!v.draft&&JSON.stringify(v.draft)!==initialDraft.current};
   async function refresh(){
    if(stopped||running||document.visibilityState==='hidden'||!navigator.onLine||blocked())return;
-   running=true;const before=syncState.current;const sameBoard=()=>{const current=syncState.current;return current.revision===before.revision&&current.draft===before.draft&&current.role===before.role&&current.persona===before.persona};controller=new AbortController();const timeout=setTimeout(()=>controller?.abort(),15000);
-   try{const response=await fetch('/api/board?'+new URLSearchParams({revision:String(before.revision),role:before.role,persona:before.persona}),{cache:'no-store',signal:controller.signal});if(stopped||blocked()||!sameBoard())return;
+   pending=false;lastCheck=Date.now();running=true;const before=syncState.current;const sameBoard=()=>{const current=syncState.current;return current.revision===before.revision&&current.draft===before.draft&&current.role===before.role&&current.persona===before.persona};controller=new AbortController();const timeout=setTimeout(()=>controller?.abort(),15000);
+   try{const response=await fetch('/api/board?'+new URLSearchParams({revision:String(before.revision),role:before.role,persona:before.persona}),{cache:'no-store',signal:controller.signal});if(stopped||blocked()||!sameBoard()){pending=true;return;}
     if(response.status===401||response.status===403){setTasks([]);setRole('');dismissDraft();setSyncWarning('Seu acesso expirou ou foi alterado. Entre novamente.');return;}
     if(!response.ok)throw Error('sync');const value:any=await apiResponse(response);if(stopped||blocked()||!sameBoard())return;
     if(value.unchanged===true&&value.revision===before.revision){setSyncWarning('');return}
@@ -271,9 +271,9 @@ export default function Board(){
     if(value.revision!==before.revision||value.role!==before.role||value.persona!==before.persona){setTasks(value.tasks);setRevision(value.revision);setStatusConfig(readStatusConfig(value.statusConfig));setUserEmail(value.email||'');setProfiles(value.profiles||{});setTeamProfiles(value.profiles||{});setUser(value.user);void loadAppearance();setLabelCatalog(value.labels||[]);if(before.draft){undoDraft.current=[];redoDraft.current=[];const latest=value.tasks.find((t:Task)=>t.id===before.draft!.id);if(latest){const next={...latest,title:latest.title.toLocaleUpperCase('pt-BR')};initialDraft.current=JSON.stringify(next);lastDraft.current=structuredClone(next);setDraft(next)}else{dismissDraft();setNotice('Este cartão foi removido por outra pessoa.')}}}
    }catch{if(!stopped)setSyncWarning('Reconectando às atualizações automáticas…');}finally{clearTimeout(timeout);running=false;controller=null;}
   }
-  const tick=async()=>{await refresh();if(!stopped)timer=setTimeout(tick,3000)};
-  const wake=()=>{void refresh()};timer=setTimeout(tick,3000);window.addEventListener('focus',wake);window.addEventListener('online',wake);window.addEventListener('marketing-live-change',wake);document.addEventListener('visibilitychange',wake);
-  return()=>{stopped=true;clearTimeout(timer);controller?.abort();window.removeEventListener('focus',wake);window.removeEventListener('online',wake);window.removeEventListener('marketing-live-change',wake);document.removeEventListener('visibilitychange',wake)};
+  const tick=async()=>{if(pending||!connected&&Date.now()-lastCheck>=30000)await refresh();if(!stopped)timer=setTimeout(tick,1000)};
+  const wake=()=>{pending=true;void refresh()},status=(event:Event)=>{connected=(event as CustomEvent<boolean>).detail;if(connected)wake()};window.addEventListener('marketing-live-status',status);timer=setTimeout(tick,1000);window.addEventListener('focus',wake);window.addEventListener('online',wake);window.addEventListener('marketing-live-change',wake);document.addEventListener('visibilitychange',wake);
+  return()=>{stopped=true;window.removeEventListener('marketing-live-status',status);clearTimeout(timer);controller?.abort();window.removeEventListener('focus',wake);window.removeEventListener('online',wake);window.removeEventListener('marketing-live-change',wake);document.removeEventListener('visibilitychange',wake)};
  },[]);
  useEffect(()=>{load();loadAppearance();try{setCollapsed(JSON.parse(localStorage.getItem('marketing-collapsed')||'[]'));setHideEmpty(localStorage.getItem('marketing-hide')==='true')}catch{}},[]);
  useEffect(()=>{if(draft||admin||settings||weekly||bulkOpen)dialog.current?.showModal();else if(dialog.current?.open){dialog.current.close();originFocus.current?.focus()}},[!!draft,admin,settings,weekly,bulkOpen]);

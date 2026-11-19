@@ -15,7 +15,7 @@ export {LiveBoard} from './live-board';
 type Environment=Cloudflare.Env&{ASSETS:Fetcher;LIVE_BOARD?:DurableObjectNamespace};
 const boardChanges=new Set([...undoableRoutes,'/api/undo']);
 // Keep authentication independent of the server-rendering runtime on Workers Free.
-export default {async scheduled(_event:ScheduledController,env:Environment,ctx:ExecutionContext){ctx.waitUntil(Promise.allSettled([processSpellingQueue(env),processPersonalNotifications(env.DB!),processDriveCleanup(env)]))},async fetch(request:Request,env:Environment,ctx:ExecutionContext){
+export default {async scheduled(_event:ScheduledController,env:Environment,ctx:ExecutionContext){ctx.waitUntil(Promise.allSettled([processSpellingQueue(env),processPersonalNotifications(env.DB!).then(async changed=>{if(changed&&env.LIVE_BOARD)await env.LIVE_BOARD.getByName('marketing').fetch('https://board.internal/change',{method:'POST'})}),processDriveCleanup(env)]))},async fetch(request:Request,env:Environment,ctx:ExecutionContext){
  try{
  const url=new URL(request.url),headers=new Headers(request.headers);
  for(const key of [...headers.keys()])if(key.startsWith('oai-authenticated-'))headers.delete(key);
@@ -51,7 +51,7 @@ export default {async scheduled(_event:ScheduledController,env:Environment,ctx:E
    if(Number.isSafeInteger(revision)&&revision>0)await rememberBoardAction(env.DB!,before,revision,actor.user.email);
   }catch(error){console.warn('O histórico desta ação não pôde ser gravado.',error);}
  }
- if(boardWrite&&response.ok)ctx.waitUntil(Promise.allSettled([processDriveCleanup(env),drainNotificationChanges(env.DB!)]));
+ if(boardWrite&&response.ok)ctx.waitUntil(Promise.allSettled([processDriveCleanup(env),drainNotificationChanges(env.DB!).then(async changed=>{if(changed&&live)await live.fetch('https://board.internal/change',{method:'POST'})})]));
  if(live&&response.ok&&['POST','PATCH','PUT','DELETE'].includes(request.method)&&(boardWrite||boardChanges.has(url.pathname))){
   ctx.waitUntil(live.fetch('https://board.internal/change',{method:'POST'}).catch(()=>{}));
  }
