@@ -1,4 +1,5 @@
 import {recordableBoardResponse} from '../../board-action-response';
+import {changeComment} from '../../comment-actions';
 import {mentionedEmails} from '../../comment-mentions';
 import {env} from 'cloudflare:workers';
 import {getActor} from '../../access';
@@ -9,7 +10,16 @@ const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cac
 export async function POST(req:Request){try{
  if(req.headers.get('origin')!==new URL(req.url).origin)return json({error:'Origem inválida.'},403);
  const actor=await getActor();if(!actor)return json({error:'Entre novamente.'},401);
- const body:any=await req.json();if(typeof body.taskId!=='string'||typeof body.id!=='string'||!/^[a-f0-9-]{36}$/.test(body.id)||typeof body.text!=='string'||body.text.length>10000||!Array.isArray(body.urls)||body.urls.length>20||body.urls.some((url:unknown)=>typeof url!=='string')||!body.text.trim()&&!body.urls.length)return json({error:'Adicione um comentário ou uma imagem.'},400);
+ const body:any=await req.json();if(['edit','react'].includes(body.action)){
+ if(typeof body.taskId!=='string'||typeof body.id!=='string')return json({error:'Comentário inválido.'},400);
+ for(let attempt=0;attempt<4;attempt++){
+ const row=await env.DB!.prepare('SELECT data,revision FROM marketing_board WHERE id=1').first<{data:string,revision:number}>();
+ const tasks=JSON.parse(row?.data||'[]') as Task[],task=tasks.find(t=>t.id===body.taskId);if(!task||!canSeeTask(task,actor))return json({error:'Sem acesso ao cartão.'},403);
+ let updated:Task;try{updated=changeComment(task,actor.user.email,body)}catch(error){return json({error:(error as Error).message},400)}
+ const next=tasks.map(t=>t.id===task.id?updated:t),saved=await env.DB!.prepare('UPDATE marketing_board SET data=?,revision=revision+1 WHERE id=1 AND revision=?').bind(JSON.stringify(next),row!.revision).run();
+ if(saved.meta.changes)return recordableBoardResponse(json({tasks:next.filter(t=>canSeeTask(t,actor)),revision:row!.revision+1}),row!.revision+1);
+ }return json({error:'O comentário mudou. Tente novamente.'},409);
+ }if(typeof body.taskId!=='string'||typeof body.id!=='string'||!/^[a-f0-9-]{36}$/.test(body.id)||typeof body.text!=='string'||body.text.length>10000||!Array.isArray(body.urls)||body.urls.length>20||body.urls.some((url:unknown)=>typeof url!=='string')||!body.text.trim()&&!body.urls.length)return json({error:'Adicione um comentário ou uma imagem.'},400);
 
  const profilesRow=body.text.includes('@')?await env.DB!.prepare('SELECT data FROM marketing_preferences WHERE email=?').bind('_profiles').first<{data:string}>():null;
  const profiles=profilesRow?JSON.parse(profilesRow.data):{},mentioned=mentionedEmails(body.text,profiles);

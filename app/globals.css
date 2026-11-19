@@ -1348,6 +1348,21 @@ html.luke-entering .login-reveal-stage{display:block}
  }
 }
 
+.comment-controls { display: grid; gap: 5px; margin-top: 8px; }
+.comment-controls button, .comment-reactions summary, .comment-emoji-picker summary { min-height: 28px; padding: 4px 7px; font-size: 12px; }
+.comment-reactions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.comment-reactions button[aria-pressed='true'] { border: 1px solid #64baff; background: #23619d66; }
+.comment-reactions details, .comment-emoji-picker { position: relative; }
+.comment-reactions summary, .comment-emoji-picker summary { cursor: pointer; list-style: none; font-size: 20px; }
+.comment-reactions details > div, .comment-emoji-picker > div { display: flex; flex-wrap: wrap; gap: 3px; padding: 6px; border: 1px solid #587d9e; border-radius: 8px; background: #14263b; }
+.comment-emoji-picker { margin-right: auto; }
+.comment-controls textarea { width: 100%; min-height: 64px; }
+.profile-notification-bell { position: absolute; z-index: 2; top: -7px; left: 28px; width: 26px; min-height: 26px; padding: 4px; border-radius: 50%; }
+.profile-notification-bell small { position: absolute; right: -4px; top: -5px; min-width: 17px; border-radius: 12px; background: #e14f67; color: white; font-size: 9px; padding: 2px 4px; }
+.app.app-full-width main > header > .header-heading { position: relative; display: flex; align-items: center; gap: 6px; }
+.desktop-notification-toggle { display: grid; gap: 5px; padding: 12px 20px; }
+.desktop-notification-toggle small { font-size: 11px; }
+
 .live-card-drags {
  position: fixed;
  inset: 0;

@@ -11,11 +11,13 @@ export function usePersonalNotifications(email:string,enabled:boolean,onError:(m
   setOwner(email);setData(empty);setBubble(null);setError('');setPanelOpen(false);shown.current.clear();seenWrites.current.clear();
   if(!enabled||!email)return;
   let alive=true,running=false;const controller=new AbortController();setLoading(true);
+  const desktopShown=new Set<number>(),started=Date.now();
   const refresh=async()=>{
-   if(!alive||running||document.visibilityState==='hidden')return;running=true;const stamp=version.current;
+   if(!alive||running)return;running=true;const stamp=version.current;
    try{
     const response=await fetch('/api/notifications',{cache:'no-store',signal:controller.signal});const value=await response.json() as State&{error?:string};if(!response.ok)throw Error(value.error||'Não foi possível carregar as notificações.');
     if(!alive||stamp!==version.current)return;
+    if('Notification' in window&&Notification.permission==='granted'){for(const item of value.items){if(!['review','last-review'].includes(item.kind)||item.readAt||Date.parse(item.createdAt)<started-15000||desktopShown.has(item.id))continue;desktopShown.add(item.id);try{const toast=new Notification(item.title,{body:item.message,tag:'marketing-'+item.id,icon:'/favicon-luke-group.png'});toast.onclick=()=>{window.focus();if(item.taskId)window.location.assign('/?card='+encodeURIComponent(item.taskId));toast.close()}}catch{}}}
     setError('');setData(current=>{const items=panel.current?[...value.items,...current.items.filter(item=>!value.items.some((next:PersonalNotification)=>next.id===item.id))].sort((a,b)=>b.id-a.id):value.items;const next={items,unread:value.unread,next:panel.current&&current.items.length>50?current.next:value.next};return JSON.stringify(current)===JSON.stringify(next)?current:next});
     if(!panel.current){const fresh=(value.items as PersonalNotification[]).find(item=>!item.seenAt&&!shown.current.has(item.id));if(fresh){for(const item of value.items)if(!item.seenAt)shown.current.add(item.id);setBubble(fresh)}}
    }catch(e){if(alive&&!controller.signal.aborted)setError(e instanceof Error?e.message:'Notificações indisponíveis.')}
