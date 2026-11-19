@@ -1,9 +1,21 @@
 'use client';
 import {useEffect,useState} from 'react';
 import {Bell,X} from 'lucide-react';
+import {testDesktopNotification} from './desktop-notification-test';
 
 export function DesktopNotificationPrompt({email}:{email:string}){
  const [visible,setVisible]=useState(false),[busy,setBusy]=useState(false);
+ useEffect(()=>{
+  if(!email||!('Notification' in window))return;
+  const check=()=>{
+   if(Notification.permission!=='granted')return;
+   setVisible(false);
+   const key='marketing-desktop-test:'+email;
+   try{if(sessionStorage.getItem(key))return;testDesktopNotification();sessionStorage.setItem(key,'1')}catch{}
+  };
+  check();const timer=setInterval(check,2000);window.addEventListener('focus',check);
+  return()=>{clearInterval(timer);window.removeEventListener('focus',check)};
+ },[email]);
  useEffect(()=>{
   if(!email||!('Notification' in window)||Notification.permission!=='default')return;
   const key='marketing-notification-prompt:'+email;
