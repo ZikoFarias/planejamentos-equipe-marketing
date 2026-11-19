@@ -1413,6 +1413,12 @@ html.luke-entering .login-reveal-stage{display:block}
 .app.app-full-width main > header > .header-heading { position: relative; display: flex; align-items: center; gap: 6px; }
 .desktop-notification-toggle { display: grid; gap: 5px; padding: 12px 20px; }
 .desktop-notification-toggle small { font-size: 11px; }
+.desktop-notification-prompt { position: fixed; right: 20px; bottom: 24px; z-index: 120; display: flex; align-items: flex-start; gap: 12px; width: min(410px,calc(100vw - 32px)); padding: 18px; border: 1px solid #548cc0; border-radius: 16px; background: #14283f; color: #eef5ff; box-shadow: 0 12px 40px #0006; }
+.desktop-notification-prompt > svg { flex: none; color: #80c2ff; }
+.desktop-notification-prompt p { font-size: 12px; line-height: 1.5; margin: 7px 0 12px; }
+.desktop-notification-prompt > div { flex: 1; min-width: 0; }
+.desktop-notification-prompt button { font-size: 11px; margin: 3px 4px 0 0; }
+@media(max-width:700px){.desktop-notification-prompt { bottom: 90px; right: 16px; }}
 
 .live-card-drags {
  position: fixed;
