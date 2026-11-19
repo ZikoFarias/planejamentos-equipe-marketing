@@ -1357,6 +1357,16 @@ html.luke-entering .login-reveal-stage{display:block}
 .comment-reactions details > div, .comment-emoji-picker > div { display: flex; flex-wrap: wrap; gap: 3px; padding: 6px; border: 1px solid #587d9e; border-radius: 8px; background: #14263b; }
 .comment-emoji-picker { margin-right: auto; }
 .comment-controls textarea { width: 100%; min-height: 64px; }
+.app.apple-hig .conversation-feed .activity-entry.comment:has(.comment-controls) { position: relative; margin-bottom: 22px; overflow: visible; }
+.app.apple-hig .conversation-feed .activity-entry.comment:has(.comment-edit-icon) header time { margin-right: 24px; }
+.app.apple-hig .comment-controls .comment-edit-icon { position: absolute; top: 9px; right: 9px; display: grid; place-items: center; width: 20px; height: 20px; min-width: 20px; min-height: 20px; padding: 2px; background: transparent; border: 0; color: #bacbd8; }
+.comment-controls:has(> .comment-reactions:first-child) { margin: 0; }
+.comment-reactions { position: absolute; left: 9px; bottom: -13px; z-index: 2; gap: 3px; }
+.app.apple-hig .comment-reactions .comment-reaction-chip { display: flex; align-items: center; gap: 3px; width: auto; min-width: 27px; min-height: 25px; height: 25px; padding: 2px 5px; border: 2px solid #14243a; border-radius: 15px; background: #293840; box-shadow: 0 1px 3px #0003; font-size: 15px; }
+.app.apple-hig .comment-reactions .comment-reaction-chip[aria-pressed='true'] { background: #26465a; }
+.comment-reaction-chip small { font-size: 10px; color: #c3d4df; }
+.comment-reactions summary { display: grid; place-items: center; width: 25px; height: 25px; padding: 3px; border-radius: 50%; background: #293840; color: #c3d4df; }
+.comment-reactions details > div { position: absolute; left: 0; bottom: 29px; width: 150px; }
 .app.apple-hig button.profile-notification-bell { position: absolute; z-index: 2; top: -4px; left: 28px; display: grid; place-items: center; width: 20px; height: 20px; min-width: 20px; min-height: 20px; padding: 2px; border: 0; border-radius: 50%; background: #102b46; color: #ff667c; }
 .profile-notification-bell small { position: absolute; right: -5px; top: -5px; min-width: 13px; border-radius: 9px; background: #c92842; color: white; font-size: 8px; line-height: 11px; padding: 0 3px; }
 .app.app-full-width main > header > .header-heading { position: relative; display: flex; align-items: center; gap: 6px; }
