@@ -29,7 +29,10 @@ const {createHash}=await import('node:crypto');const script='login-'+createHash(
 await fs.writeFile(path.join(directory,script),client.outputFiles[0].contents);
 async function cssFiles(dir){const files=[];for(const entry of await fs.readdir(dir,{withFileTypes:true})){const file=path.join(dir,entry.name);if(entry.isDirectory())files.push(...await cssFiles(file));else if(file.endsWith('.css'))files.push(file)}return files}
 const css=await cssFiles('dist/client');
-const links=css.map(file=>'<link rel="stylesheet" href="/'+path.relative('dist/client',file).replaceAll('\\','/')+'">').join('');
+// Keep installation styling with its HTML so a failed or stale asset request
+// cannot leave the login or board without its layout.
+const styles=await Promise.all(css.map(file=>fs.readFile(file,'utf8')));
+const links='<style>'+styles.join('\n').replace(/<\/style/gi,'<\\/style')+'</style>';
 await fs.writeFile(path.join(directory,'login.html'),'<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><link rel="icon" type="image/png" href="/favicon-luke-group.png"><link rel="apple-touch-icon" href="/favicon-luke-group.png"><title>Acesso · Planejamento de Marketing</title>'+links+'</head><body>'+renderToStaticMarkup(React.createElement(LoginForm))+'<noscript>Ative o JavaScript para entrar no planejamento.</noscript><script type="module" src="/_team/'+script+'"></script></body></html>');
 const boardClient=await build({entryPoints:['app/board-static.tsx'],bundle:true,platform:'browser',format:'esm',jsx:'automatic',minify:true,define:{'process.env.NODE_ENV':'"production"'},write:false});
 const boardScript='board-'+createHash('sha256').update(boardClient.outputFiles[0].contents).digest('hex').slice(0,12)+'.js';
