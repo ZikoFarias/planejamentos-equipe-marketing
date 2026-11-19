@@ -1367,6 +1367,21 @@ html.luke-entering .login-reveal-stage{display:block}
 .comment-reaction-chip small { font-size: 10px; color: #c3d4df; }
 .comment-reactions summary { display: grid; place-items: center; width: 25px; height: 25px; padding: 3px; border-radius: 50%; background: #293840; color: #c3d4df; }
 .comment-reactions details > div { position: absolute; left: 0; bottom: 29px; width: 150px; }
+.comment-reactions > details > div { flex-wrap: nowrap; width: max-content; max-width: min(310px, 70vw); border-radius: 24px; background: #242a2d; padding: 4px 6px; }
+.app.apple-hig .comment-reactions details > div > button { min-width: 28px; min-height: 30px; padding: 3px; border: 0; background: transparent; font-size: 20px; }
+.comment-reactions .comment-more-reactions > div { width: 150px; flex-wrap: wrap; bottom: 40px; left: auto; right: 0; }
+.comment-reactions .comment-more-reactions summary { background: transparent; }
+.app.apple-hig .task-activity .comment-composer { display: grid; grid-template-columns: 30px 30px minmax(0,1fr) 34px; gap: 4px; align-items: end; padding: 6px 8px; border-radius: 24px; background: #252c30; }
+.comment-composer .comment-composer-actions { display: contents; }
+.comment-composer .comment-mention-editor { grid-column: 3; grid-row: 1; min-width: 0; }
+.app.apple-hig .task-activity .comment-composer textarea { min-height: 32px; max-height: 120px; height: 32px; resize: none; padding: 7px 3px; border: 0; background: transparent; border-radius: 0; font-size: 12px; line-height: 18px; }
+.app.apple-hig .task-activity .comment-composer textarea:focus-visible { outline: none; box-shadow: none; }
+.comment-composer .comment-emoji-picker { grid-column: 2; grid-row: 1; align-self: center; margin: 0; }
+.comment-composer .comment-emoji-picker summary { width: 30px; height: 32px; display: grid; place-items: center; padding: 3px; }
+.comment-composer .comment-emoji-picker > div { position: absolute; bottom: 40px; left: -28px; z-index: 5; width: 210px; border-radius: 12px; }
+.app.apple-hig .task-activity .comment-composer .comment-attach-button { grid-column: 1; grid-row: 1; min-width: 30px; min-height: 32px; padding: 4px; border: 0; background: transparent; justify-content: center; }
+.app.apple-hig .task-activity .comment-composer .comment-send-button { grid-column: 4; grid-row: 1; min-width: 32px; min-height: 32px; padding: 5px; border: 0; border-radius: 50%; justify-content: center; }
+.comment-composer .comment-media-previews, .comment-composer > p { grid-column: 1/-1; grid-row: 2; }
 .app.apple-hig button.profile-notification-bell { position: absolute; z-index: 2; top: -4px; left: 28px; display: grid; place-items: center; width: 20px; height: 20px; min-width: 20px; min-height: 20px; padding: 2px; border: 0; border-radius: 50%; background: #102b46; color: #ff667c; }
 .profile-notification-bell small { position: absolute; right: -5px; top: -5px; min-width: 13px; border-radius: 9px; background: #c92842; color: white; font-size: 8px; line-height: 11px; padding: 0 3px; }
 .app.app-full-width main > header > .header-heading { position: relative; display: flex; align-items: center; gap: 6px; }

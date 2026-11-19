@@ -1,5 +1,5 @@
 import type {Task} from './model';
-export const reactionEmojis=['👍','❤️','😂','👏','🎉','😮','😢','✅'] as const;
+export const reactionEmojis=['👍','❤️','😂','😮','😢','🙏','👏','🎉','✅','😊','🔥'] as const;
 export function changeComment(task:Task,email:string,body:{id:string;action:string;text?:unknown;emoji?:unknown},now=Date.now()):Task{
  const comment=task.comments.find(item=>item.id===body.id);
  if(!comment)throw Error('Comentário indisponível.');
