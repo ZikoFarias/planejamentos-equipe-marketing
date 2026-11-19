@@ -554,6 +554,11 @@ to{opacity:1;transform:none}
  background-image:radial-gradient(circle at 1px 1px,#24404c66 1px,transparent 1.5px);
  background-size:22px 22px;
 }
+.conversation-feed::before {
+ content: '';
+ flex: 1 0 0;
+}
+.conversation-feed > .activity-entry { flex-shrink: 0; }
 .apple-hig .conversation-feed .activity-entry.comment{
  position:relative;
  width:fit-content;
