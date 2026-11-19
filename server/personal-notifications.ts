@@ -29,13 +29,12 @@ export function localNotificationDay(now:Date){
 export async function runHourlyApprovalNotifications(db:D1Database,now=new Date()){
  const board=await db.prepare('SELECT data,status_config FROM marketing_board WHERE id=1').first<{data:string,status_config:string}>();if(!board)return 0;
  const people=await members(db),tasks=JSON.parse(board.data) as NotificationTask[],labels=readStatusConfig(board.status_config).labels,at=now.toISOString();
- const recent=(await db.prepare("SELECT email,task_id,MAX(created_at) AS last_at FROM marketing_notifications WHERE kind IN ('review','last-review','review-hour') GROUP BY email,task_id").all<{email:string,task_id:string,last_at:string}>()).results;
- const latest=new Map(recent.map(row=>[row.email+'|'+row.task_id,row.last_at])),statements:D1PreparedStatement[]=[];
+ const statements:D1PreparedStatement[]=[];
  for(const task of tasks){
   if(isWeeklyDraft(task)||!(task.status==='aprovação'||task.status.startsWith('aprovação ')))continue;
   for(const person of people){
    const persona=recipient(person);if(persona!=='lucio'&&persona!=='mateus'||persona==='mateus'&&lucioOnly(task as import('../app/model').Task,labels)||task.approval?.votes[persona]?.decision==='approved')continue;
-   const last=latest.get(person.email.toLowerCase()+'|'+task.id);if(!last||now.getTime()-Date.parse(last)<3600000)continue;
+   const last=(await db.prepare("SELECT created_at FROM marketing_notifications WHERE email=? AND task_id=? AND kind IN ('review','last-review','review-hour') ORDER BY created_at DESC LIMIT 1").bind(person.email.toLowerCase(),task.id).first<{created_at:string}>())?.created_at;if(!last||now.getTime()-Date.parse(last)<3600000)continue;
    statements.push(insert(db,{recipient:persona,kind:'review-hour',title:'Arte aguardando aprovação',message:task.title+' continua aguardando sua aprovação.',taskId:task.id},person.email,'review-hour:'+task.id+':'+person.email+':'+Math.floor(now.getTime()/3600000),at));
   }
  }

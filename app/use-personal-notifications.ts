@@ -10,20 +10,20 @@ export function usePersonalNotifications(email:string,enabled:boolean,onError:(m
  useEffect(()=>{
   setOwner(email);setData(empty);setBubble(null);setError('');setPanelOpen(false);shown.current.clear();seenWrites.current.clear();
   if(!enabled||!email)return;
-  let alive=true,running=false;const controller=new AbortController();setLoading(true);
+  let alive=true,running=false,after=0;const controller=new AbortController();setLoading(true);
   const desktopShown=new Set<number>(),started=Date.now();
   const refresh=async()=>{
    if(!alive||running)return;running=true;const stamp=version.current;
    try{
-    const response=await fetch('/api/notifications',{cache:'no-store',signal:controller.signal});const value=await response.json() as State&{error?:string};if(!response.ok)throw Error(value.error||'Não foi possível carregar as notificações.');
+    const response=await fetch('/api/notifications'+(after?'?after='+after:''),{cache:'no-store',signal:controller.signal});const value=await response.json() as State&{error?:string};if(!response.ok)throw Error(value.error||'Não foi possível carregar as notificações.');
     if(!alive||stamp!==version.current)return;
     if('Notification' in window&&Notification.permission==='granted'){for(const item of value.items){if(!['review','review-hour','last-review','adjust-all','adjust','designer-adjust','purchase-arrived','comment-mention'].includes(item.kind)||item.readAt||Date.parse(item.createdAt)<started-15000||desktopShown.has(item.id))continue;desktopShown.add(item.id);try{const toast=new Notification(item.title,{body:item.message,tag:'marketing-'+item.id,icon:'/favicon-luke-group.png'});toast.onclick=()=>{window.focus();if(item.taskId)window.location.assign('/?card='+encodeURIComponent(item.taskId));toast.close()}}catch{}}}
-    setError('');setData(empty);setBubble(null);
+    after=Math.max(after,...value.items.map(item=>item.id));setError('');setData(empty);setBubble(null);
    }catch(e){if(alive&&!controller.signal.aborted)setError(e instanceof Error?e.message:'Notificações indisponíveis.')}
    finally{running=false;if(alive)setLoading(false)}
   };
   refreshRef.current=refresh;void refresh();
-  const timer=setInterval(()=>{void refresh()},5000),wake=()=>{void refresh()};
+  const timer=setInterval(()=>{void refresh()},15000),wake=()=>{void refresh()};
   window.addEventListener('focus',wake);document.addEventListener('visibilitychange',wake);
   return()=>{alive=false;controller.abort();clearInterval(timer);window.removeEventListener('focus',wake);document.removeEventListener('visibilitychange',wake)};
  },[email,enabled]);

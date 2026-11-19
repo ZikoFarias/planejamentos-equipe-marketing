@@ -49,8 +49,8 @@ export function mountGoogleLogin(element: HTMLElement) {
    }});
    button.replaceChildren();
    identity.renderButton(button, {theme: 'filled_blue', size: 'large', text: 'signin_with', locale: 'pt-BR'});
-  } catch {
-   if (active) message.textContent = 'Google indisponível no momento.';
+  } catch(error) {
+   if (active) message.textContent = error instanceof Error ? error.message : 'Google indisponível no momento.';
   }
  };
  void start();

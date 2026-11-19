@@ -2,7 +2,7 @@ import {processDriveCleanup} from './drive-cleanup';
 import {handleCancelAdjustment} from './adjustment-handler';
 import {handleCaption} from './caption-handler';
 import {serveCentralMedia} from './central-media';
-import {processPersonalNotifications} from './personal-notifications';
+import {drainNotificationChanges,processPersonalNotifications} from './personal-notifications';
 import {requestTeamSession} from '../app/request-session';
 import {enqueueSpelling,processSpellingQueue} from './spelling-review';
 import {spellingFingerprint,finalImages} from '../app/spelling';
@@ -16,6 +16,7 @@ type Environment=Cloudflare.Env&{ASSETS:Fetcher;LIVE_BOARD?:DurableObjectNamespa
 const boardChanges=new Set([...undoableRoutes,'/api/undo']);
 // Keep authentication independent of the server-rendering runtime on Workers Free.
 export default {async scheduled(_event:ScheduledController,env:Environment,ctx:ExecutionContext){ctx.waitUntil(Promise.allSettled([processSpellingQueue(env),processPersonalNotifications(env.DB!),processDriveCleanup(env)]))},async fetch(request:Request,env:Environment,ctx:ExecutionContext){
+ try{
  const url=new URL(request.url),headers=new Headers(request.headers);
  for(const key of [...headers.keys()])if(key.startsWith('oai-authenticated-'))headers.delete(key);
  const clean=new Request(request,{headers});let response:Response;
@@ -50,7 +51,7 @@ export default {async scheduled(_event:ScheduledController,env:Environment,ctx:E
    if(Number.isSafeInteger(revision)&&revision>0)await rememberBoardAction(env.DB!,before,revision,actor.user.email);
   }catch(error){console.warn('O histórico desta ação não pôde ser gravado.',error);}
  }
- if(boardWrite&&response.ok)ctx.waitUntil(processDriveCleanup(env).catch(()=>{}));
+ if(boardWrite&&response.ok)ctx.waitUntil(Promise.allSettled([processDriveCleanup(env),drainNotificationChanges(env.DB!)]));
  if(live&&response.ok&&['POST','PATCH','PUT','DELETE'].includes(request.method)&&(boardWrite||boardChanges.has(url.pathname))){
   ctx.waitUntil(live.fetch('https://board.internal/change',{method:'POST'}).catch(()=>{}));
  }
@@ -58,4 +59,5 @@ export default {async scheduled(_event:ScheduledController,env:Environment,ctx:E
  const out=new Response(response.body,response);out.headers.delete(boardActionRevision);out.headers.set('X-Robots-Tag','noindex, nofollow');out.headers.set('X-Application-Environment','production');
  if(url.pathname==='/_team/login.html')out.headers.set('Cache-Control','no-store');
  return out;
+ }catch(error){const limited=String(error).includes("daily row read limit");const message=limited?"O limite diário do banco gratuito foi atingido. O acesso volta às 21h (horário de Brasília).":"Serviço temporariamente indisponível. Tente novamente.";return request.url.includes("/api/")?Response.json({error:message},{status:503,headers:{"Retry-After":"300","Cache-Control":"no-store"}}):new Response(`<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Planejamento de Marketing</title><body style="background:#071625;color:#e8f2ff;font:18px system-ui;padding:10vh 8vw"><h1>Planejamento de Marketing</h1><p>${message}</p><a style="color:#66b8ff" href="/login">Voltar ao login</a></body></html>`,{status:503,headers:{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store","Retry-After":"300"}})}
 }};

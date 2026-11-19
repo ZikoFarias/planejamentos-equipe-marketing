@@ -1,17 +1,16 @@
 import {getActor} from '../../access';
-import {processPersonalNotifications} from '../../../server/personal-notifications';
 export const dynamic='force-dynamic';
 const json=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'private, no-store'}});
 export async function GET(req:Request){
  try{
   const actor=await getActor();if(!actor)return json({error:'Entre novamente para ver suas notificações.'},401);
   const before=new URL(req.url).searchParams.get('before');if(before!==null&&(!/^\d+$/.test(before)||!Number.isSafeInteger(Number(before))||Number(before)<1))return json({error:'Página inválida.'},400);
-  await processPersonalNotifications(actor.db);
-  const email=actor.user.email.toLowerCase(),query=actor.db.prepare('SELECT id,kind,task_id,title,message,targets,created_at,read_at,seen_at FROM marketing_notifications WHERE email=?'+(before?' AND id<?':'')+' ORDER BY id DESC LIMIT 51');
-  const rows=(await (before?query.bind(email,Number(before)):query.bind(email)).all<any>()).results;
-  const unread=await actor.db.prepare('SELECT count(*) AS count FROM marketing_notifications WHERE email=? AND read_at IS NULL').bind(email).first<{count:number}>();
+  const after=new URL(req.url).searchParams.get('after');if(after!==null&&(!/^\d+$/.test(after)||!Number.isSafeInteger(Number(after))||Number(after)<0))return json({error:'Página inválida.'},400);
+  const email=actor.user.email.toLowerCase(),query=actor.db.prepare('SELECT id,kind,task_id,title,message,targets,created_at,read_at,seen_at FROM marketing_notifications WHERE email=?'+(before?' AND id<?':after?' AND id>?':'')+' ORDER BY id DESC LIMIT 51');
+  const rows=(await (before?query.bind(email,Number(before)):after?query.bind(email,Number(after)):query.bind(email)).all<any>()).results;
+
   const page=rows.slice(0,50);
-  return json({items:page.map(row=>({id:row.id,kind:row.kind,taskId:row.task_id||undefined,title:row.title,message:row.message,targets:JSON.parse(row.targets),createdAt:row.created_at,readAt:row.read_at,seenAt:row.seen_at})),unread:unread?.count||0,next:rows.length>50?page.at(-1).id:null});
+  return json({items:page.map(row=>({id:row.id,kind:row.kind,taskId:row.task_id||undefined,title:row.title,message:row.message,targets:JSON.parse(row.targets),createdAt:row.created_at,readAt:row.read_at,seenAt:row.seen_at})),unread:0,next:rows.length>50?page.at(-1).id:null});
  }catch{return json({error:'Não foi possível carregar suas notificações.'},500)}
 }
 export async function POST(req:Request){

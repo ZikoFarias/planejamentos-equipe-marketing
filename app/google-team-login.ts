@@ -53,7 +53,8 @@ export async function handleGoogleTeamLogin(request: Request, env: Cloudflare.En
   response.headers.append('Set-Cookie', sessionCookie(token, !!secure));
   response.headers.append('Set-Cookie', nonceCookie('', 0));
   return response;
- } catch {
+ } catch(error) {
+  if(String(error).includes('daily row read limit'))return json({error:'O limite diário do banco gratuito foi atingido. O acesso volta às 21h (horário de Brasília).'},503);
   return json({error: 'Não foi possível entrar com Google. Tente novamente.'}, 500);
  }
 }
