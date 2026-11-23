@@ -10,7 +10,7 @@ export type Reviewer='lucio'|'mateus';
 export type Decision='approved'|'adjust';
 export type Approval={administrative?:boolean,designer?:{by:string,name:string,at:string}, round:number,votes:Partial<Record<Reviewer,{decision:Decision,by:string,at:string}>>};
 export const isApproval=(status:string)=>status.startsWith('aprovação ');
-export function approvalContent(task:Task){return JSON.stringify({taskType:task.taskType,taskSubtype:task.taskSubtype,externalArtwork:task.externalArtwork,title:task.title.trim().toLocaleUpperCase('pt-BR'),description:task.description,companies:task.tags,art:task.attachments.filter(a=>a.artworkKind!=='reference').map(a=>({url:a.url,name:a.name})),cover:task.coverUrl})}
+export function approvalContent(task:Task){return JSON.stringify({taskType:task.taskType,artworkTaskType:task.artworkTaskType,taskSubtype:task.taskSubtype,externalArtwork:task.externalArtwork,title:task.title.trim().toLocaleUpperCase('pt-BR'),description:task.description,companies:task.tags,art:task.attachments.filter(a=>a.artworkKind!=='reference').map(a=>({url:a.url,name:a.name})),cover:task.coverUrl})}
 export function stampApprovalDate(previous:Task|undefined,next:Task,now=new Date().toISOString()):Task{
  if(next.status!=='aprovado ✅')return next;
  if(previous?.status==='aprovado ✅'&&previous.due===next.due)return next;

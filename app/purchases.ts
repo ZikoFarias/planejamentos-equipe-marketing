@@ -6,7 +6,7 @@ import type {Actor} from './permissions';
 import type {Task,QuoteOption} from './model';
 export const purchaseColumns=[['comprar','#579dff','Comprar'],['em andamento','#ffc2a9','Em andamento'],['orçamento','#a78bfa','Orçamento'],['aprovado','#00d99a','Aprovado'],['pagamento','#ffc53d','Pagamento'],['aguardando chegada','#61c8ed','Aguardando chegada'],['stand-by','#ff7373','Stand-by'],['concluído','#008844','Concluído']];
 export const isPurchase=(t:Task)=>taskTypeId(t)==='compras';
-export const purchaseHasArt=(task:Task)=>!!task.purchase?.mediaLabel||!!externalMediaLabel(task);
+export const purchaseHasArt=(task:Task)=>!!task.artworkTaskType||!!task.purchase?.mediaLabel||!!externalMediaLabel(task);
 export const purchaseReady=(task:Task)=>isPurchase(task)&&(!purchaseHasArt(task)||(
  ['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(task.status)&&
  !!(task.approval?.votes.lucio?.decision==='approved'||task.approval?.administrative||task.approval?.designer)
@@ -15,10 +15,10 @@ export const purchaseReady=(task:Task)=>isPurchase(task)&&(!purchaseHasArt(task)
 export function syncPurchaseArt(task:Task,previous?:Task):Task{
  if(!isPurchase(task))return task;
  const media=externalMediaLabel(task);
- const mediaLabel=previous?.purchase?.mediaLabel||externalMediaLabel(previous||task)||media;
+ const mediaLabel=task.artworkTaskType?(task.artworkTaskType==='artes-externas'?'MÍDIA EXTERNA':'ARTE'):previous?.purchase?.mediaLabel||externalMediaLabel(previous||task)||media;
  if(!mediaLabel)return task;
  const purchase={...task.purchase,requiresArt:true,mediaLabel,stage:task.purchase?.stage||'comprar'};
- const next={...task,purchase};
+ const next={...task,purchase,...(!task.artworkTaskType&&previous?.artworkTaskType?{artworkTaskType:previous.artworkTaskType,externalArtwork:previous.externalArtwork}:{})};
  if(purchaseReady(next)){
   const ready={...next,tags:task.tags.filter(tag=>tag!==purchase.mediaLabel&&!externalMediaLabel({tags:[tag]}))};
   if(media&&purchase.quoteApproval&&quoteApproved(task))ready.purchase={...purchase,quoteApproval:{...purchase.quoteApproval,snapshot:quoteSnapshot(ready)}};

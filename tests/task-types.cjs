@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),{build,buildSync}=require('esbuild'),path=require('path'),{pathToFileURL}=require('url');
 (async()=>{
- const out='.sites-runtime/task-types-tools.cjs';buildSync({stdin:{contents:"export * from './app/task-types';export * from './app/purchases';export * from './app/reviewer-policy';export * from './app/captions';export * from './app/model';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'cjs',outfile:out});const x=require(path.resolve(out));
+ const out='.sites-runtime/task-types-tools.cjs';buildSync({stdin:{contents:"export * from './app/task-types';export * from './app/purchases';export * from './app/reviewer-policy';export * from './app/captions';export * from './app/model';export * from './app/permissions';export * from './app/approval';export * from './app/status-config';",resolveDir:process.cwd()},bundle:true,platform:'node',format:'cjs',outfile:out});const x=require(path.resolve(out));
  for(const tags of [['fibroplast'],['fibroplast','COMPRA'],['fibroplast','MÍDIA EXTERNA'],['fibroplast','COMPRA','MÍDIA EXTERNA']])for(const status of ['a fazer farias','aprovação fibroplast','aprovado ✅','stand-by ⛔']){
  const old={...x.blank(),title:'Teste',tags,status,purchase:tags.includes('COMPRA')?{requiresArt:tags.includes('MÍDIA EXTERNA'),stage:'comprar'}:undefined,approval:{round:1,votes:status==='aprovado ✅'?{lucio:{decision:'approved'}}:{}}},next=x.normalizeTaskType(old);
  for(const rule of [x.isPurchase,x.purchaseReady,x.lucioOnly,x.needsCaption])assert.equal(rule(next),rule(old));assert.deepEqual(next.tags,['fibroplast']);assert.deepEqual(x.normalizeTaskType(next),next);
@@ -12,6 +12,18 @@ const assert=require('node:assert/strict'),{build,buildSync}=require('esbuild'),
  const original=[{...x.blank(),title:'Social',tags:['fibroplast']},old],converted=original.map(t=>x.normalizeTaskType(t));
  sqlite.exec('CREATE TABLE marketing_board(id INTEGER PRIMARY KEY,revision INTEGER,data TEXT)');sqlite.prepare('INSERT INTO marketing_board VALUES(1,4,?)').run(JSON.stringify(original));
  const sql=taskTypeMigrationSql(original,converted,4);sqlite.exec(sql);assert.deepEqual(JSON.parse(sqlite.prepare('SELECT data FROM marketing_board').get().data),converted);sqlite.exec(sql);assert.equal(sqlite.prepare('SELECT revision FROM marketing_board').get().revision,5);sqlite.close();
+
+ const art={...x.blank('a fazer farias'),title:'Arte',tags:['fibroplast'],taskType:'artes-externas',taskSubtype:'placas',assignees:['Farias']};
+ const combined=x.normalizeTaskType(x.toggleTaskType(art,'compras'));assert.deepEqual(x.selectedTaskTypes(combined),['compras','artes-externas']);assert(!x.purchaseReady(combined));assert.equal(combined.taskSubtype,'placas');
+ assert(x.purchaseReady({...combined,status:'aprovado ✅',approval:{round:1,votes:{lucio:{decision:'approved'}}}}));
+ const social=x.normalizeTaskType(x.toggleTaskType({...art,taskType:'rede-sociais',taskSubtype:undefined},'compras'));assert.deepEqual(x.selectedTaskTypes(social),['compras','rede-sociais']);assert(!x.purchaseReady(social));assert(x.purchaseReady({...social,status:'aprovado ✅',approval:{round:1,votes:{lucio:{decision:'approved'}}}}));
+
+ for(const source of [combined,social]){
+  const editor={role:'editor',persona:'farias'};let card=x.mergeScopedTasks([],[source],editor)[0];assert(!x.purchaseReady(card));
+  card=x.mergeScopedTasks([card],[{...card,status:'aprovação fibroplast'}],editor)[0];assert(!x.purchaseReady(card));
+  card=x.castApprovalVote(card,{role:'editor',persona:'lucio',email:'lucio@test',name:'Lúcio'},'approved',x.emptyStatusConfig);assert(x.purchaseReady(card));assert.equal(card.status,'aprovado ✅');
+ }
+ const standalone=x.toggleTaskType(combined,'compras');assert.equal(x.taskTypeId(standalone),'artes-externas');assert(!x.isPurchase(standalone));
  let row={data:'[]',revision:1,status_config:'{}'},actorRole='editor';
  globalThis.__typeActor=()=>({role:actorRole,user:{displayName:'ADM'},db:{prepare(){return {bind(...args){this.args=args;return this},async first(){return row},async run(){row={data:this.args[0],status_config:this.args[1],revision:row.revision+1};return {meta:{changes:1}}}}}}});
  const api='.sites-runtime/task-types-api-test.mjs';await build({entryPoints:['app/api/statuses/route.ts'],bundle:true,platform:'node',format:'esm',outfile:api,plugins:[{name:'actor',setup(b){b.onResolve({filter:/\/access$/},()=>({path:'actor',namespace:'mock'}));b.onLoad({filter:/.*/,namespace:'mock'},()=>({contents:'export async function getActor(){return globalThis.__typeActor()}',loader:'js'}))}}]});
