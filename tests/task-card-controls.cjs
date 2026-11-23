@@ -18,6 +18,6 @@ const {buildSync}=require('esbuild'),assert=require('node:assert/strict'),path=r
  await act(async()=>mount.querySelector('[aria-label="Fechar revisão automática"]').click());assert.equal(mount.querySelector('.cover-spelling-menu'),null);
  assert.equal(compactTaskDate('2026-12-31','Entrega'),'31/12');assert.equal(compactTaskDate('','Início'),'Início');let opened='';
  await act(async()=>root.render(React.createElement(CompactTaskDates,{task:{...task,start:'',due:'2026-10-31'},disabled:false,late:true,onClick:(_,target)=>opened=target})));
- assert.match(mount.textContent,/Início.*31\/10/);await act(async()=>mount.querySelector('button').click());assert.equal(opened,'start');await act(async()=>mount.querySelector('[aria-label="Editar data de entrega"]').click());assert.equal(opened,'due');await act(async()=>root.unmount());
+ assert.match(mount.textContent,/Início.*31\/10/);await act(async()=>mount.querySelector('button').click());assert.equal(opened,'due');assert.equal(mount.querySelector('[aria-label="Editar data de início"]'),null);await act(async()=>mount.querySelector('[aria-label="Editar data de entrega"]').click());assert.equal(opened,'due');await act(async()=>root.unmount());
  console.log('PASS: member avatars open a search-free picker, add/remove actions and locked reviewers are preserved; spelling expands only on demand; compact dates preserve editing.');
 })().catch(error=>{console.error(error);process.exitCode=1});

@@ -2,7 +2,7 @@
 import {useEffect,useLayoutEffect,useRef,useState,type ReactNode,type RefObject,type MouseEvent} from 'react';
 import {CalendarDays,Check,FileText,Users,X} from 'lucide-react';
 import {ProfileAvatar,profileName} from './profile-avatar';
-import type {Task} from './model';
+import {withCreationStart,type Task} from './model';
 import {canShowSpellingPanel} from './spelling-panel';
 import {spellingFlagged} from './spelling';
 function useCardPopover(open:boolean,setOpen:(value:boolean)=>void,anchor:RefObject<HTMLDivElement|null>,menu:RefObject<HTMLDivElement|null>){
@@ -24,7 +24,7 @@ export function TaskMembersPicker({options,writable,busy,onToggle}:{options:Memb
  </div>;
 }
 export function compactTaskDate(value:string|undefined,placeholder:string){const match=value?.match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?match[3]+'/'+match[2]:value||placeholder}
-export function CompactTaskDates({task,disabled,late,onClick}:{task:Task,disabled:boolean,late:boolean,onClick:(event:MouseEvent<HTMLButtonElement>,target:'start'|'due')=>void}){return <span className="task-dates-compact task-date-links"><button type="button" disabled={disabled} aria-label="Editar data de início" title="Data de início" onClick={event=>onClick(event,'start')}><CalendarDays size={13}/><span>{compactTaskDate(task.start,'Início')}</span></button><span aria-hidden="true">→</span><button type="button" disabled={disabled} aria-label="Editar data de entrega" title={'Data de entrega'+(task.dueTime?' às '+task.dueTime:'')} onClick={event=>onClick(event,'due')} className={late?'compact-due is-overdue':'compact-due'}><CalendarDays size={13}/><strong>{compactTaskDate(task.due,'Entrega')}</strong>{task.dueTime&&<small>{task.dueTime}</small>}</button></span>}
+export function CompactTaskDates({task,disabled,late,onClick}:{task:Task,disabled:boolean,late:boolean,onClick:(event:MouseEvent<HTMLButtonElement>,target:'start'|'due')=>void}){task=withCreationStart(task);return <span className="task-dates-compact task-date-links"><span className="task-created-date" aria-label="Data de criação do cartão" title="Data em que o cartão foi criado"><CalendarDays size={13}/><span>{compactTaskDate(task.start,'Início')}</span></span><span aria-hidden="true">→</span><button type="button" disabled={disabled} aria-label="Editar data de entrega" title={'Data de entrega'+(task.dueTime?' às '+task.dueTime:'')} onClick={event=>onClick(event,'due')} className={late?'compact-due is-overdue':'compact-due'}><CalendarDays size={13}/><strong>{compactTaskDate(task.due,'Entrega')}</strong>{task.dueTime&&<small>{task.dueTime}</small>}</button></span>}
 export function CoverSpellingMenu({task,children}:{task:Task,children:ReactNode}){
  const [open,setOpen]=useState(false),root=useRef<HTMLDivElement>(null),menu=useRef<HTMLDivElement>(null);useCardPopover(open,setOpen,root,menu);
  if(!canShowSpellingPanel(task))return null;

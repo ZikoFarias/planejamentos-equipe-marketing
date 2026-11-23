@@ -1,3 +1,4 @@
+import {withCreationStart,creationDay} from './model';
 import {normalizeTaskType} from './task-types';
 import {isWeeklyDraft} from './weekly-drafts';
 import {needsCaption,captionAfterArt} from './captions';
@@ -41,9 +42,9 @@ function onlyWorkflowChanged(previous:Task,next:Task){
 }
 export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=new Date().toISOString(),config:StatusConfig=emptyStatusConfig):Task[]{
  if(actor.role==='visualizador'||(actor.role!=='administrador'&&!actor.persona))throw Error('Seu perfil não permite alterar tarefas.');
- current=current.map(t=>normalizeTaskType(t,config.labels));incoming=incoming.map(t=>normalizeTaskType(t,config.labels));
+ current=current.map(t=>withCreationStart(normalizeTaskType(t,config.labels)));incoming=incoming.map(t=>normalizeTaskType(t,config.labels));
  const old=new Map(current.map(t=>[t.id,t]));
- const next=incoming.map(t=>{const previous=old.get(t.id);if(JSON.stringify(previous?.caption)!==JSON.stringify(t.caption))throw Error('Use a área de legendas para atualizar a legenda.');if(previous&&!canManageTask(previous,actor)&&!(canMoveTask(previous,actor)&&(onlyWorkflowChanged(previous,t)||onlyWorkflowChanged(withParticipants(previous,config.labels),t)))){if(!sameTaskData(previous,t)&&!sameTaskData(withParticipants(previous,config.labels),t))throw Error('Você pode visualizar este cartão, mas apenas o responsável e os demais membros podem alterá-lo.');return previous;}if(!previous&&!t.start)t={...t,start:new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Sao_Paulo'}).format(new Date(now))};t=protectSpelling(previous,t);
+ const next=incoming.map(t=>{const previous=old.get(t.id);t=previous?{...t,start:previous.start,...(previous.createdAt?{createdAt:previous.createdAt}:{createdAt:undefined})}:{...t,createdAt:now,start:creationDay(now)};if(JSON.stringify(previous?.caption)!==JSON.stringify(t.caption))throw Error('Use a área de legendas para atualizar a legenda.');if(previous&&!canManageTask(previous,actor)&&!(canMoveTask(previous,actor)&&(onlyWorkflowChanged(previous,t)||onlyWorkflowChanged(withParticipants(previous,config.labels),t)))){if(!sameTaskData(previous,t)&&!sameTaskData(withParticipants(previous,config.labels),t))throw Error('Você pode visualizar este cartão, mas apenas o responsável e os demais membros podem alterá-lo.');return previous;}t=protectSpelling(previous,t);
  guardPurchaseEdit(previous,t,actor);
  const changed=!previous||!sameTaskData(previous,t);const task=changed?stampPosted(previous,guardPurchaseFlow(previous,normalizePurchase(protectApproval(previous,{...assignStatusOwner(configuredTask(assignStatusOwner(normalizeApproval(t),config.labels),config),config.labels),title:t.title.trim().toLocaleUpperCase('pt-BR')},actor.role==='administrador',config.labels),previous,actor.role==='administrador'),actor),now):t;
  if(!previous&&canCreateTask(task,actor)&&actor.role==='editor'&&['a fazer farias','a fazer luiz'].includes(task.status))return captionAfterArt(previous,guardArtFlow(previous,task,actor,config.labels));

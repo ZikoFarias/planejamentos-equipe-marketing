@@ -1,3 +1,4 @@
+import {withCreationStart} from './model';
 import {normalizeTaskType,type TaskTypeDefinition} from './task-types';
 import {captionColumns} from './captions';
 import type {LabelConfig} from './labels';
@@ -15,7 +16,7 @@ function activeArtStatus(id:string){
  return id;
 }
 export function configuredStatus(id:string,config:StatusConfig=emptyStatusConfig){id=activeArtStatus(id);const seen=new Set<string>();while(config.removed[id]){if(seen.has(id))throw Error('Os destinos dos status formam um ciclo.');seen.add(id);id=activeArtStatus(config.removed[id])}return id}
-export function configuredTask(task:Task,config:StatusConfig=emptyStatusConfig):Task{return {...normalizeTaskType(task,config.labels),status:configuredStatus(task.status,config),...(task.workflowResume?{workflowResume:activeArtStatus(task.workflowResume)}:{})}}
+export function configuredTask(task:Task,config:StatusConfig=emptyStatusConfig):Task{return {...withCreationStart(normalizeTaskType(task,config.labels)),status:configuredStatus(task.status,config),...(task.workflowResume?{workflowResume:activeArtStatus(task.workflowResume)}:{})}}
 export function customStatus(id:string){return id.startsWith('custom:')}
 export function statusColumns(area:string,config:StatusConfig=emptyStatusConfig):string[][]{const definitions=statusDefinitions(config);if(area==='laura')return captionColumns;if(area==='compras')return purchaseColumns;if(area!=='luiz'&&area!=='farias'){
  const columns=definitions.map(s=>[s.id,s.color,s.name]);
