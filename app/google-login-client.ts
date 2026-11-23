@@ -40,7 +40,7 @@ export function mountGoogleLogin(element: HTMLElement) {
     message.textContent = '';
     try {
      await send({credential});
-     window.location.assign(loginDestination(window.location.search));
+     window.location.replace(loginDestination(window.location.search));
     } catch (error) {
      signingIn = false;
      if (active) message.textContent = error instanceof Error ? error.message : 'Não foi possível entrar com Google.';

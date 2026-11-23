@@ -41,6 +41,7 @@ export default {async scheduled(_event:ScheduledController,env:Environment,ctx:E
  else if(url.pathname==='/api/auth/login'||url.pathname==='/api/auth/challenge')response=await handleTeamLogin(clean,env,url.pathname.endsWith('/challenge'));
  else if(url.pathname==='/api/auth/google')response=await handleGoogleTeamLogin(clean,env);
  else if(url.pathname==='/login'&&['GET','HEAD'].includes(request.method)){
+  if(await requestTeamSession(clean,env))return Response.redirect(new URL('/'+url.search,url).href,302);
   url.pathname='/_team/login.html';url.search='';response=await env.ASSETS.fetch(new Request(url,{method:request.method}));
  }else{
   // @ts-ignore Generated server bundle is present in the deployment staging directory.

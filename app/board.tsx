@@ -277,7 +277,34 @@ export default function Board(){
  },[]);
  useEffect(()=>{load();loadAppearance();try{setCollapsed(JSON.parse(localStorage.getItem('marketing-collapsed')||'[]'));setHideEmpty(localStorage.getItem('marketing-hide')==='true')}catch{}},[]);
  useEffect(()=>{if(draft||admin||settings||weekly||bulkOpen)dialog.current?.showModal();else if(dialog.current?.open){dialog.current.close();originFocus.current?.focus()}},[!!draft,admin,settings,weekly,bulkOpen]);
- useEffect(()=>{if(loading||!role)return;function showLinked(){const id=linkedTaskId(window.location.search);if(!id||linkedOpened.current===id)return;linkedOpened.current=id;const task=tasks.find(t=>t.id===id);if(task){setQ('');setCalendar(false);open(task)}else setNotice('Cartão não encontrado ou sem acesso.')}showLinked();window.addEventListener('popstate',showLinked);return()=>window.removeEventListener('popstate',showLinked)},[loading,role,tasks]);
+ useEffect(()=>{if(loading||!role)return;function showLinked(){const id=linkedTaskId(window.location.search);if(!id||linkedOpened.current===id)return;linkedOpened.current=id;if(draft?.id===id)return;const task=tasks.find(t=>t.id===id);if(task){setQ('');setCalendar(false);open(task)}else setNotice('Cartão não encontrado ou sem acesso.')}showLinked()},[loading,role,tasks]);
+
+ const navigation=useRef<{area:Area,calendar:boolean,card:string}|null>(null),applyingNavigation=useRef(false);
+ const navigationAccess=useRef({close,open,tasks,draft,area,calendar});navigationAccess.current={close,open,tasks,draft,area,calendar};
+ useEffect(()=>{
+  if(loading||!role||applyingNavigation.current)return;
+  const next={area,calendar,card:draft?.id||''};if(JSON.stringify(next)===JSON.stringify(navigation.current))return;
+  const url=new URL(window.location.href);url.searchParams.delete('card');if(next.card)url.searchParams.set('card',next.card);
+  const state={...window.history.state,marketingView:next};
+  if(navigation.current)window.history.pushState(state,'',url);else window.history.replaceState(state,'',url);
+  navigation.current=next;
+ },[loading,role,area,calendar,draft?.id]);
+ useEffect(()=>{
+  const frame=()=>new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
+  async function back(event:PopStateEvent){
+   const target=event.state?.marketingView;if(!target||!['aprovacoes','luiz','farias','laura','compras'].includes(target.area)||applyingNavigation.current)return;
+   applyingNavigation.current=true;
+   try{
+    let current=navigationAccess.current;
+    if(current.draft&&current.draft.id!==target.card){await current.close();await frame();current=navigationAccess.current;if(current.draft){const url=new URL(window.location.href);url.searchParams.set('card',current.draft.id);window.history.pushState({...window.history.state,marketingView:navigation.current},'',url);return}}
+    setArea(target.area);setCalendar(!!target.calendar);setQ('');setSelectMode(false);setSelected([]);
+    if(userEmail)localStorage.setItem('marketing-last-area:'+userEmail,target.area);
+    if(target.card&&current.draft?.id!==target.card){const task=current.tasks.find(t=>t.id===target.card);if(task)current.open(task)}
+    navigation.current=target;await frame();
+   }finally{applyingNavigation.current=false}
+  }
+  window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);
+ },[userEmail]);
  function open(t:Task){setCommentReply(null);if(minimizedState.current?.task.id===t.id){resumeMinimizedCard();return}setMobileActivity(false);hideProfilePopovers();setCaptionText(t.caption?.text||'');setCommentFiles([]);setCommentMedia([]);commentRequest.current='';setIncompleteCard([]);setCardEditor(null);const source=(document.activeElement as HTMLElement)?.closest('.task,.calendar-card')?.getBoundingClientRect();dialog.current?.style.setProperty('--open-scale',source?String(Math.max(.24,Math.min(.7,source.width/940))):'.92');setDeleteConfirm(false);originFocus.current=document.activeElement as HTMLElement;const editable={...structuredClone(t),title:t.title.toLocaleUpperCase('pt-BR')};initialDraft.current=JSON.stringify(editable);setDraft(editable);setNewTag('');setComment('');setAttachmentName('');setAttachmentUrl('');setAttachmentKind('reference')}
  function minimizeCard(){if(!draft)return;minimizedState.current={task:structuredClone(draft),baseline:initialDraft.current,comment,captionText,files:[...commentFiles],media:[...commentMedia],request:commentRequest.current};dismissDraft()}
  function resumeMinimizedCard(){const saved=minimizedState.current;if(!saved)return;const remote=liveBoard.current.tasks.find(task=>task.id===saved.task.id);const restored=remote?mergeUploadDraft(saved.task,JSON.parse(saved.baseline),remote):saved.task;minimizedState.current=null;open(restored);initialDraft.current=JSON.stringify(remote||JSON.parse(saved.baseline));setComment(saved.comment);setCaptionText(saved.captionText);setCommentFiles(saved.files);setCommentMedia(saved.media);commentRequest.current=saved.request}

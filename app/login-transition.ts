@@ -6,7 +6,7 @@ export const transitionShell=`<div class="login-reveal-stage" role="status" aria
 
 export async function navigateWithLogo(destination:string){
  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-  window.location.assign(destination);
+  window.location.replace(destination);
   return;
  }
  const source=document.querySelector<HTMLImageElement>('.login-mark');
@@ -27,7 +27,7 @@ export async function navigateWithLogo(destination:string){
   await movement.finished.catch(()=>{});
  }
  try{sessionStorage.setItem(transitionKey,String(Date.now()))}catch{}
- window.location.assign(destination);
+ window.location.replace(destination);
 }
 
 export function installBoardEntrance(){
