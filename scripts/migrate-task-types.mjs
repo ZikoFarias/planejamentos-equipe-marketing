@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {taskTypeMigrationSql} from './task-type-migration-sql.mjs';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {build} from 'esbuild';
@@ -16,6 +17,6 @@ for(let attempt=0;attempt<3;attempt++){
  console.log(JSON.stringify({mode:process.argv.includes('--apply')?'apply':'dry-run',cards:next.length,changed:count,types,combinedPurchaseArt:next.filter(t=>t.externalArtwork).length}));
  if(!process.argv.includes('--apply')||!count)break;
  fs.writeFileSync(path.resolve('.sites-runtime/task-types-backup-'+Date.now()+'.json'),JSON.stringify(row));
- const file=path.resolve('.sites-runtime/task-types-migration.sql'),data=JSON.stringify(next).replaceAll("'","''");fs.writeFileSync(file,"UPDATE marketing_board SET data='"+data+"',revision=revision+1 WHERE id=1 AND revision="+row.revision+";");
+ const file=path.resolve('.sites-runtime/task-types-migration.sql');fs.writeFileSync(file,taskTypeMigrationSql(current,next,row.revision));
  const result=run(['--file',file]);if(result.some(r=>r.meta?.changes>0)){console.log('Migração confirmada; histórico, arquivos, revisores e aprovações preservados.');break}if(attempt===2)throw Error('O quadro mudou durante a migração. Tente novamente.');
 }
