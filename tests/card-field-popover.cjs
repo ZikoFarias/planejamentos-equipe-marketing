@@ -12,6 +12,7 @@ const {buildSync}=require('esbuild'),assert=require('node:assert/strict'),path=r
  }
  await act(async()=>document.body.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true})));assert.equal(closed,1);
  const key=new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true});await act(async()=>mount.querySelector('button').dispatchEvent(key));assert.equal(closed,2);assert(key.defaultPrevented);
+ anchor.getBoundingClientRect=()=>({left:120,right:200,top:600,bottom:634,width:80,height:34});await act(async()=>window.dispatchEvent(new Event('resize')));assert.equal(mount.querySelector('.card-field-popover').style.top,'640px','Menus must remain below the field near the viewport bottom');assert.equal(mount.querySelector('.card-field-popover').style.maxHeight,'120px');
  anchor.remove();await act(async()=>window.dispatchEvent(new Event('resize')));assert.equal(mount.querySelector('.card-field-popover').style.left,'120px','Removing a selected label must not move its menu to a corner');
  await act(async()=>root.unmount());console.log('PASS: all four menus anchor beside their fields without a modal overlay, close outside/on Escape, and retain position if the label anchor is removed.');
 })().catch(error=>{console.error(error);process.exitCode=1});

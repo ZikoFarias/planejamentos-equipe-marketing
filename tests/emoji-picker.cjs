@@ -1,0 +1,16 @@
+const {buildSync}=require('esbuild'),assert=require('node:assert/strict'),path=require('path');
+(async()=>{
+ const {Window}=await import(require('url').pathToFileURL(path.resolve('.sites-runtime/drag-test-tools/node_modules/happy-dom/lib/index.js')).href),win=new Window({url:'https://board.test'});
+ for(const n of ['window','document','HTMLElement','HTMLInputElement','Element','Event','PointerEvent','KeyboardEvent','MouseEvent'])globalThis[n]=n==='window'?win:win[n];globalThis.innerWidth=1000;globalThis.innerHeight=800;globalThis.requestAnimationFrame=f=>setTimeout(f,0);globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+ win.HTMLElement.prototype.showPopover=function(){};win.HTMLElement.prototype.hidePopover=function(){};
+ buildSync({stdin:{contents:"export {CaptionPanel} from './app/caption-panel';export {changeComment} from './app/comment-actions';",resolveDir:process.cwd(),loader:'tsx'},bundle:true,platform:'node',format:'cjs',jsx:'automatic',external:['react','react-dom'],outfile:'.sites-runtime/emoji-test.cjs'});
+ const React=require('react'),{act}=React,{createRoot}=require('react-dom/client'),{CaptionPanel,changeComment}=require(path.resolve('.sites-runtime/emoji-test.cjs'));
+ const mount=document.createElement('div');document.body.append(mount);const root=createRoot(mount);let text='Antes depois';const actor={email:'marketingluke09@gmail.com',role:'administrador',persona:'admin'},task={id:'test',status:'a fazer',caption:{text:''},comments:[]};
+ function Demo(){const [value,setValue]=React.useState(text);return React.createElement(CaptionPanel,{task,actor,text:value,onText:v=>{text=v;setValue(v)},onAction:()=>{},busy:false})}
+ await act(async()=>root.render(React.createElement(Demo)));const field=mount.querySelector('textarea');assert(field,'Caption must be editable');field.focus();field.setSelectionRange(6,6);
+ const key=new KeyboardEvent('keydown',{key:'e',ctrlKey:true,bubbles:true,cancelable:true});await act(async()=>field.dispatchEvent(key));assert(key.defaultPrevented);assert(mount.querySelector('.full-emoji-picker'),'Ctrl+E opens emoji palette');
+ assert(mount.querySelectorAll('.full-emoji-grid button').length>150);const emoji=Array.from(mount.querySelectorAll('.full-emoji-grid button')).find(b=>b.textContent==='😀');await act(async()=>emoji.click());assert.equal(text,'Antes 😀depois');await new Promise(r=>setTimeout(r,10));assert.equal(field.selectionStart,8);assert(!mount.querySelector('.full-emoji-picker'));
+ await act(async()=>field.dispatchEvent(new KeyboardEvent('keydown',{key:'e',ctrlKey:true,bubbles:true,cancelable:true})));const flag=mount.querySelector('button[aria-label="Bandeiras"]');await act(async()=>flag.click());assert(Array.from(mount.querySelectorAll('.full-emoji-grid button')).some(b=>b.textContent==='🇧🇷'),'Flags included');
+ const comment={id:'c',by:'one@test',at:new Date().toISOString(),text:'Oi'};assert(changeComment({...task,comments:[comment]},'two@test',{id:'c',action:'react',emoji:'👩🏽‍💻'}).comments[0].reactions['👩🏽‍💻']);assert.throws(()=>changeComment({...task,comments:[comment]},'two@test',{id:'c',action:'react',emoji:'invalid'}));
+ await act(async()=>root.unmount());console.log('PASS: Ctrl+E, cursor insertion, category switching, complete reaction validation and invalid emoji rejection.');
+})().catch(e=>{console.error(e.message);process.exitCode=1});
