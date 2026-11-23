@@ -1,0 +1,23 @@
+const {buildSync}=require('esbuild'),assert=require('node:assert/strict'),path=require('path');
+(async()=>{
+ const {Window}=await import(require('url').pathToFileURL(path.resolve('.sites-runtime/drag-test-tools/node_modules/happy-dom/lib/index.js')).href),win=new Window({url:'https://board.test'});
+ for(const name of ['window','document','HTMLElement','Element','Event','MouseEvent','KeyboardEvent'])globalThis[name]=name==='window'?win:win[name];
+ globalThis.IS_REACT_ACT_ENVIRONMENT=true;win.HTMLElement.prototype.showPopover=function(){this.setAttribute('data-open','true')};win.HTMLElement.prototype.hidePopover=function(){this.removeAttribute('data-open')};
+ buildSync({entryPoints:['app/task-card-controls.tsx','app/spelling-panel.tsx'],bundle:true,platform:'node',format:'cjs',jsx:'automatic',external:['react','react-dom'],outdir:'.sites-runtime/card-controls-tests',outExtension:{'.js':'.cjs'}});
+ const {TaskMembersPicker,CompactTaskDates,CoverSpellingMenu,compactTaskDate}=require(path.resolve('.sites-runtime/card-controls-tests/task-card-controls.cjs')),{SpellingPanel}=require(path.resolve('.sites-runtime/card-controls-tests/spelling-panel.cjs')),React=require('react'),{act}=React,{createRoot}=require('react-dom/client');
+ const mount=document.createElement('div');document.body.appendChild(mount);const root=createRoot(mount),calls=[],options=[{value:'farias',name:'Farias',selected:true},{value:'lucio',name:'Lucio Alves Xavier',selected:true,locked:true},{value:'luiz',name:'Luiz',selected:false}];
+ await act(async()=>root.render(React.createElement(TaskMembersPicker,{options,writable:true,busy:false,onToggle:(...args)=>calls.push(args)})));
+ assert.equal(mount.querySelector('.summary-add'),null);assert.equal(mount.querySelectorAll('.task-members-trigger .profile-avatar').length,2);assert.equal(mount.querySelector('.task-members-trigger [tabindex]'),null);
+ await act(async()=>mount.querySelector('.task-members-trigger').click());assert(mount.querySelector('[role=listbox]'));assert.equal(mount.querySelector('input'),null);
+ let buttons=[...mount.querySelectorAll('[role=option]')];await act(async()=>buttons.find(b=>b.textContent.includes('Luiz')).click());assert.deepEqual(calls.at(-1),['luiz',true]);await act(async()=>buttons.find(b=>b.textContent.includes('Farias')).click());assert.deepEqual(calls.at(-1),['farias',false]);assert(buttons.find(b=>b.textContent.includes('Lucio')).disabled);
+ await act(async()=>mount.querySelector('[aria-label="Fechar membros"]').click());assert.equal(mount.querySelector('[role=listbox]'),null);
+ const task={id:'card',title:'Arte',tags:[],attachments:[{name:'arte.png',url:'https://board.test/arte.png',type:'image/png',artworkKind:'final',drive:{central:true,fileId:'test-file'}}]};let review='';
+ await act(async()=>root.render(React.createElement(CoverSpellingMenu,{task},React.createElement(SpellingPanel,{task,busy:false,canReview:true,canDismiss:false,onAction:action=>review=action}))));
+ assert.equal(mount.querySelector('.spelling-panel'),null);await act(async()=>mount.querySelector('.cover-spelling-trigger').click());assert(mount.querySelector('.cover-spelling-menu .spelling-panel'));
+ await act(async()=>[...mount.querySelectorAll('.spelling-actions button')].find(b=>b.textContent==='Reanalisar').click());assert.equal(review,'review');
+ await act(async()=>mount.querySelector('[aria-label="Fechar revisão automática"]').click());assert.equal(mount.querySelector('.cover-spelling-menu'),null);
+ assert.equal(compactTaskDate('2026-12-31','Entrega'),'31/12');assert.equal(compactTaskDate('','Início'),'Início');let opened=false;
+ await act(async()=>root.render(React.createElement(CompactTaskDates,{task:{...task,start:'',due:'2026-10-31'},disabled:false,late:true,onClick:()=>opened=true})));
+ assert.match(mount.textContent,/Início.*31\/10/);await act(async()=>mount.querySelector('button').click());assert(opened);await act(async()=>root.unmount());
+ console.log('PASS: member avatars open a search-free picker, add/remove actions and locked reviewers are preserved; spelling expands only on demand; compact dates preserve editing.');
+})().catch(error=>{console.error(error);process.exitCode=1});
