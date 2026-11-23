@@ -7,7 +7,7 @@ export function recordActivity(previous:Task|undefined,next:Task,by:string,at=ne
   if(previous.status!==next.status)add(`Alterou o status de ${previous.status} para ${next.status}`);
   if(previous.purchase?.stage!==next.purchase?.stage&&next.purchase)add(`Compra: ${next.purchase.stage}`);
   if(previous.purchase?.requiresArt!==next.purchase?.requiresArt&&next.purchase)add(next.purchase.requiresArt?'Solicitou criação de arte antes da compra':'Compra sem criação de arte');
-  const fields:[keyof Task,string][]=[['title','título'],['description','descrição'],['assignees','responsáveis'],['tags','etiquetas'],['priority','prioridade'],['due','data de entrega'],['start','data inicial'],['purchase','dados da compra'],['coverUrl','capa'],['checklist','checklist']];
+  const fields:[keyof Task,string][]=[['taskType','tipo de tarefa'],['taskSubtype','subtipo'],['title','título'],['description','descrição'],['assignees','responsáveis'],['tags','etiquetas'],['priority','prioridade'],['due','data de entrega'],['start','data inicial'],['purchase','dados da compra'],['coverUrl','capa'],['checklist','checklist']];
   for(const [field,label] of fields)if(JSON.stringify(previous[field])!==JSON.stringify(next[field]))add(`Atualizou ${label}`);
  }
  const added=next.attachments.filter(a=>!previous?.attachments.some(old=>old.url===a.url));

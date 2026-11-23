@@ -1,3 +1,4 @@
+import {normalizeTaskType} from './task-types';
 import {isWeeklyDraft} from './weekly-drafts';
 import {needsCaption,captionAfterArt} from './captions';
 import {externalMediaLabel} from './external-media-label';
@@ -40,6 +41,7 @@ function onlyWorkflowChanged(previous:Task,next:Task){
 }
 export function mergeScopedTasks(current:Task[],incoming:Task[],actor:Actor,now=new Date().toISOString(),config:StatusConfig=emptyStatusConfig):Task[]{
  if(actor.role==='visualizador'||(actor.role!=='administrador'&&!actor.persona))throw Error('Seu perfil não permite alterar tarefas.');
+ current=current.map(t=>normalizeTaskType(t,config.labels));incoming=incoming.map(t=>normalizeTaskType(t,config.labels));
  const old=new Map(current.map(t=>[t.id,t]));
  const next=incoming.map(t=>{const previous=old.get(t.id);if(JSON.stringify(previous?.caption)!==JSON.stringify(t.caption))throw Error('Use a área de legendas para atualizar a legenda.');if(previous&&!canManageTask(previous,actor)&&!(canMoveTask(previous,actor)&&(onlyWorkflowChanged(previous,t)||onlyWorkflowChanged(withParticipants(previous,config.labels),t)))){if(!sameTaskData(previous,t)&&!sameTaskData(withParticipants(previous,config.labels),t))throw Error('Você pode visualizar este cartão, mas apenas o responsável e os demais membros podem alterá-lo.');return previous;}if(!previous&&!t.start)t={...t,start:new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Sao_Paulo'}).format(new Date(now))};t=protectSpelling(previous,t);
  guardPurchaseEdit(previous,t,actor);

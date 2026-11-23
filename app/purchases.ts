@@ -1,10 +1,11 @@
+import {taskTypeId,normalizeTaskType} from './task-types';
 import {validAttachmentMetadata} from './attachment-validation';
 import {previewKind} from './media';
 import {externalMediaLabel} from './external-media-label';
 import type {Actor} from './permissions';
 import type {Task,QuoteOption} from './model';
 export const purchaseColumns=[['comprar','#579dff','Comprar'],['em andamento','#ffc2a9','Em andamento'],['orçamento','#a78bfa','Orçamento'],['aprovado','#00d99a','Aprovado'],['pagamento','#ffc53d','Pagamento'],['aguardando chegada','#61c8ed','Aguardando chegada'],['stand-by','#ff7373','Stand-by'],['concluído','#008844','Concluído']];
-export const isPurchase=(t:Task)=>t.tags?.some(tag=>['COMPRA','COMPRAR','COMPRAS'].includes(tag.trim().toLocaleUpperCase('pt-BR')));
+export const isPurchase=(t:Task)=>taskTypeId(t)==='compras';
 export const purchaseHasArt=(task:Task)=>!!task.purchase?.mediaLabel||!!externalMediaLabel(task);
 export const purchaseReady=(task:Task)=>isPurchase(task)&&(!purchaseHasArt(task)||(
  ['aprovado ✅','stand-by ⛔','concluidos e postados'].includes(task.status)&&
@@ -23,20 +24,20 @@ export function syncPurchaseArt(task:Task,previous?:Task):Task{
   if(media&&purchase.quoteApproval&&quoteApproved(task))ready.purchase={...purchase,quoteApproval:{...purchase.quoteApproval,snapshot:quoteSnapshot(ready)}};
   return ready;
  }
- const tags=media?task.tags:[...task.tags,purchase.mediaLabel];
+ const tags=task.taskType?task.tags:media?task.tags:[...task.tags,purchase.mediaLabel];
  return {...next,tags,purchase:{...purchase,stage:'comprar',resumeStage:undefined,quoteApproval:undefined}};
 }
 export const isQuoteReview=(task:Task)=>purchaseReady(task)&&task.purchase?.stage==='orçamento';
 export const quotesFor=(t:Task):QuoteOption[]=>t.purchase?.quotes??(t.purchase?.quote?[{...t.purchase.quote,id:'legacy',link:''}]:[]);
 export const selectedQuote=(t:Task)=>quotesFor(t).find(q=>q.id===(t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':undefined)));
-export const quoteSnapshot=(t:Task)=>JSON.stringify({quotes:quotesFor(t).map(q=>q.attachments?.some(a=>a.purpose==='invoice')?Object.fromEntries(Object.entries({...q,attachments:q.attachments.filter(a=>a.purpose!=='invoice')}).filter(([key,value])=>key!=='attachments'||(value as unknown[]).length>0)):q),selected:t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':''),title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags});
+export const quoteSnapshot=(t:Task)=>JSON.stringify({quotes:quotesFor(t).map(q=>q.attachments?.some(a=>a.purpose==='invoice')?Object.fromEntries(Object.entries({...q,attachments:q.attachments.filter(a=>a.purpose!=='invoice')}).filter(([key,value])=>key!=='attachments'||(value as unknown[]).length>0)):q),selected:t.purchase?.selectedQuoteId||(!t.purchase?.quotes&&t.purchase?.quote?'legacy':''),title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags,taskType:taskTypeId(t),taskSubtype:t.taskSubtype||''});
 export const quoteUnitPrice=(q:QuoteOption)=>q.total!==undefined&&q.quantity>0?q.total/q.quantity:q.unitPrice;
 export const quoteTotal=(q:QuoteOption)=>q.total??q.unitPrice*q.quantity;
 export const quoteFiles=(task:Task)=>quotesFor(task).flatMap(quote=>quote.attachments||[]);
 export const canEditQuotes=(actor:Actor)=>actor.role==='administrador'||actor.role==='editor'&&['farias','lucio'].includes(actor.persona);
 export const MAX_QUOTE_FILES=10;
 export const quoteValid=(t:Task)=>{const q=selectedQuote(t);return !!q&&!!(q.place.trim()||/^https?:\/\//.test(q.link)||q.attachments?.length)&&quoteTotal(q)>0};
-export const quoteApproved=(t:Task)=>quoteValid(t)&&(t.purchase?.quoteApproval?.snapshot===quoteSnapshot(t)||(!t.purchase?.quotes&&t.purchase?.quoteApproval?.snapshot===JSON.stringify({quote:t.purchase?.quote||null,title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags})));
+export const quoteApproved=(input:Task)=>{const t=normalizeTaskType(input);return quoteValid(t)&&(t.purchase?.quoteApproval?.snapshot===quoteSnapshot(t)||(!t.purchase?.quotes&&t.purchase?.quoteApproval?.snapshot===JSON.stringify({quote:t.purchase?.quote||null,title:t.title.trim().toLocaleUpperCase('pt-BR'),description:t.description,tags:t.tags,taskType:taskTypeId(t),taskSubtype:t.taskSubtype||''})))};
 export const money=(amount:number)=>amount.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 export function normalizePurchase(t:Task,previous?:Task,admin=false):Task{
  if(!isPurchase(t))return {...t,purchase:undefined};

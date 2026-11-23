@@ -1,12 +1,13 @@
+import {normalizeTaskType,type TaskTypeDefinition} from './task-types';
 import {captionColumns} from './captions';
 import type {LabelConfig} from './labels';
 import {purchaseColumns} from './purchases';
 import {statuses,Task} from './model';
 import {personalColumns} from './workflow';
 export type StatusDefinition={id:string,name:string,color:string};
-export type StatusConfig={labels?:LabelConfig,custom:StatusDefinition[],removed:Record<string,string>};
+export type StatusConfig={taskTypes?:TaskTypeDefinition[],labels?:LabelConfig,custom:StatusDefinition[],removed:Record<string,string>};
 export const emptyStatusConfig:StatusConfig={custom:[],removed:{}};
-export function readStatusConfig(raw?:string|StatusConfig):StatusConfig{if(!raw)return emptyStatusConfig;const value=typeof raw==='string'?JSON.parse(raw):raw;return {custom:value.custom||[],removed:value.removed||{},...(value.labels?{labels:value.labels}:{})}}
+export function readStatusConfig(raw?:string|StatusConfig):StatusConfig{if(!raw)return emptyStatusConfig;const value=typeof raw==='string'?JSON.parse(raw):raw;return {...(value.taskTypes?{taskTypes:value.taskTypes}:{}),custom:value.custom||[],removed:value.removed||{},...(value.labels?{labels:value.labels}:{})}}
 export function statusDefinitions(config:StatusConfig=emptyStatusConfig){const ordered=statuses.filter(([id])=>id!=='ajustar legenda');const caption=statuses.find(([id])=>id==='ajustar legenda');if(caption)ordered.splice(ordered.findIndex(([id])=>id==='ajustar ⚠️')+1,0,caption);return [...ordered.map(([id,color])=>({id,name:id.toLocaleUpperCase('pt-BR'),color})),...config.custom].filter(s=>!config.removed[s.id])}
 function activeArtStatus(id:string){
  if(id==='em andamento farias')return 'a fazer farias';
@@ -14,7 +15,7 @@ function activeArtStatus(id:string){
  return id;
 }
 export function configuredStatus(id:string,config:StatusConfig=emptyStatusConfig){id=activeArtStatus(id);const seen=new Set<string>();while(config.removed[id]){if(seen.has(id))throw Error('Os destinos dos status formam um ciclo.');seen.add(id);id=activeArtStatus(config.removed[id])}return id}
-export function configuredTask(task:Task,config:StatusConfig=emptyStatusConfig):Task{return {...task,status:configuredStatus(task.status,config),...(task.workflowResume?{workflowResume:activeArtStatus(task.workflowResume)}:{})}}
+export function configuredTask(task:Task,config:StatusConfig=emptyStatusConfig):Task{return {...normalizeTaskType(task,config.labels),status:configuredStatus(task.status,config),...(task.workflowResume?{workflowResume:activeArtStatus(task.workflowResume)}:{})}}
 export function customStatus(id:string){return id.startsWith('custom:')}
 export function statusColumns(area:string,config:StatusConfig=emptyStatusConfig):string[][]{const definitions=statusDefinitions(config);if(area==='laura')return captionColumns;if(area==='compras')return purchaseColumns;if(area!=='luiz'&&area!=='farias'){
  const columns=definitions.map(s=>[s.id,s.color,s.name]);

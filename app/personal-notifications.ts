@@ -4,7 +4,7 @@ import {isPurchase,purchaseReady} from './purchases';
 import {lucioOnly} from './reviewer-policy';
 import type {LabelConfig} from './labels';
 export type NotificationPersona='luiz'|'farias'|'lucio'|'mateus';
-export type NotificationTask=Pick<Task,'id'|'title'|'status'|'tags'|'assignees'|'purchase'|'approval'|'workflowResume'>;
+export type NotificationTask=Pick<Task,'taskType'|'taskSubtype'|'externalArtwork'|'id'|'title'|'status'|'tags'|'assignees'|'purchase'|'approval'|'workflowResume'>;
 export type NotificationTarget={id:string,title:string,status:string};
 export type PersonalEvent={recipient:NotificationPersona|'all',kind:string,title:string,message:string,taskId?:string,targets?:NotificationTarget[]};
 export type PersonalNotification={id:number,kind:string,title:string,message:string,taskId?:string,targets:NotificationTarget[],createdAt:string,readAt:string|null,seenAt:string|null};
