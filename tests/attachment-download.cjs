@@ -1,0 +1,26 @@
+const {buildSync}=require('esbuild'),path=require('path'),assert=require('assert/strict');
+(async()=>{
+ const {Window}=await import(require('url').pathToFileURL(path.resolve('.sites-runtime/drag-test-tools/node_modules/happy-dom/lib/index.js')).href),win=new Window({url:'https://board.test/?card=one'});
+ for(const key of ['window','document','HTMLElement','HTMLDialogElement','Event','MouseEvent'])globalThis[key]=key==='window'?win:win[key];
+ Object.defineProperty(globalThis,'navigator',{value:win.navigator,configurable:true});Object.defineProperty(navigator,'userAgent',{value:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)',configurable:true});
+ globalThis.IS_REACT_ACT_ENVIRONMENT=true;win.HTMLDialogElement.prototype.showModal=function(){this.open=true};win.HTMLDialogElement.prototype.close=function(){this.open=false};
+ let revoked=0;URL.createObjectURL=()=> 'blob:download-original';URL.revokeObjectURL=()=>revoked++;
+ buildSync({entryPoints:['app/attachment-download.tsx'],bundle:true,platform:'node',format:'cjs',jsx:'automatic',external:['react','react-dom'],outfile:'.sites-runtime/attachment-download-test.cjs'});
+ const React=require('react'),{act}=React,{createRoot}=require('react-dom/client'),{AttachmentDownload,isAppleMobile,prepareAttachmentDownload}=require(path.resolve('.sites-runtime/attachment-download-test.cjs'));
+ assert(isAppleMobile(navigator));assert(isAppleMobile({userAgent:'Mac',platform:'MacIntel',maxTouchPoints:5}));assert(!isAppleMobile({userAgent:'Desktop',platform:'MacIntel',maxTouchPoints:0}));
+ const a={name:'Arte original.png',type:'image/png',url:'https://drive.google.com/test',drive:{fileId:'file123',central:true}};
+ let fetches=0,shares=0,started=0,behavior='success',signal;
+ globalThis.fetch=async(url,options)=>{fetches++;signal=options.signal;assert.match(url,/download=1/);return new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'image/png'}})};
+ navigator.canShare=({files})=>files.length===1;navigator.share=async({files})=>{shares++;assert.equal(files[0].name,a.name);assert.equal(files[0].size,3);if(behavior==='cancel')throw new DOMException('cancel','AbortError')};
+ const mount=document.createElement('div');document.body.appendChild(mount);const root=createRoot(mount);const tick=()=>new Promise(r=>setTimeout(r,0));
+ await act(async()=>root.render(React.createElement(AttachmentDownload,{attachment:a,onStart:()=>started++})));
+ await act(async()=>{document.querySelector('a').click();await tick()});assert.equal(fetches,1);assert.equal(shares,0,'Sharing must wait for a second direct user gesture');assert(document.querySelector('dialog').open);assert.equal(window.location.href,'https://board.test/?card=one');assert.equal(document.querySelector('dialog img').src,'blob:download-original');
+ await act(async()=>{[...document.querySelectorAll('dialog button')].find(b=>b.textContent==='Salvar ou compartilhar').click();await tick()});assert.equal(shares,1);assert.equal(document.querySelector('dialog'),null);assert(revoked>0);
+ behavior='cancel';await act(async()=>{document.querySelector('a').click();await tick()});await act(async()=>{[...document.querySelectorAll('dialog button')].find(b=>b.textContent==='Salvar ou compartilhar').click();await tick()});assert(document.querySelector('dialog').open);assert.equal(document.querySelector('[role=alert]'),null);await act(async()=>document.querySelector('[aria-label="Fechar download"]').click());assert.equal(document.querySelector('dialog'),null);
+ let resolve;globalThis.fetch=async(url,options)=>{signal=options.signal;return new Promise(r=>resolve=r)};
+ await act(async()=>{document.querySelector('a').click();await tick()});await act(async()=>document.querySelector('[aria-label="Fechar download"]').click());assert(signal.aborted);await act(async()=>{resolve(new Response(new Uint8Array([1])));await tick()});assert.equal(document.querySelector('dialog'),null);
+ globalThis.fetch=async()=>new Response('unavailable',{status:503});await act(async()=>{document.querySelector('a').click();await tick()});assert(document.querySelector('[role=alert]'));assert([...document.querySelectorAll('dialog button')].some(b=>b.textContent==='Voltar'));assert.equal(window.location.href,'https://board.test/?card=one');
+ await act(async()=>root.unmount());
+ const file=await prepareAttachmentDownload(a,new AbortController().signal,async()=>new Response(new Uint8Array([1]),{headers:{'Content-Type':'application/octet-stream'}}));assert.equal(file.type,'image/png');assert(started>=4);
+ console.log('PASS: iPhone/iPad detection, original file download without navigation, explicit native-share tap, successful return, cancellation, fetch abort, recoverable error and MIME fallback.');
+})().catch(e=>{console.error(e);process.exitCode=1});
