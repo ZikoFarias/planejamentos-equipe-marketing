@@ -1566,3 +1566,5 @@ html.luke-entering .login-reveal-stage{display:block}
 .ios-download-dialog{height:auto;min-height:0;overflow:hidden}.ios-download-body{min-height:0;flex:1}.ios-download-footer{height:auto;flex-shrink:0;align-items:stretch;justify-content:stretch}
 
 .ios-download-footer button,.ios-download-header button{font-size:14px;line-height:1.35;min-height:44px}
+
+.task-summary{display:flex;flex-wrap:nowrap;align-items:flex-start;gap:14px;overflow-x:auto;width:100%;padding-bottom:14px}.task-summary>.summary-item{flex:0 0 auto}.task-summary .summary-tags,.task-summary .summary-members,.task-type-icons{display:flex;align-items:center;flex-wrap:nowrap;gap:6px}.task-summary .summary-status,.task-summary .date-summary-chip,.task-summary .company-tag{white-space:nowrap}.task-type-icon{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border:1px solid #ffffff25;border-radius:8px;background:#ffffff08;color:#e0ebf5}@media(max-width:520px){.task-summary{gap:12px}.task-type-icon{width:30px;height:30px}}

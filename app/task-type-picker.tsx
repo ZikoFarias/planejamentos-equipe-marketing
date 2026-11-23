@@ -1,14 +1,15 @@
 'use client';
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
-import {Layers,ShoppingCart,Image,Share2,ChevronDown,Check,Plus,Search} from 'lucide-react';
+import {Layers,ShoppingCart,Image,ChevronDown,Check,Plus,Search} from 'lucide-react';
 import type {Task} from './model';
 import {builtInTaskTypes,externalSubtypes,taskTypeId,taskTypeName,changeTaskType,selectedTaskTypes,toggleTaskType,type TaskTypeDefinition} from './task-types';
+function InstagramIcon({size=19}:{size?:number}){return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" data-icon="instagram"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>}
 export function TaskTypePicker({task,custom,writable,administrator,onChange,onCreate}:{task:Task,custom:TaskTypeDefinition[],writable:boolean,administrator:boolean,onChange:(task:Task)=>void,onCreate:(name:string)=>Promise<TaskTypeDefinition>}){
  const [open,setOpen]=useState(false),[search,setSearch]=useState(''),[creating,setCreating]=useState(false),[name,setName]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState(''),root=useRef<HTMLDivElement>(null),menuRef=useRef<HTMLDivElement>(null);
  useEffect(()=>{if(!open)return;const close=(event:PointerEvent)=>{if(!root.current?.contains(event.target as Node))setOpen(false)};document.addEventListener('pointerdown',close);return()=>document.removeEventListener('pointerdown',close)},[open]);
  useLayoutEffect(()=>{const menu=menuRef.current;if(!open||!menu)return;menu.showPopover?.();const bounds=root.current!.getBoundingClientRect();menu.style.left=Math.max(8,Math.min(bounds.left,window.innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.min(bounds.bottom+7,Math.max(8,window.innerHeight-menu.offsetHeight-8))+'px';return()=>menu.hidePopover?.()},[open]);
  const type=taskTypeId(task),selected=selectedTaskTypes(task),types=[...builtInTaskTypes,...custom].filter(t=>t.name.toLocaleLowerCase('pt-BR').includes(search.toLocaleLowerCase('pt-BR')));
- const icon=(id:string)=>id==='compras'?<ShoppingCart size={15}/>:id==='artes-externas'?<Image size={15}/>:id==='rede-sociais'?<Share2 size={15}/>:<Layers size={15}/>;
+ const icon=(id:string)=>id==='compras'?<ShoppingCart size={15}/>:id==='artes-externas'?<Image size={15}/>:id==='rede-sociais'?<InstagramIcon size={15}/>:<Layers size={15}/>;
  return <div className="task-type-picker" ref={root} onKeyDown={e=>{if(e.key==='Escape'){e.stopPropagation();setOpen(false)}}}>
  <button type="button" disabled={!writable} aria-label="Tipo de tarefa" aria-expanded={open} onClick={()=>setOpen(!open)}><Layers size={15}/>Tipo<ChevronDown size={12}/></button>
  {open&&<div className="task-type-menu" ref={menuRef} popover="manual"><label className="task-type-search"><Search size={14}/><input autoFocus aria-label="Buscar tipo de tarefa" placeholder="Buscar tipo…" value={search} onChange={e=>setSearch(e.target.value)}/></label><small>Tipos de tarefa</small><div role="listbox" aria-multiselectable="true" aria-label="Tipos de tarefa">{types.map(t=><button type="button" key={t.id} role="option" aria-selected={selected.includes(t.id)} onClick={()=>onChange(toggleTaskType(task,t.id))}>{icon(t.id)}<span>{t.name}</span>{selected.includes(t.id)&&<Check size={15}/>}</button>)}</div>
@@ -17,4 +18,9 @@ export function TaskTypePicker({task,custom,writable,administrator,onChange,onCr
  {administrator&&<><button type="button" className="task-type-create" onClick={()=>setCreating(!creating)}><Plus size={15}/>Criar tipo de tarefa</button>{creating&&<form onSubmit={async e=>{e.preventDefault();if(busy||!name.trim())return;setBusy(true);setError('');try{const created=await onCreate(name.trim());onChange(toggleTaskType(task,created.id));setOpen(false);setName('');setCreating(false)}catch(e){setError(e instanceof Error?e.message:'Não foi possível criar o tipo.')}finally{setBusy(false)}}}><input aria-label="Nome do novo tipo" value={name} maxLength={60} placeholder="Nome do novo tipo" onChange={e=>setName(e.target.value)}/><small>Novos tipos seguem o fluxo padrão de artes.</small><button type="submit" disabled={busy||!name.trim()}>{busy?'Criando…':'Criar tipo'}</button></form>}</>}
  {error&&<p role="alert">{error}</p>}</div>}
  </div>
+}
+
+export function TaskTypeIcons({task,custom=[]}:{task:Task,custom?:TaskTypeDefinition[]}){
+ const definitions=[...builtInTaskTypes,...custom];
+ return <div className="task-type-icons">{selectedTaskTypes(task).map(id=>{const name=definitions.find(t=>t.id===id)?.name||'Tipo de tarefa',label=name+(id==='artes-externas'&&task.taskSubtype?' · '+(externalSubtypes.find(([key])=>key===task.taskSubtype)?.[1]||task.taskSubtype):'');return <span className="task-type-icon" key={id} role="img" aria-label={label} title={label}>{id==='rede-sociais'?<InstagramIcon size={19}/>:id==='compras'?<ShoppingCart size={19}/>:id==='artes-externas'?<Image size={19}/>:<Layers size={19}/>}</span>})}</div>;
 }
