@@ -1,5 +1,5 @@
 'use client';
-import {useEffect,useLayoutEffect,useRef,useState,type ReactNode,type RefObject} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState,type ReactNode,type RefObject,type MouseEvent} from 'react';
 import {CalendarDays,Check,FileText,Users,X} from 'lucide-react';
 import {ProfileAvatar,profileName} from './profile-avatar';
 import type {Task} from './model';
@@ -24,7 +24,7 @@ export function TaskMembersPicker({options,writable,busy,onToggle}:{options:Memb
  </div>;
 }
 export function compactTaskDate(value:string|undefined,placeholder:string){const match=value?.match(/^(\d{4})-(\d{2})-(\d{2})$/);return match?match[3]+'/'+match[2]:value||placeholder}
-export function CompactTaskDates({task,disabled,late,onClick}:{task:Task,disabled:boolean,late:boolean,onClick:()=>void}){return <button type="button" className="task-dates-compact" disabled={disabled} aria-label="Editar datas" title={'Início: '+(task.start||'não definido')+' · Entrega: '+(task.due||'não definida')+(task.dueTime?' às '+task.dueTime:'')} onClick={onClick}><CalendarDays size={13}/><span>{compactTaskDate(task.start,'Início')}</span><span aria-hidden="true">→</span><span className={late?'compact-due is-overdue':'compact-due'}><CalendarDays size={13}/><strong>{compactTaskDate(task.due,'Entrega')}</strong>{task.dueTime&&<small>{task.dueTime}</small>}</span></button>}
+export function CompactTaskDates({task,disabled,late,onClick}:{task:Task,disabled:boolean,late:boolean,onClick:(event:MouseEvent<HTMLButtonElement>)=>void}){return <button type="button" className="task-dates-compact" disabled={disabled} aria-label="Editar datas" title={'Início: '+(task.start||'não definido')+' · Entrega: '+(task.due||'não definida')+(task.dueTime?' às '+task.dueTime:'')} onClick={onClick}><CalendarDays size={13}/><span>{compactTaskDate(task.start,'Início')}</span><span aria-hidden="true">→</span><span className={late?'compact-due is-overdue':'compact-due'}><CalendarDays size={13}/><strong>{compactTaskDate(task.due,'Entrega')}</strong>{task.dueTime&&<small>{task.dueTime}</small>}</span></button>}
 export function CoverSpellingMenu({task,children}:{task:Task,children:ReactNode}){
  const [open,setOpen]=useState(false),root=useRef<HTMLDivElement>(null),menu=useRef<HTMLDivElement>(null);useCardPopover(open,setOpen,root,menu);
  if(!canShowSpellingPanel(task))return null;
