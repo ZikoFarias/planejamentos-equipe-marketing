@@ -1607,3 +1607,5 @@ html.luke-entering .login-reveal-stage{display:block}
 .app.apple-hig .task-date-links{padding:0;background:transparent;border:0;gap:7px}.app.apple-hig .task-date-links>button{display:inline-flex;align-items:center;gap:5px;padding:4px 0;background:transparent;border:0;box-shadow:none;min-height:28px;font-size:11px;color:inherit;white-space:nowrap}.app.apple-hig .task-date-links>button:hover{color:#76c5ff}.app.apple-hig .task-date-links>button.is-overdue{color:#ff9b9b}
 
 .task-date-links>.task-created-date{display:inline-flex;align-items:center;gap:5px;font-size:11px;white-space:nowrap;color:inherit}
+
+.task-dialog input.task-title{text-transform:uppercase}
