@@ -33,9 +33,9 @@ export function changeCaption(t:Task,actor:Actor&{email:string},action:string,te
  if(!['save','submit'].includes(action)||typeof text!=='string'||text.length>10000)throw Error('Informe uma legenda válida de até 10.000 caracteres.');
  if(version!==(t.caption?.version||0))throw Error('A legenda foi alterada em outra tela. Reabra o cartão antes de editar.');
  if(action==='submit'&&!text.trim())throw Error('Adicione a legenda antes de enviar para aprovação.');
- const changed=text!== (t.caption?.text||'');
- const caption:Caption={...t.caption,text,status:action==='submit'?'review':changed&&t.caption?.status==='review'?'todo':t.caption?.status||'todo',version:(t.caption?.version||0)+1};
- if(changed){delete caption.submittedAt;delete caption.submittedBy}
+ const changed=text!== (t.caption?.text||''),editingSubmittedCaption=actor.persona==='laura'&&t.caption?.status==='review';
+ const caption:Caption={...t.caption,text,status:action==='submit'?'review':changed&&t.caption?.status==='review'&&!editingSubmittedCaption?'todo':t.caption?.status||'todo',version:(t.caption?.version||0)+1};
+ if(changed&&!editingSubmittedCaption){delete caption.submittedAt;delete caption.submittedBy}
  if(action==='submit'){caption.submittedAt=now;caption.submittedBy=actor.email}
  const status=action==='submit'&&t.status==='ajustar legenda'?(t.caption?.resumeStatus||'ajustar ⚠️'):t.status;
  if(action==='submit')delete caption.resumeStatus;
